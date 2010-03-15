@@ -168,7 +168,9 @@ QNetworkReplyHandler::QNetworkReplyHandler(ResourceHandle* handle, LoadMode load
     else
         m_method = QNetworkAccessManager::UnknownOperation;
 
-    m_request = r.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
+    // FIXME: Disabled given OWB's WebFrame does not inherit from QObject
+    //m_request = newRequest.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
+    m_request = r.toNetworkRequest(0);
 
     if (m_loadMode == LoadNormal)
         start();
@@ -366,7 +368,9 @@ void QNetworkReplyHandler::sendResponseIfNeeded()
         if (!m_resourceHandle) // network error did cancel the request
             return;
 
-        m_request = newRequest.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
+        // FIXME: Disabled given OWB's WebFrame does not inherit from QObject
+        //m_request = newRequest.toNetworkRequest(m_resourceHandle->getInternal()->m_frame);
+        m_request = newRequest.toNetworkRequest(0);
 
         return;
     }
