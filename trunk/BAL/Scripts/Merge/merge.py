@@ -93,8 +93,8 @@ build.configureGtk(trunkPath)
 raw_input("compile, fix if it's needed and press return to continue...")
 build.configureSDLMini(trunkPath)
 raw_input("compile, fix if it's needed and press return to continue...")
-build.configureQt(trunkPath)
-raw_input("compile, fix if it's needed and press return to continue...")
+#build.configureQt(trunkPath)
+#raw_input("compile, fix if it's needed and press return to continue...")
 print "if you have modify WebKit files, please don't forget to add the files modified in BAL/Scripts/data/WebKitFiles.txt"
 raw_input('press return to continue...')
 print "merge finished, please add 'merge with webkit revision " +str(vr)+"' in your commit message"
