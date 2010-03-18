@@ -69,7 +69,7 @@ void WebInspectorClient::openInspectorFrontend(InspectorController* inspectorCon
 {
 #if ENABLE(DAE)
     if (m_application)
-        return core(m_application->webView());
+        return;
 #endif
 
     const char* inspectorURL = getenv("INSPECTOR_URL");
@@ -96,7 +96,7 @@ void WebInspectorClient::openInspectorFrontend(InspectorController* inspectorCon
     view->setJSActionDelegate(0);
     
     Page* page = core(view);
-    page->inspectorController()->setInspectorFrontendClient(new WebInspectorFrontendClient(m_webView, view.get(), this));
+    page->inspectorController()->setInspectorFrontendClient(new WebInspectorFrontendClient(m_webView, view, this));
 #else
     notImplemented();
 #endif
@@ -187,7 +187,7 @@ WebInspectorFrontendClient::WebInspectorFrontendClient(WebView* inspectedWebView
     , m_attached(false)
     , m_destroyingInspectorView(false)
 #if ENABLE(DAE)
-    , m_application(webAppMgr()->application(frontendWebView))
+    , m_application(webAppMgr().application(frontendWebView))
 #endif
 {
 }
