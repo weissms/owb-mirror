@@ -35,15 +35,15 @@ vars = {
   'chromium_deps_svn': 'http://src.chromium.org/svn/trunk/deps/third_party',
 
   # Dependencies' revisions to use:
-  'chromium_rev': '38580',
+  'chromium_rev': '41867',
   'google-url_rev': '125',
   'gtest_rev': '359',
-  'gyp_rev': '790',
+  'gyp_rev': '794',
   'icu_rev': '37341',
   'openvcdiff_rev': '28',
   'ots_rev': '26',
-  'skia_rev': '490',
-  'v8_rev': '3985',
+  'skia_rev': '504',
+  'v8_rev': '4135',
 
   # Windows:
   'cygwin_rev': '11984',
@@ -63,6 +63,8 @@ deps = {
   # Basic tools
   'base':
     Var('chromium_svn')+'/base@'+Var('chromium_rev'),
+  'gfx':
+    Var('chromium_svn')+'/gfx@'+Var('chromium_rev'),
 
   # skia dependencies
   'skia':
@@ -125,6 +127,9 @@ deps = {
 
   'third_party/sqlite':
     Var('chromium_svn')+'/third_party/sqlite@'+Var('chromium_rev'),
+
+  'third_party/tcmalloc':
+    Var('chromium_svn')+'/third_party/tcmalloc@'+Var('chromium_rev'),
 
   'third_party/zlib':
     Var('chromium_svn')+'/third_party/zlib@'+Var('chromium_rev'),

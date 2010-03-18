@@ -211,30 +211,6 @@ WebInspector.DOMNode.prototype = {
         };
         this._attributesMap[name] = attr;
         this.attributes.push(attr);
-    },
-
-    _setStyles: function(computedStyle, inlineStyle, styleAttributes, matchedCSSRules)
-    {
-        this._computedStyle = new WebInspector.CSSStyleDeclaration(computedStyle);
-        this.style = new WebInspector.CSSStyleDeclaration(inlineStyle);
-
-        for (var name in styleAttributes) {
-            if (this._attributesMap[name])
-                this._attributesMap[name].style = new WebInspector.CSSStyleDeclaration(styleAttributes[name]);
-        }
-
-        this._matchedCSSRules = [];
-        for (var i = 0; i < matchedCSSRules.length; i++)
-            this._matchedCSSRules.push(WebInspector.CSSStyleDeclaration.parseRule(matchedCSSRules[i]));
-    },
-
-    _clearStyles: function()
-    {
-        this.computedStyle = null;
-        this.style = null;
-        for (var name in this._attributesMap)
-            this._attributesMap[name].style = null;
-        this._matchedCSSRules = null;
     }
 }
 
@@ -308,16 +284,6 @@ WebInspector.DOMWindow.prototype = {
 
     Object: function()
     {
-    },
-
-    getComputedStyle: function(node)
-    {
-        return node._computedStyle;
-    },
-
-    getMatchedCSSRules: function(node, pseudoElement, authorOnly)
-    {
-        return node._matchedCSSRules;
     }
 }
 
@@ -526,9 +492,26 @@ WebInspector.CSSStyleDeclaration = function(payload)
     this.injectedScriptId = payload.injectedScriptId;
     this.width = payload.width;
     this.height = payload.height;
-    this.__disabledProperties = payload.__disabledProperties;
-    this.__disabledPropertyValues = payload.__disabledPropertyValues;
-    this.__disabledPropertyPriorities = payload.__disabledPropertyPriorities;
+    this.__disabledProperties = {};
+    this.__disabledPropertyValues = {};
+    this.__disabledPropertyPriorities = {};
+    if (payload.disabled) {
+        var disabledProperties = payload.disabled.properties;
+        var shorthandValues = payload.disabled.shorthandValues;
+        for (var name in shorthandValues) {
+            this.__disabledProperties[name] = true;
+            this.__disabledPropertyValues[name] = shorthandValues[name];
+        }
+        for (var i = 0; i < disabledProperties.length; ++i) {
+            var disabledProperty = disabledProperties[i];
+            if (disabledProperty.shorthand)
+                continue;
+            var name = disabledProperty.name;
+            this.__disabledProperties[name] = true;
+            this.__disabledPropertyValues[name] = disabledProperty.value;
+            this.__disabledPropertyPriorities[name] = disabledProperty.priority;
+        }
+    }
     this.uniqueStyleProperties = payload.uniqueStyleProperties;
     this._shorthandValues = payload.shorthandValues;
     this._propertyMap = {};
@@ -697,4 +680,16 @@ WebInspector.didPerformSearch = WebInspector.Callback.processCallback;
 WebInspector.didApplyDomChange = WebInspector.Callback.processCallback;
 WebInspector.didRemoveAttribute = WebInspector.Callback.processCallback;
 WebInspector.didSetTextNodeValue = WebInspector.Callback.processCallback;
+WebInspector.didRemoveNode = WebInspector.Callback.processCallback;
 WebInspector.didGetEventListenersForNode = WebInspector.Callback.processCallback;
+
+WebInspector.didGetStyles = WebInspector.Callback.processCallback;
+WebInspector.didGetAllStyles = WebInspector.Callback.processCallback;
+WebInspector.didGetInlineStyle = WebInspector.Callback.processCallback;
+WebInspector.didGetComputedStyle = WebInspector.Callback.processCallback;
+WebInspector.didApplyStyleText = WebInspector.Callback.processCallback;
+WebInspector.didSetStyleText = WebInspector.Callback.processCallback;
+WebInspector.didSetStyleProperty = WebInspector.Callback.processCallback;
+WebInspector.didToggleStyleEnabled = WebInspector.Callback.processCallback;
+WebInspector.didSetRuleSelector = WebInspector.Callback.processCallback;
+WebInspector.didAddRule = WebInspector.Callback.processCallback;

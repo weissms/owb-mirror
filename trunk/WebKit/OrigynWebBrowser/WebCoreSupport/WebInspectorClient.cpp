@@ -65,7 +65,7 @@ void WebInspectorClient::inspectorDestroyed()
     delete this;
 }
 
-Page* WebInspectorClient::createPage()
+void WebInspectorClient::openInspectorFrontend(InspectorController* inspectorController)
 {
 #if ENABLE(DAE)
     if (m_application)
@@ -74,7 +74,7 @@ Page* WebInspectorClient::createPage()
 
     const char* inspectorURL = getenv("INSPECTOR_URL");
     if (!inspectorURL)
-        return 0;
+        return;
 
     string url = inspectorURL;
     if (isAbsolute(inspectorURL)) {
@@ -89,67 +89,20 @@ Page* WebInspectorClient::createPage()
 
     WebView* view = m_application->webView();
     if (!view)
-        return 0;
+        return;
 
     view->preferences()->setDeveloperExtrasEnabled(false); 
     view->setWebFrameLoadDelegate(0);
     view->setJSActionDelegate(0);
-
-    return core(view);
+    
+    Page* page = core(view);
+    page->inspectorController()->setInspectorFrontendClient(new WebInspectorFrontendClient(m_webView, view.get(), this));
 #else
     notImplemented();
-    return 0;
 #endif
 }
 
-String WebInspectorClient::localizedStringsURL()
-{
-    notImplemented();
-    return String();
-}
-
-String WebInspectorClient::hiddenPanels()
-{
-    // FIXME: implement this
-    return String();
-}
-
-void WebInspectorClient::showWindow()
-{
-    if (m_webView->page())
-        m_webView->page()->inspectorController()->setWindowVisible(true, true);
-#if ENABLE(DAE)
-    if (m_application)
-        m_application->show();
-#endif
-}
-
-void WebInspectorClient::closeWindow()
-{
-    if (m_webView->page())
-        m_webView->page()->inspectorController()->setWindowVisible(false);
-#if ENABLE(DAE)
-    if (m_application)
-        m_application->hide();
-#endif
-}
-
-void WebInspectorClient::attachWindow()
-{
-    notImplemented();
-}
-
-void WebInspectorClient::detachWindow()
-{
-    notImplemented();
-}
-
-void WebInspectorClient::setAttachedWindowHeight(unsigned height)
-{
-    notImplemented();
-}
-
-void WebInspectorClient::highlight(Node* node)
+void WebInspectorClient::highlight(Node*)
 {
     notImplemented();
 }
@@ -159,7 +112,7 @@ void WebInspectorClient::hideHighlight()
     notImplemented();
 }
 
-void WebInspectorClient::inspectedURLChanged(const String& url)
+void WebInspectorClient::updateHighlight()
 {
     notImplemented();
 }
@@ -176,11 +129,6 @@ void WebInspectorClient::storeSetting(const String& key, const String& value)
     loadSettings();
     m_settings->set(key, value);
     saveSettings();
-}
-
-void WebInspectorClient::inspectorWindowObjectCleared()
-{
-    notImplemented();
 }
 
 void WebInspectorClient::loadSettings()
@@ -230,3 +178,99 @@ void WebInspectorClient::saveSettings()
     m_webView->setInspectorSettings(data.utf8().data());
 }
 
+WebInspectorFrontendClient::WebInspectorFrontendClient(WebView* inspectedWebView, WebView* frontendWebView, WebInspectorClient* inspectorClient)
+    : InspectorFrontendClientLocal(inspectedWebView->page()->inspectorController(),  core(frontendWebView))
+    , m_inspectedWebView(inspectedWebView)
+    , m_inspectorClient(inspectorClient)
+    , m_frontendWebView(frontendWebView)
+    , m_shouldAttachWhenShown(false)
+    , m_attached(false)
+    , m_destroyingInspectorView(false)
+#if ENABLE(DAE)
+    , m_application(webAppMgr()->application(frontendWebView))
+#endif
+{
+}
+
+WebInspectorFrontendClient::~WebInspectorFrontendClient()
+{
+    destroyInspectorView();
+}
+
+void WebInspectorFrontendClient::frontendLoaded()
+{
+    InspectorFrontendClientLocal::frontendLoaded();
+
+    setAttachedWindow(m_attached);
+}
+
+String WebInspectorFrontendClient::localizedStringsURL()
+{
+    return String();
+}
+
+String WebInspectorFrontendClient::hiddenPanels()
+{
+    // FIXME: implement this
+    return String();
+}
+
+void WebInspectorFrontendClient::bringToFront()
+{
+    // If no preference is set - default to an attached window. This is important for inspector LayoutTests.
+    String shouldAttach = m_inspectedWebView->page()->inspectorController()->setting(InspectorController::inspectorStartsAttachedSettingName());
+
+    /*if (m_inspectedWebView->page())
+        m_inspectedWebView->page()->inspectorController()->setWindowVisible(true, true);*/
+#if ENABLE(DAE)
+    if (m_application)
+        m_application->show();
+#endif
+}
+
+void WebInspectorFrontendClient::closeWindow()
+{
+    /*if (m_webView->page())
+        m_webView->page()->inspectorController()->setWindowVisible(false);*/
+#if ENABLE(DAE)
+    if (m_application)
+        m_application->hide();
+#endif
+}
+
+void WebInspectorFrontendClient::attachWindow()
+{
+    if (m_attached)
+        return;
+
+    m_inspectedWebView->page()->inspectorController()->setSetting(InspectorController::inspectorStartsAttachedSettingName(), "true");
+}
+
+void WebInspectorFrontendClient::detachWindow()
+{
+    if (!m_attached)
+        return;
+
+    m_inspectedWebView->page()->inspectorController()->setSetting(InspectorController::inspectorStartsAttachedSettingName(), "false");
+}
+
+void WebInspectorFrontendClient::setAttachedWindowHeight(unsigned height)
+{
+    notImplemented();
+}
+
+void WebInspectorFrontendClient::inspectedURLChanged(const String& newURL)
+{
+    notImplemented();
+}
+
+void WebInspectorFrontendClient::destroyInspectorView()
+{
+    if (m_destroyingInspectorView)
+        return;
+    m_destroyingInspectorView = true;
+
+    m_inspectedWebView->page()->inspectorController()->disconnectFrontend();
+
+    //m_inspectorClient->frontendClosing();
+}

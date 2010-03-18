@@ -562,12 +562,19 @@ static gboolean webkit_web_view_key_release_event(GtkWidget* widget, GdkEventKey
 {
     WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
 
+    // GTK+ IM contexts often require us to filter key release events, which
+    // WebCore does not do by default, so we filter the event here. We only block
+    // the event if we don't have a pending composition, because that means we
+    // are using a context like 'simple' which marks every keystroke as filtered.
+    WebKit::EditorClient* client = static_cast<WebKit::EditorClient*>(core(webView)->editorClient());
+    if (gtk_im_context_filter_keypress(webView->priv->imContext, event) && !client->hasPendingComposition())
+        return TRUE;
+
     Frame* frame = core(webView)->focusController()->focusedOrMainFrame();
     if (!frame->view())
         return FALSE;
 
     PlatformKeyboardEvent keyboardEvent(event);
-
     if (frame->eventHandler()->keyEvent(keyboardEvent))
         return TRUE;
 
@@ -688,7 +695,12 @@ static void webkit_web_view_size_allocate(GtkWidget* widget, GtkAllocation* allo
 
 static void webkit_web_view_grab_focus(GtkWidget* widget)
 {
+
+#if GTK_CHECK_VERSION(2, 18, 0)
+    if (gtk_widget_is_sensitive(widget)) {
+#else
     if (GTK_WIDGET_IS_SENSITIVE(widget)) {
+#endif
         WebKitWebView* webView = WEBKIT_WEB_VIEW(widget);
         FocusController* focusController = core(webView)->focusController();
 
@@ -722,6 +734,8 @@ static gboolean webkit_web_view_focus_in_event(GtkWidget* widget, GdkEventFocus*
             focusController->setFocused(true);
         else
             focusController->setFocusedFrame(core(webView)->mainFrame());
+
+        gtk_im_context_focus_in(webView->priv->imContext);
     }
     return GTK_WIDGET_CLASS(webkit_web_view_parent_class)->focus_in_event(widget, event);
 }
@@ -737,6 +751,9 @@ static gboolean webkit_web_view_focus_out_event(GtkWidget* widget, GdkEventFocus
         page->focusController()->setActive(false);
         page->focusController()->setFocused(false);
     }
+
+    if (webView->priv->imContext)
+        gtk_im_context_focus_out(webView->priv->imContext);
 
     return GTK_WIDGET_CLASS(webkit_web_view_parent_class)->focus_out_event(widget, event);
 }
@@ -1617,7 +1634,6 @@ static void webkit_web_view_class_init(WebKitWebViewClass* webViewClass)
      * @context: the #JSGlobalContextRef holding the global object and other
      * execution state; equivalent to the return value of
      * webkit_web_frame_get_global_context(@frame)
-     *
      * @window_object: the #JSObjectRef representing the frame's JavaScript
      * window object
      *

@@ -42,7 +42,6 @@ LOCAL_SRC_FILES += \
 	bindings/v8/DateExtension.cpp \
 	bindings/v8/DOMData.cpp \
 	bindings/v8/DOMDataStore.cpp \
-	bindings/v8/DerivedSourcesAllInOne.cpp \
 	bindings/v8/MainThreadDOMData.cpp \
 	bindings/v8/NPV8Object.cpp \
 	bindings/v8/RuntimeEnabledFeatures.cpp \
@@ -104,6 +103,7 @@ LOCAL_SRC_FILES += \
 	bindings/v8/custom/V8CustomSQLTransactionCallback.cpp \
 	bindings/v8/custom/V8CustomSQLTransactionErrorCallback.cpp \
 	bindings/v8/custom/V8CustomVoidCallback.cpp \
+  bindings/v8/custom/V8DOMFormDataCustom.cpp \
 	bindings/v8/custom/V8DOMSelectionCustom.cpp \
 	bindings/v8/custom/V8DOMWindowCustom.cpp \
 	bindings/v8/custom/V8DataGridColumnListCustom.cpp \
@@ -170,8 +170,7 @@ LOCAL_SRC_FILES += \
 	bindings/v8/custom/V8WorkerContextCustom.cpp \
 	bindings/v8/custom/V8WorkerCustom.cpp \
 	bindings/v8/custom/V8XMLHttpRequestConstructor.cpp \
-	bindings/v8/custom/V8XMLHttpRequestCustom.cpp \
-	bindings/v8/custom/V8XMLHttpRequestUploadCustom.cpp
+	bindings/v8/custom/V8XMLHttpRequestCustom.cpp
 
 LOCAL_SRC_FILES += \
 	bridge/jni/JNIBridge.cpp \

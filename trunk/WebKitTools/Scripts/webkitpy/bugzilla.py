@@ -66,6 +66,8 @@ def timestamp():
 
 class Attachment(object):
 
+    rollout_preamble = "ROLLOUT of r"
+
     def __init__(self, attachment_dictionary, bug):
         self._attachment_dictionary = attachment_dictionary
         self._bug = bug
@@ -96,6 +98,9 @@ class Attachment(object):
 
     def is_obsolete(self):
         return not not self._attachment_dictionary.get("is_obsolete")
+
+    def is_rollout(self):
+        return self.name().startswith(self.rollout_preamble)
 
     def name(self):
         return self._attachment_dictionary.get("name")
@@ -353,15 +358,21 @@ class Bugzilla(object):
     unassigned_email = "webkit-unassigned@lists.webkit.org"
 
     def bug_url_for_bug_id(self, bug_id, xml=False):
+        if not bug_id:
+            return None
         content_type = "&ctype=xml" if xml else ""
         return "%sshow_bug.cgi?id=%s%s" % (self.bug_server_url,
                                            bug_id,
                                            content_type)
 
     def short_bug_url_for_bug_id(self, bug_id):
+        if not bug_id:
+            return None
         return "http://webkit.org/b/%s" % bug_id
 
     def attachment_url_for_id(self, attachment_id, action="view"):
+        if not attachment_id:
+            return None
         action_param = ""
         if action and action != "view":
             action_param = "&action=%s" % action
@@ -593,6 +604,7 @@ class Bugzilla(object):
                    patch_file_object=None,
                    patch_description=None,
                    cc=None,
+                   blocked=None,
                    mark_for_review=False,
                    mark_for_commit_queue=False):
         self.authenticate()
@@ -610,11 +622,13 @@ class Bugzilla(object):
             component = "New Bugs"
         if component not in component_names:
             component = self.prompt_for_component(component_names)
-        self.browser['component'] = [component]
+        self.browser["component"] = [component]
         if cc:
-            self.browser['cc'] = cc
-        self.browser['short_desc'] = bug_title
-        self.browser['comment'] = bug_description
+            self.browser["cc"] = cc
+        if blocked:
+            self.browser["blocked"] = str(blocked)
+        self.browser["short_desc"] = bug_title
+        self.browser["comment"] = bug_description
 
         if patch_file_object:
             self._fill_attachment_form(

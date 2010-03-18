@@ -328,8 +328,11 @@ WebCore::Scrollbar* QWebFramePrivate::verticalScrollBar() const
     return frame->view()->verticalScrollbar();
 }
 
-void QWebFramePrivate::renderContentsLayerAbsoluteCoords(GraphicsContext* context, const QRegion& clip)
+#if ENABLE(TILED_BACKING_STORE)
+void QWebFramePrivate::renderFromTiledBackingStore(GraphicsContext* context, const QRegion& clip)
 {
+    ASSERT(frame->tiledBackingStore());
+
     if (!frame->view() || !frame->contentRenderer())
         return;
 
@@ -341,33 +344,24 @@ void QWebFramePrivate::renderContentsLayerAbsoluteCoords(GraphicsContext* contex
 
     WebCore::FrameView* view = frame->view();
     
-#if ENABLE(TILED_BACKING_STORE)
-    if (!frame->tiledBackingStore())
-        view->layoutIfNeededRecursive();
-#else
-    view->layoutIfNeededRecursive()
-#endif
+    int scrollX = view->scrollX();
+    int scrollY = view->scrollY();
+    context->translate(-scrollX, -scrollY);
 
     for (int i = 0; i < vector.size(); ++i) {
         const QRect& clipRect = vector.at(i);
 
         painter->save();
-        painter->setClipRect(clipRect, Qt::IntersectClip);
+        
+        QRect rect = clipRect.translated(scrollX, scrollY);
+        painter->setClipRect(rect, Qt::IntersectClip);
 
-        context->save();
-#if ENABLE(TILED_BACKING_STORE)
-        if (frame->tiledBackingStore())
-            frame->tiledBackingStore()->paint(context, clipRect);
-        else
-            view->paintContents(context, clipRect);
-#else
-        view->paintContents(context, clipRect);
-#endif
-        context->restore();
+        frame->tiledBackingStore()->paint(context, rect);
 
         painter->restore();
     }
 }
+#endif
 
 void QWebFramePrivate::renderRelativeCoords(GraphicsContext* context, QWebFrame::RenderLayer layer, const QRegion& clip)
 {

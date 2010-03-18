@@ -2900,6 +2900,12 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->acceleratedCompositingEnabled();
     settings->setAcceleratedCompositingEnabled(enabled);
 
+    enabled = preferences->showDebugBorders();
+    settings->setShowDebugBorders(enabled);
+
+    enabled = preferences->showRepaintCounter();
+    settings->setShowRepaintCounter(enabled);
+
     enabled = preferences->localStorageEnabled();
     settings->setLocalStorageEnabled(enabled);
 

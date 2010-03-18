@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, 2009 Google Inc. All rights reserved.
+ * Copyright (C) 2010 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,24 +28,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "V8XMLHttpRequestUpload.h"
+#ifndef InspectorFrontendClient_h
+#define InspectorFrontendClient_h
 
-#include "ExceptionCode.h"
-#include "V8Binding.h"
-#include "V8Proxy.h"
-#include "V8Utilities.h"
-#include "XMLHttpRequest.h"
-#include "XMLHttpRequestUpload.h"
-
-#include <wtf/Assertions.h>
+#include <wtf/Vector.h>
 
 namespace WebCore {
 
-v8::Handle<v8::Value> V8XMLHttpRequestUpload::dispatchEventCallback(const v8::Arguments& args)
-{
-    INC_STATS("DOM.XMLHttpRequestUpload.dispatchEvent()");
-    return throwError(NOT_SUPPORTED_ERR);
-}
+class ContextMenuItem;
+class Event;
+class String;
+
+class InspectorFrontendClient {
+public:
+    virtual ~InspectorFrontendClient() { }
+
+    virtual void windowObjectCleared() = 0;
+    virtual void frontendLoaded() = 0;
+
+    virtual void moveWindowBy(float x, float y) = 0;
+
+    virtual String localizedStringsURL() = 0;
+    virtual String hiddenPanels() = 0;
+
+    virtual void bringToFront() = 0;
+    virtual void closeWindow() = 0;
+
+    virtual bool canAttachWindow() = 0;
+    virtual void attachWindow() = 0;
+    virtual void detachWindow() = 0;
+    virtual void changeAttachedWindowHeight(unsigned) = 0;
+    
+    virtual void inspectedURLChanged(const String&) = 0;
+
+    virtual void showContextMenu(Event*, const Vector<ContextMenuItem*>&) = 0;
+};
 
 } // namespace WebCore
+
+#endif

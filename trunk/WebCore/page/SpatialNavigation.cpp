@@ -64,8 +64,8 @@ long long distanceInDirection(Node* start, Node* dest, FocusDirection direction,
     // deflate both.
     deflateIfOverlapped(curRect, targetRect);
 
-    if ((curRect.isEmpty() || targetRect.isEmpty())
-        || (targetRect.x() < 0 || targetRect.y() < 0))
+    if (curRect.isEmpty() || targetRect.isEmpty()
+        || targetRect.x() < 0 || targetRect.y() < 0)
         return maxDistance();
 
     if (!isRectInDirection(direction, curRect, targetRect))
@@ -86,7 +86,7 @@ long long distanceInDirection(Node* start, Node* dest, FocusDirection direction,
     // FIXME_tonikitoo: simplify the logic here !
     if (alignment != None
         || (candidate.node && candidate.parentAlignment >= alignment
-        && (dest->document() == candidate.node->document())
+        && (candidate.node->document() == dest->document())
         && alignment > None)) {
 
         // If we are now in an higher precedent case, lets reset the current |candidate|'s
@@ -465,6 +465,18 @@ bool scrollInDirection(Frame* frame, FocusDirection direction)
     return frame->eventHandler()->scrollRecursively(scrollDirection, ScrollByLine);
 }
 
+void scrollIntoView(Element* element)
+{
+    // NOTE: Element's scrollIntoView method could had been used here, but
+    // it is preferable to inflate |element|'s bounding rect a bit before
+    // scrolling it for accurate reason.
+    // Element's scrollIntoView method does not provide this flexibility.
+    static const int fudgeFactor = 2;
+    IntRect bounds = element->getRect();
+    bounds.inflate(fudgeFactor);
+    element->renderer()->enclosingLayer()->scrollRectToVisible(bounds);
+}
+
 bool isInRootDocument(Node* node)
 {
     if (!node)
@@ -482,10 +494,10 @@ static void deflateIfOverlapped(IntRect& a, IntRect& b)
     static const int fudgeFactor = -2;
 
     // Avoid negative width or height values.
-    if (fudgeFactor > 0 || ((a.width() + 2 * fudgeFactor > 0) && (a.height() + 2 * fudgeFactor > 0)))
+    if ((a.width() + 2 * fudgeFactor > 0) && (a.height() + 2 * fudgeFactor > 0))
         a.inflate(fudgeFactor);
 
-    if (fudgeFactor > 0 || ((b.width() + 2 * fudgeFactor > 0) && (b.height() + 2 * fudgeFactor > 0)))
+    if ((b.width() + 2 * fudgeFactor > 0) && (b.height() + 2 * fudgeFactor > 0))
         b.inflate(fudgeFactor);
 }
 

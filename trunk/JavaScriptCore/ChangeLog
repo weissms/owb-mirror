@@ -1,3 +1,172 @@
+2010-03-18  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Darin Adler and Mark Rowe.
+
+        Update WebKit availability macros for release after 4.0.
+
+        * API/WebKitAvailability.h:
+
+2010-03-17  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        undefined, NaN, and Infinity should be ReadOnly
+        https://bugs.webkit.org/show_bug.cgi?id=36263
+
+        Simply add the ReadOnly flag to these properties.
+
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::reset):
+
+2010-03-17  Darin Adler  <darin@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Speed up Math.round a little by removing unneeded special case
+        https://bugs.webkit.org/show_bug.cgi?id=36107
+
+        Test: fast/js/math.html
+
+        * runtime/MathObject.cpp:
+        (JSC::mathProtoFuncRound): This function had a special case for numbers
+        between -0.5 and -0.0 to return -0.0. But the algorithm in the function
+        already yields -0.0 for those cases, so the extra checking and branching
+        is unneeded.
+
+2010-03-17  Mike Homey  <glandium@debian.org>
+
+        Reviewed by Gustavo Noronha.
+
+        Build fix for SPARC. Fix missing macro value.
+
+        * wtf/Platform.h:
+
+2010-03-16  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt, Darin Adler.
+
+        Bug 36083 - REGRESSION (r55772-r55834): Crash in JavaScriptCore RegExp code on PowerPC
+
+        The problem is a bug in our port of PCRE - that a read may take place from the first character in an
+        empty string.  For the time being, revert to using a valid pointer in the data segment rather than
+        an invalid non-null pointer into the zero-page for the empty string's data pointer.  A better fix for
+        this will be to remove PCRE.
+
+        * runtime/UStringImpl.cpp:
+        (JSC::UStringImpl::empty):
+
+2010-03-16  Darin Adler  <darin@apple.com>
+
+        Rolled out r56081 since it broke the Windows build.
+
+2010-03-16  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Remove extra <new> include and add guards to operator new/delete definitions
+        https://bugs.webkit.org/show_bug.cgi?id=35967
+
+        Remove extra <new> header include from FastAlloc.cpp since it is included in 
+        FastAlloc.h. Add ENABLE(GLOBAL_FASTMALLOC_NEW) macro guard to operator
+        new/delete/new []/delete [] definitions.
+
+        * wtf/FastMalloc.cpp:
+
+2010-03-15  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Eric Seidel.
+
+        [BREWMP] Add a function to create a BREW instance without local variable declarations.
+        https://bugs.webkit.org/show_bug.cgi?id=34705
+
+        Add a template function to create a BREW instance in one line.
+
+        * wtf/brew/ShellBrew.h: Added.
+        (WTF::createInstance):
+
+2010-03-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Not reviewed.
+
+        Removed a now-incorrect comment I forgot to remove in my last check-in.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::scavenge):
+
+2010-03-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fixed a portion of:
+        <rdar://problem/7165917> | https://bugs.webkit.org/show_bug.cgi?id=28676
+        Safari 4 does not release memory back to the operating system fast enough (28676)
+
+        Every few seconds, release a percentage of the minimum unused page count
+        during that time period.
+
+        SunSpider reports no change, command-line or in-browser, Mac or Windows.
+        
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::init):
+        (WTF::TCMalloc_PageHeap::signalScavenger):
+        (WTF::TCMalloc_PageHeap::initializeScavenger): Renamed shouldContinueScavenging
+        to shouldScavenge, since scavenging is no longer something that we interrupt.
+
+        (WTF::TCMalloc_PageHeap::scavenge): The new scavenging algorithm. Fixes
+        a bug where the old code would release only one item from each size class
+        per scavenge, potentially leaving large numbers of large-sized objects
+        unreleased for a long time.
+
+        (WTF::TCMalloc_PageHeap::shouldScavenge):
+        (WTF::TCMalloc_PageHeap::New):
+        (WTF::TCMalloc_PageHeap::AllocLarge):
+        (WTF::TCMalloc_PageHeap::Delete):
+        (WTF::TCMalloc_PageHeap::GrowHeap):
+        (WTF::TCMalloc_PageHeap::scavengerThread):
+        (WTF::TCMalloc_PageHeap::periodicScavenge): Updated to track the minimum
+        value of free_committed_pages_ during a given scavenge period.
+
+2010-03-15  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35843
+        Re-land reverted fix to JSString::getIndex()
+
+        Calling getIndex() on a JSString in rope form may result in a JSException being thrown
+        if there is insuficient memory so value(exec) returns UString() with length zero,
+        which will be passed to jsSingleCharacterSubstring.
+        Add a slow case function to trap the error & return a safe null value, until the
+        exception is handled.
+
+        * runtime/JSString.cpp:
+        (JSC::JSString::getIndexSlowCase):
+        (JSC::JSString::getStringPropertyDescriptor):
+        * runtime/JSString.h:
+        (JSC::jsSingleCharacterSubstring):
+        (JSC::JSString::getIndex):
+        (JSC::jsSingleCharacterString):
+        (JSC::JSString::getStringPropertySlot):
+
+2010-03-04  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add a long long version of abs() for MSVC.
+
+        * wtf/MathExtras.h:
+        (abs):
+
+2010-03-15  Gabor Loki  <loki@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Combine ctiTrampolines on ARM and Thumb-2
+        https://bugs.webkit.org/show_bug.cgi?id=36014
+
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::JITThunks):
+
 2010-03-15  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by NOBODY (build fix).
@@ -42,17 +211,6 @@
         removed from yarr/RegexInterpreter.cpp because they are never called.
 
         * yarr/RegexInterpreter.cpp:
-
-2010-03-11  Kent Hansen  <kent.hansen@nokia.com>
-
-        Reviewed by Simon Hausmann.
-
-        Mac OS X: Use deployment target to determine whether memory tagging should be enabled
-        https://bugs.webkit.org/show_bug.cgi?id=34888
-
-        Use TARGETING_TIGER rather than BUILDING_ON_TIGER to determine the tags.
-
-        * wtf/VMTags.h:
 
 2010-03-11  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
 

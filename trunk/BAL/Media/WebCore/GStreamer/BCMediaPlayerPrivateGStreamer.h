@@ -67,9 +67,11 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
             void load(PassRefPtr<Channel>);
 #endif
             void load(const String &url);
+            void commitLoad();
             void cancelLoad();
             bool loadNextLocation();
 
+            void prepareToPlay();
             void play();
             void pause();
 
@@ -84,15 +86,15 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
 
             void setVolume(float);
             void volumeChanged();
-            void volumeChangedCallback();
+            void volumeChangedTimerFired(Timer<MediaPlayerPrivate>*);
 
             bool supportsMuting() const;
             void setMuted(bool);
             void muteChanged();
-            void muteChangedCallback();
+            void muteChangedTimerFired(Timer<MediaPlayerPrivate>*);
 
             void setPreload(MediaPlayer::Preload);
-            bool queryBufferingStats();
+            void fillTimerFired(Timer<MediaPlayerPrivate>*);
 
             MediaPlayer::NetworkState networkState() const;
             MediaPlayer::ReadyState readyState() const;
@@ -120,6 +122,7 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
 
             bool supportsFullscreen() const;
 
+            GstElement* pipeline() const { return m_playBin; }
             bool pipelineReset() const { return m_resetPipeline; }
 
 #if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
@@ -179,13 +182,14 @@ class MediaPlayerPrivate : public MediaPlayerPrivateInterface {
             bool m_buffering;
             float m_playbackRate;
             bool m_errorOccured;
-            guint m_volumeIdleId;
             gfloat m_mediaDuration;
-            guint m_muteIdleId;
             bool m_startedBuffering;
-            guint m_fillTimeoutId;
+            Timer<MediaPlayerPrivate> m_fillTimer;
             float m_maxTimeLoaded;
             int m_bufferingPercentage;
+            MediaPlayer::Preload m_preload;
+            bool m_delayingLoad;
+            bool m_mediaDurationKnown;
     };
 }
 

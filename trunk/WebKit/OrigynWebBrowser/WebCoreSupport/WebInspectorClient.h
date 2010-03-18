@@ -30,6 +30,7 @@
 #define InspectorClientBal_h
 
 #include "InspectorClient.h"
+#include "InspectorFrontendClientLocal.h"
 
 #include "SharedPtr.h"
 
@@ -52,38 +53,61 @@ public:
 
     virtual void inspectorDestroyed();
 
-    virtual WebCore::Page* createPage();
-
-    virtual WebCore::String localizedStringsURL();
-
-    virtual WebCore::String hiddenPanels();
-
-    virtual void showWindow();
-    virtual void closeWindow();
-
-    virtual void attachWindow();
-    virtual void detachWindow();
-
-    virtual void setAttachedWindowHeight(unsigned height);
+    virtual void openInspectorFrontend(WebCore::InspectorController*);
 
     virtual void highlight(WebCore::Node*);
     virtual void hideHighlight();
-    virtual void inspectedURLChanged(const WebCore::String& newURL);
 
     virtual void populateSetting(const WebCore::String& key, WebCore::String* value);
     virtual void storeSetting(const WebCore::String& key, const WebCore::String& value);
 
-
-    virtual void inspectorWindowObjectCleared();
+    void updateHighlight();
 
 private:
     void loadSettings();
     void saveSettings();
 
-    WebView *m_webView;
+    WebView* m_webView;
 
     typedef HashMap<WebCore::String, WebCore::String> SettingsMap;
     OwnPtr<SettingsMap> m_settings;
+#if ENABLE(DAE)
+    SharedPtr<WebApplication> m_application;
+#endif
+};
+
+class WebInspectorFrontendClient : public WebCore::InspectorFrontendClientLocal {
+public:
+    WebInspectorFrontendClient(WebView* inspectedWebView, WebView* frontendWebView, WebInspectorClient* inspectorClient);
+
+    virtual void frontendLoaded();
+    
+    virtual WebCore::String localizedStringsURL();
+    virtual WebCore::String hiddenPanels();
+    
+    virtual void bringToFront();
+    virtual void closeWindow();
+    
+    virtual void attachWindow();
+    virtual void detachWindow();
+    
+    virtual void setAttachedWindowHeight(unsigned height);
+    virtual void inspectedURLChanged(const WebCore::String& newURL);
+
+private:
+    ~WebInspectorFrontendClient();
+
+    void destroyInspectorView();
+
+    WebView* m_inspectedWebView;
+    WebInspectorClient* m_inspectorClient;
+    WebView* m_frontendWebView;
+
+    bool m_shouldAttachWhenShown;
+    bool m_attached;
+
+    WebCore::String m_inspectedURL;
+    bool m_destroyingInspectorView;
 #if ENABLE(DAE)
     SharedPtr<WebApplication> m_application;
 #endif

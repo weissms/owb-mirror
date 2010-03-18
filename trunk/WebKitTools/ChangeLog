@@ -1,3 +1,433 @@
+2010-03-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        create-rollout should actually fill out the description
+        https://bugs.webkit.org/show_bug.cgi?id=36261
+
+        * Scripts/webkitpy/commands/download.py:
+            The % operator was applied to the wrong string.
+        * Scripts/webkitpy/commands/download_unittest.py:
+        * Scripts/webkitpy/commands/upload_unittest.py:
+        * Scripts/webkitpy/mock_bugzillatool.py:
+            Add support for seeing what we actually do with create_bug.
+
+2010-03-17  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Accelerated Compositing is now default on QtWebKit so the option
+        in QtLauncher must be true as default.
+
+        [Qt] QtLauncher's Accelerated Compositing option must be true as default
+        https://bugs.webkit.org/show_bug.cgi?id=36234
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::applyPrefs):
+        (LauncherWindow::toggleAcceleratedCompositing):
+        (LauncherApplication::handleUserOptions):
+
+2010-03-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Commit queue should ignore (probably red) builders when landing rollouts
+        https://bugs.webkit.org/show_bug.cgi?id=36169
+
+        When landing a rollout, the builders are probably red, so we need to
+        ignore them in the subprocess too.  Also, we might as well update the
+        working copy because we haven't validated anything about the current
+        revision prior to trying to land.
+
+        This change is testable, but it requires changing the mock executive to
+        log its arguments.  That will generate a lot of expectation changes, so
+        I'd like to do that in a separate patch.
+
+        * Scripts/webkitpy/commands/queues.py:
+
+2010-03-17  Chang Shu  <chang.shu@nokia.com>
+
+        Reviewed by Laszlo Gombos.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36139
+        [Qt] Clean up cache each time DumpRenderTree starts. This behavior 
+        matches other platforms, such as mac and gtk.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+
+2010-03-17  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Turns out this needs to be a string.
+
+        * Scripts/webkitpy/bugzilla.py:
+
+2010-03-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add more infrastructure for sheriff-bot, including making what-broke more awesome
+        https://bugs.webkit.org/show_bug.cgi?id=36254
+
+        * Scripts/webkitpy/bugzilla.py:
+         - Made the various URL methods return None when passed None.
+        * Scripts/webkitpy/bugzilla_unittest.py:
+         - Test that the url methods work as expected.
+        * Scripts/webkitpy/buildbot.py:
+         - Add a static Build.build_url so that its possible to generate a build url without a Build object.
+         - Give users a URL in _fetch_xmlrpc_build_dictionary error message.
+        * Scripts/webkitpy/changelogs.py:
+         - Add a new ChangeLogEntry class to encapsulate entry-parsing logic.
+         - Add is_path_to_changelog to greatly simplify SCM.modified_changelogs code.
+         - Make ChangeLog.parse_latest_entry_from_file a public method.
+        * Scripts/webkitpy/changelogs_unittest.py:
+         - Add tests for new ChangeLog entry parsing.
+        * Scripts/webkitpy/commands/queries.py:
+         - Make "what-broke" not print "ok" builders, only failing ones.
+         - Print much more information on failing builders, including links and authorship/reviewer information.
+        * Scripts/webkitpy/commands/queues_unittest.py:
+         - Use a fake_checkout path since fixing the cwd (as part of fixing scm_unittests.py) was breaking tests.
+        * Scripts/webkitpy/mock_bugzillatool.py:
+         - Move MockSCM away from using os.getcwd() as that was fragile (and wrong).
+        * Scripts/webkitpy/patch/patcher.py:
+         - Remove code which was broken now that this file has moved.
+         - Code was also redundant now that SCM.find_checkout_root() exists.
+        * Scripts/webkitpy/scm.py:
+         - Greatly simplify modified_changelogs now that I understand list comprehensions.
+         - Expect ChangeLogEntry objects instead of raw strings.
+         - Add changed_files_for_revision, committer_email_for_revision and contents_at_revision
+         - Add commit_with_message argument to all sites since someone half-added it before. :(
+         - Get rid of copy/paste code using _status_regexp()
+        * Scripts/webkitpy/scm_unittest.py:
+         - Fix these tests!
+         - Add new tests for new scm code.
+         - Fix spelling of "awsome" to "awesome".
+
+2010-03-17  Daniel Bates  <dbates@rim.com>
+
+        Rubber-stamped by David Levin.
+
+        Add myself to the list of reviewers.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-03-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Change post-rollout to create-rollout and have it make a new bug
+        instead of posting the rollout to the old bug.
+        https://bugs.webkit.org/show_bug.cgi?id=36250
+
+        The new bug blocks the old bug instead of adding more complexity to the
+        old bug.  One tricky question is whether to create the bug if we're
+        unable to create a rollout patch.  In this patch, we do create the bug,
+        but we might revist this question in the future.
+
+        * Scripts/webkitpy/bugzilla.py:
+        * Scripts/webkitpy/commands/download.py:
+        * Scripts/webkitpy/commands/download_unittest.py:
+        * Scripts/webkitpy/steps/createbug.py:
+
+2010-03-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add a way for the bots to send messages to IRC
+        https://bugs.webkit.org/show_bug.cgi?id=36235
+
+        We'll use these classes to notify #webkit about bad SVN revisions.
+        This patch just has some skeleton code for us to play with.
+
+        * Scripts/webkitpy/irc/__init__.py: Added.
+        * Scripts/webkitpy/irc/ircbot.py: Added.
+            A bot that knows how to talk to IRC.
+        * Scripts/webkitpy/irc/ircproxy.py: Added.
+            We need to run the bot on its own thread because the irclib needs
+            its own mainloop.  This class provides an abstraction of the
+            threading.
+        * Scripts/webkitpy/irc/messagepump.py: Added.
+        * Scripts/webkitpy/irc/messagepump_unittest.py: Added.
+        * Scripts/webkitpy/irc/threadedmessagequeue.py: Added.
+            A thread-safe message queue for sending messages from the main
+            thread to the IRC thread.
+        * Scripts/webkitpy/irc/threadedmessagequeue_unittest.py: Added.
+        * Scripts/webkitpy/irc/unittests.py: Added.
+        * Scripts/webkitpy/thirdparty/autoinstalled/__init__.py:
+            Autoinstall irclib
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-17  Victor Wang  <victorw@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Fix image_diff syntax in webkitpy/port/base.py.
+        The syntax is wrong if diff_filename is specified.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36230
+
+        * Scripts/webkitpy/layout_tests/port/base.py:
+
+2010-03-16  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Kenneth Christiansen.
+
+        Provide to QtLauncher a way to change the ViewportUpdateMode
+        when it's in graphics based mode.
+
+        [Qt] Make QtLaucher able to select the ViewportUpdateMode
+        https://bugs.webkit.org/show_bug.cgi?id=36175
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::selectViewportUpdateMode):
+        (LauncherWindow::createChrome):
+
+2010-03-17  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Ambiguous error message when building for unspecified platform
+        https://bugs.webkit.org/show_bug.cgi?id=30203
+
+        Add an extra line information to the error message.
+
+        * Scripts/webkitdirs.pm:
+
+2010-03-16  Adam Barth  <abarth@webkit.org>
+
+        No review, rolling out r56044.
+        http://trac.webkit.org/changeset/56044
+        https://bugs.webkit.org/show_bug.cgi?id=36048
+
+        This patch broke Windows Debug (Tests)
+
+        * Scripts/webkitdirs.pm:
+
+2010-03-16  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Give keyboard focus to PluginDocuments by default
+        https://bugs.webkit.org/show_bug.cgi?id=36147
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginAllocate):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (NPP_SetWindow):
+        (handleEventCarbon):
+        (handleEventCocoa):
+
+2010-03-16  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Mark Rowe.
+
+        Fix run-webkit-httpd on Windows.
+
+        * Scripts/webkitperl/httpd.pm:
+
+2010-03-16  Alexey Proskuryakov  <ap@apple.com>
+
+        Tiger build fix.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp: (pluginGetProperty):
+        Added more type casts to shut down warnings.
+
+2010-03-16  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36184
+        YouTube video resizing doesn't work with OOP plug-ins
+
+        Added a resizeTo() method, which calls resizePlugin() in JS with the same arguments,
+        and a lastSetWindowArguments property, which returns a string describing the last NPWindow
+        passed to NPN_SetWindow.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginGetProperty):
+        (testResizeTo):
+        (pluginInvoke):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_SetWindow):
+
+2010-03-16  Joanmarie Diggs  <joanmarie.diggs@gmail.com>
+
+        Reviewed by Xan Lopez.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35504
+        [Gtk] Evaluate and fix AtkTable for layout tables
+
+        Implements rowCount and columnCount for Gtk in DRT.
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::rowCount):
+        (AccessibilityUIElement::columnCount):
+
+2010-03-15  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add "what-broke" command for debugging when the tree broke
+        https://bugs.webkit.org/show_bug.cgi?id=36157
+
+        This is another step towards automated sheriffing of the webkit tree.
+        With this logic our scripts are able to determine what revision broke the
+        tree.  Buildbot should do this for us, but unfortunately buildbot doesn't
+        expose this kind of aggregate information.
+
+        * Scripts/webkitpy/buildbot.py:
+         - Add new Builder and Build classes (which will eventually replace the custom dictionaries previously used).
+         - Split out more network logic into _fetch methods which will eventually be their own class for mocking.
+         - Use XMLRPC to communicate with the buildbot master instead of scraping build pages.
+        * Scripts/webkitpy/buildbot_unittest.py:
+         - Test the newly added buildbot classes.
+        * Scripts/webkitpy/commands/queries.py:
+         - Add an experimental what-broke command.
+
+2010-03-15  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36048
+
+        Detect if the Windows Platform SDK is missing when building with
+        Visual C++ Express Edition and inform the user to download it.
+
+        * Scripts/webkitdirs.pm:
+
+2010-03-15  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Let commit-queue land rollout patches even when the tree is red
+        https://bugs.webkit.org/show_bug.cgi?id=36155
+
+        Now the commit-queue will land patches whose name begins with "ROLLOUT "
+        even if the tree is red.  The patches still go through the usual build
+        and test process, but they can be landed while the tree is on fire.
+
+        * Scripts/webkitpy/bugzilla.py:
+        * Scripts/webkitpy/commands/queues.py:
+        * Scripts/webkitpy/commands/queues_unittest.py:
+        * Scripts/webkitpy/commands/queuestest.py:
+        * Scripts/webkitpy/mock_bugzillatool.py:
+
+2010-03-15  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add webkit-patch post-rollout to upload rollouts to bugs.webkit.org for easy committing
+        https://bugs.webkit.org/show_bug.cgi?id=36154
+
+        This new command is a mashup of prepare-rollout and post.  This command
+        will be used by an experimental bot to post rollouts of patches that
+        break things to bugs.webkit.org where they can be landed with the
+        greatest of ease.
+
+        * Scripts/webkitpy/commands/download.py:
+        * Scripts/webkitpy/commands/download_unittest.py:
+        * Scripts/webkitpy/steps/__init__.py:
+        * Scripts/webkitpy/steps/postdiffforrevert.py: Added.
+
+2010-03-15  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch rollout should error out on conflicts
+        https://bugs.webkit.org/show_bug.cgi?id=36151
+
+        Instead of blindingly plowing ahead, we now throw an exception if there
+        are conflicts after applying a reverse diff.
+
+        * Scripts/webkitpy/scm.py:
+
+2010-03-15  Chris Fleizach  <cfleizach@apple.com>
+
+        Unreviewed layout test fix.
+
+        VO not able to perform a VO-spacebar on facebook links
+        https://bugs.webkit.org/show_bug.cgi?id=36132
+
+        GTK needs to implement press for this test to work.
+     
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::press):
+
+2010-03-15  Chris Fleizach  <cfleizach@apple.com>
+
+        Unreviewed layout test fix.
+
+        VO not able to perform a VO-spacebar on facebook links
+        https://bugs.webkit.org/show_bug.cgi?id=36132
+
+        Windows needs to implement press in DRT.
+
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::press):
+
+2010-03-15  Chris Fleizach  <cfleizach@apple.com>
+
+        Unreviewed. Fix break of layout tests on win and gtk.
+
+        VO not able to perform a VO-spacebar on facebook links
+        https://bugs.webkit.org/show_bug.cgi?id=36132
+
+        Attempting to implement press action for windows and gtk.
+
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::press):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::press):
+
+2010-03-15  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        VO not able to perform a VO-spacebar on facebook links
+        https://bugs.webkit.org/show_bug.cgi?id=36132
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (pressCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::press):
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::press):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::press):
+
+2010-03-15  Mark Rowe  <mrowe@apple.com>
+
+        Add a new build slave to replace the existing SnowLeopard Leaks build slave which
+        appears to be suffering a slow and painful death at the hands of its graphics hardware.
+
+        * BuildSlaveSupport/build.webkit.org-config/config.json:
+
+2010-03-15  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        Fix a minor case where we'd deference a null pointer if we tried
+        to run new-run-webkit-tests on an unsupported platform (e.g.
+        Cygwin's python version).
+
+        https://bugs.webkit.org/show_bug.cgi?id=36076
+
+        * Scripts/webkitpy/layout_tests/port/factory.py:
+
+2010-03-15  Darin Adler  <darin@apple.com>
+
+        Tell Subversion about more directories that expect to have .pyc files.
+
+        * Scripts/webkitpy/layout_tests: Added property svn:ignore.
+        * Scripts/webkitpy/layout_tests/port: Added property svn:ignore.
+
 2010-03-15  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Darin Adler.

@@ -136,6 +136,7 @@ enum {
     ID_PROPERTY_PRIVATE_BROWSING_ENABLED,
     ID_PROPERTY_CACHED_PRIVATE_BROWSING_ENABLED,
     ID_PROPERTY_THROW_EXCEPTION_PROPERTY,
+    ID_LAST_SET_WINDOW_ARGUMENTS,
     NUM_PROPERTY_IDENTIFIERS
 };
 
@@ -149,7 +150,8 @@ static const NPUTF8 *pluginPropertyIdentifierNames[NUM_PROPERTY_IDENTIFIERS] = {
     "returnErrorFromNewStream",
     "privateBrowsingEnabled",
     "cachedPrivateBrowsingEnabled",
-    "testThrowExceptionProperty"
+    "testThrowExceptionProperty",
+    "lastSetWindowArguments"
 };
 
 enum {
@@ -183,6 +185,7 @@ enum {
     ID_GET_AND_FORGET_REMEMBERED_OBJECT,
     ID_REF_COUNT,
     ID_SET_STATUS,
+    ID_RESIZE_TO,
     NUM_METHOD_IDENTIFIERS
 };
 
@@ -217,7 +220,8 @@ static const NPUTF8 *pluginMethodIdentifierNames[NUM_METHOD_IDENTIFIERS] = {
     "getRememberedObject",
     "getAndForgetRememberedObject",
     "refCount",
-    "setStatus"
+    "setStatus",
+    "resizeTo",
 };
 
 static NPUTF8* createCStringFromNPVariant(const NPVariant* variant)
@@ -285,7 +289,15 @@ static bool pluginGetProperty(NPObject* obj, NPIdentifier name, NPVariant* resul
     } else if (name == pluginPropertyIdentifiers[ID_PROPERTY_THROW_EXCEPTION_PROPERTY]) {
         browser->setexception(obj, "plugin object testThrowExceptionProperty SUCCESS");
         return true;
+    } else if (name == pluginPropertyIdentifiers[ID_LAST_SET_WINDOW_ARGUMENTS]) {
+        char* buf = static_cast<char*>(browser->memalloc(256));
+        snprintf(buf, 256, "x: %d, y: %d, width: %u, height: %u, clipRect: (%u, %u, %u, %u)", (int)plugin->lastWindow.x, (int)plugin->lastWindow.y, (unsigned)plugin->lastWindow.width, (unsigned)plugin->lastWindow.height,
+            plugin->lastWindow.clipRect.left, plugin->lastWindow.clipRect.top, plugin->lastWindow.clipRect.right - plugin->lastWindow.clipRect.left, plugin->lastWindow.clipRect.bottom - plugin->lastWindow.clipRect.top);
+
+        STRINGZ_TO_NPVARIANT(buf, *result);
+        return true;
     }
+
     return false;
 }
 
@@ -791,6 +803,25 @@ static bool testSetStatus(PluginObject* obj, const NPVariant* args, uint32_t arg
     return true;
 }
 
+static bool testResizeTo(PluginObject* obj, const NPVariant* args, uint32_t argCount, NPVariant* result)
+{
+    VOID_TO_NPVARIANT(*result);
+
+    NPObject* windowObject;
+    if (NPERR_NO_ERROR != browser->getvalue(obj->npp, NPNVWindowNPObject, &windowObject))
+        return false;
+
+    NPVariant callResult;
+    if (browser->invoke(obj->npp, windowObject, browser->getstringidentifier("resizePlugin"), args, argCount, &callResult))
+        browser->releasevariantvalue(&callResult);
+
+    // Force layout.
+    if (browser->getproperty(obj->npp, windowObject, browser->getstringidentifier("pageYOffset"), &callResult))
+        browser->releasevariantvalue(&callResult);
+
+    return true;
+}
+
 static bool pluginInvoke(NPObject* header, NPIdentifier name, const NPVariant* args, uint32_t argCount, NPVariant* result)
 {
     PluginObject* plugin = reinterpret_cast<PluginObject*>(header);
@@ -874,6 +905,8 @@ static bool pluginInvoke(NPObject* header, NPIdentifier name, const NPVariant* a
         return true;
     } else if (name == pluginMethodIdentifiers[ID_SET_STATUS])
         return testSetStatus(plugin, args, argCount, result);
+    else if (name == pluginMethodIdentifiers[ID_RESIZE_TO])
+        return testResizeTo(plugin, args, argCount, result);
     
     return false;
 }
@@ -920,6 +953,7 @@ static NPObject *pluginAllocate(NPP npp, NPClass *theClass)
 
     newInstance->testDocumentOpenInDestroyStream = FALSE;
     newInstance->testWindowOpen = FALSE;
+    newInstance->testKeyboardFocusForPlugins = FALSE;
 
     return (NPObject*)newInstance;
 }

@@ -641,7 +641,13 @@ public:
     virtual void setCustomDragCursorsEnabled(bool);
     
     virtual bool customDragCursorsEnabled();
-
+    
+    virtual void setShowDebugBorders(bool);
+    virtual bool showDebugBorders();
+    
+    virtual void setShowRepaintCounter(bool);
+    virtual bool showRepaintCounter();
+    
     /*
      * Enable or disable WebGL
      */

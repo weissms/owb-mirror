@@ -478,7 +478,6 @@ WebInspector.loaded = function()
 
     this.addMainEventListeners(document);
 
-    window.addEventListener("unload", this.windowUnload.bind(this), true);
     window.addEventListener("resize", this.windowResize.bind(this), true);
 
     document.addEventListener("focus", this.focusChanged.bind(this), true);
@@ -562,11 +561,6 @@ WebInspector.dispatch = function() {
     setTimeout(delayDispatch, 0);
 }
 
-WebInspector.windowUnload = function(event)
-{
-    InspectorFrontendHost.windowUnloading();
-}
-
 WebInspector.windowResize = function(event)
 {
     if (this.currentPanel)
@@ -604,7 +598,15 @@ WebInspector.setAttachedWindow = function(attached)
 
 WebInspector.close = function(event)
 {
+    if (this._isClosing)
+        return;
+    this._isClosing = true;
     InspectorFrontendHost.closeWindow();
+}
+
+WebInspector.inspectedPageDestroyed = function()
+{
+    WebInspector.close();
 }
 
 WebInspector.documentMouseOver = function(event)
@@ -614,6 +616,8 @@ WebInspector.documentMouseOver = function(event)
 
     const anchor = event.target;
     if (!anchor.hasStyleClass("webkit-html-resource-link"))
+        return;
+    if (anchor.href && anchor.href.indexOf("/data:") != -1)
         return;
     if (WebInspector.canShowSourceLine(anchor.href, anchor.lineNumber, anchor.preferredPanel) || WebInspector.ProfileType.URLRegExp.exec(anchor.href)) {
         if (event.target.originalTitle)
@@ -1076,6 +1080,8 @@ WebInspector.updateResource = function(identifier, payload)
         this.resourceURLMap[resource.url] = resource;
         if (this.panels.resources)
             this.panels.resources.addResource(resource);
+        if (this.panels.audits)
+            this.panels.audits.resourceStarted(resource);
     }
 
     if (payload.didRequestChange) {
@@ -1120,6 +1126,8 @@ WebInspector.updateResource = function(identifier, payload)
     if (payload.didCompletionChange) {
         resource.failed = payload.failed;
         resource.finished = payload.finished;
+        if (this.panels.audits)
+            this.panels.audits.resourceFinished(resource);
     }
 
     if (payload.didTimingChange) {
@@ -1313,6 +1321,16 @@ WebInspector.reset = function()
     delete this.mainResource;
 
     this.console.clearMessages();
+}
+
+WebInspector.bringToFront = function()
+{
+    InspectorFrontendHost.bringToFront();
+}
+
+WebInspector.inspectedURLChanged = function(url)
+{
+    InspectorFrontendHost.inspectedURLChanged(url);
 }
 
 WebInspector.resourceURLChanged = function(resource, oldURL)

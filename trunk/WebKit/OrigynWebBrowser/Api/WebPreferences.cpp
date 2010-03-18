@@ -214,8 +214,9 @@ void WebPreferences::initializeDefaultSettings()
 #else
     m_privatePrefs[WebKitAcceleratedCompositingEnabledPreferenceKey] = "0";
 #endif
+    m_privatePrefs[WebKitShowDebugBordersPreferenceKey] = "0"; // FALSE
     m_privatePrefs[WebKitMemoryLimitPreferenceKey] = "0";
-    m_privatePrefs[WebKitAllowScriptsToCloseWindowsPreferenceKey] = "1"; //TRUE
+    m_privatePrefs[WebKitAllowScriptsToCloseWindowsPreferenceKey] = "1"; // TRUE
     m_privatePrefs[WebKitSpatialNavigationEnabledPreferenceKey] = "1"; // TRUE
 }
 
@@ -592,7 +593,27 @@ void WebPreferences::setPreferenceForTest(const char* key, const char* value)
         return ; 
     setValueForKey(key, value); 
     postPreferencesChangesNotification();
-} 
+}
+
+bool WebPreferences::showDebugBorders()
+{
+    return boolValueForKey(WebKitShowDebugBordersPreferenceKey);
+}
+
+void WebPreferences::setShowDebugBorders(bool enabled)
+{
+    setBoolValue(WebKitShowDebugBordersPreferenceKey, enabled);
+}
+
+bool WebPreferences::showRepaintCounter()
+{
+    return boolValueForKey(WebKitShowRepaintCounterPreferenceKey);
+}
+
+void WebPreferences::setShowRepaintCounter(bool enabled)
+{
+    setBoolValue(WebKitShowRepaintCounterPreferenceKey, enabled);
+}
 
 void WebPreferences::setCustomDragCursorsEnabled(bool enabled)
 {

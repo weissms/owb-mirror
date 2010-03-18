@@ -34,8 +34,10 @@
 #include "NotImplemented.h"
 #include "ResourceHandleInternal.h"
 #include "ResourceHandleManager.h"
+#include "SharedBuffer.h"
 
 #if PLATFORM(WIN) && PLATFORM(CF)
+#include <wtf/PassRefPtr.h>
 #include <wtf/RetainPtr.h>
 #endif
 

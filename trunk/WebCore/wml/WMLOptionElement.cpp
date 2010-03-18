@@ -119,6 +119,11 @@ void WMLOptionElement::insertedIntoDocument()
     WMLFormControlElement::insertedIntoDocument();
 }
 
+bool WMLOptionElement::disabled() const
+{
+    return ownElementDisabled() || (parentNode() && static_cast<WMLFormControlElement*>(parentNode())->disabled());
+}
+
 bool WMLOptionElement::selected() const
 {
     return m_data.selected();

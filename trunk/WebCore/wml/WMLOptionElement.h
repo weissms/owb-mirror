@@ -47,6 +47,9 @@ public:
 
     virtual void insertedIntoDocument();
 
+    bool ownElementDisabled() const { return WMLFormControlElement::disabled(); }
+    virtual bool disabled() const;
+    
     virtual bool selected() const;
     virtual void setSelectedState(bool);
 

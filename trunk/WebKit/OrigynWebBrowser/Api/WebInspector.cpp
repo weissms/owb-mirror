@@ -80,16 +80,10 @@ void WebInspector::close()
 
 void WebInspector::attach()
 {
-    if (m_webView)
-        if (Page* page = m_webView->page())
-            page->inspectorController()->attachWindow();
 }
 
 void WebInspector::detach()
 {
-    if (m_webView)
-        if (Page* page = m_webView->page())
-            page->inspectorController()->detachWindow();
 }
 
 bool WebInspector::isDebuggingJavaScript()

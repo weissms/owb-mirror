@@ -39,7 +39,6 @@ namespace WebCore {
     class ConsoleMessage;
     class Database;
     class Frame;
-    class InspectorController;
     class InspectorResource;
     class Node;
     class ScriptString;
@@ -49,8 +48,11 @@ namespace WebCore {
 
     class InspectorFrontend : public Noncopyable {
     public:
-        InspectorFrontend(InspectorController* inspectorController, ScriptObject webInspector);
+        InspectorFrontend(ScriptObject webInspector);
         ~InspectorFrontend();
+        
+        void close();
+        void inspectedPageDestroyed();
 
         ScriptArray newScriptArray();
         ScriptObject newScriptObject();
@@ -60,7 +62,7 @@ namespace WebCore {
         void populateFrontendSettings(const String& settings);
 
         void updateConsoleMessageExpiredCount(unsigned count);
-        void addConsoleMessage(const ScriptObject& messageObj, const Vector<ScriptString>& frames, ScriptState*, const Vector<ScriptValue> arguments, const String& message);
+        void addConsoleMessage(const ScriptObject& messageObj, const Vector<ScriptString>& frames, const Vector<RefPtr<SerializedScriptValue> >& arguments, const String& message);
         void updateConsoleMessageRepeatCount(unsigned count);
         void clearConsoleMessages();
 
@@ -73,6 +75,9 @@ namespace WebCore {
         void showPanel(int panel);
         void populateInterface();
         void reset();
+        
+        void bringToFront();
+        void inspectedURLChanged(const String&);
 
         void resourceTrackingWasEnabled();
         void resourceTrackingWasDisabled();
@@ -125,8 +130,19 @@ namespace WebCore {
         void attributesUpdated(int id, const ScriptArray& attributes);
         void didGetChildNodes(int callId);
         void didApplyDomChange(int callId, bool success);
-        void didGetEventListenersForNode(int callId, int nodeId, ScriptArray& listenersArray);
+        void didGetEventListenersForNode(int callId, int nodeId, const ScriptArray& listenersArray);
         void didRemoveNode(int callId, int nodeId);
+
+        void didGetStyles(long callId, const ScriptValue& styles);
+        void didGetAllStyles(long callId, const ScriptArray& styles);
+        void didGetInlineStyle(long callId, const ScriptValue& style);
+        void didGetComputedStyle(long callId, const ScriptValue& style);
+        void didApplyStyleText(int callId, bool success, const ScriptValue& style, const ScriptArray& changedProperties);
+        void didSetStyleText(int callId, bool success);
+        void didSetStyleProperty(int callId, bool success);
+        void didToggleStyleEnabled(int callId, const ScriptValue& style);
+        void didSetRuleSelector(int callId, const ScriptValue& rule, bool selectorAffectsNode);
+        void didAddRule(int callId, const ScriptValue& rule, bool selectorAffectsNode);
 
         void timelineProfilerWasStarted();
         void timelineProfilerWasStopped();
@@ -150,7 +166,6 @@ namespace WebCore {
         void evaluateForTestInFrontend(int callId, const String& script);
     private:
         void callSimpleFunction(const String& functionName);
-        InspectorController* m_inspectorController;
         ScriptObject m_webInspector;
     };
 

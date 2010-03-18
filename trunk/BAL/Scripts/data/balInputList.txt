@@ -633,7 +633,6 @@ BAL/Network/WebCore/Curl    WebCore/platform/network/curl/SocketStreamHandle.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/AuthenticationChallenge.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/CookieJarSoup.cpp
 BAL/Network/WebCore/Soup    WebCore/platform/network/soup/CookieJarSoup.h
-BAL/Network/WebCore/Soup	WebCore/platform/network/soup/DNSSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/GOwnPtrSoup.cpp
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/GOwnPtrSoup.h BCGOwnPtrSoupSoup.h
 BAL/Network/WebCore/Soup	WebCore/platform/network/soup/ResourceError.h

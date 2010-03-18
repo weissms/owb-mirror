@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2005, 2008, 2010 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,34 +54,44 @@ const int WebCoreScrollbarAlwaysOn = ScrollbarAlwaysOn;
     [self updateScrollers];
 }
 
-- (void)setAllowScrollersToOverlapContent:(BOOL)flag
+- (void)setAllowsScrollersToOverlapContent:(BOOL)flag
 {
-    if (allowScrollersToOverlapContent == flag)
+    if (allowsScrollersToOverlapContent == flag)
         return;
         
-    allowScrollersToOverlapContent = flag;
+    allowsScrollersToOverlapContent = flag;
     
     [[self contentView] setFrame:[self contentViewFrame]];
     [[self documentView] setNeedsLayout:YES];
     [[self documentView] layout];
 }
 
-- (void)setAlwaysHideHorizontalScroller:(BOOL)shouldBeVisible
+- (void)setAlwaysHideHorizontalScroller:(BOOL)shouldBeHidden
 {
-    if (hideHorizontalScroller == shouldBeVisible)
+    if (alwaysHideHorizontalScroller == shouldBeHidden)
         return;
 
-    hideHorizontalScroller = shouldBeVisible;
+    alwaysHideHorizontalScroller = shouldBeHidden;
     [self updateScrollers];
 }
 
-- (void)setAlwaysHideVerticalScroller:(BOOL)shouldBeVisible
+- (void)setAlwaysHideVerticalScroller:(BOOL)shouldBeHidden
 {
-    if (hideVerticalScroller == shouldBeVisible)
+    if (alwaysHideVerticalScroller == shouldBeHidden)
         return;
         
-    hideVerticalScroller = shouldBeVisible;
+    alwaysHideVerticalScroller = shouldBeHidden;
     [self updateScrollers];
+}
+
+- (BOOL)horizontalScrollingAllowed
+{
+    return horizontalScrollingAllowedButScrollerHidden || [self hasHorizontalScroller];
+}
+
+- (BOOL)verticalScrollingAllowed
+{
+    return verticalScrollingAllowedButScrollerHidden || [self hasVerticalScroller];
 }
 
 @end
@@ -93,9 +103,9 @@ const int WebCoreScrollbarAlwaysOn = ScrollbarAlwaysOn;
     NSRect frame = [[self contentView] frame];
     
     if ([self hasHorizontalScroller])
-        frame.size.height = (allowScrollersToOverlapContent ? NSMaxY([[self horizontalScroller] frame]) : NSMinY([[self horizontalScroller] frame]));
+        frame.size.height = (allowsScrollersToOverlapContent ? NSMaxY([[self horizontalScroller] frame]) : NSMinY([[self horizontalScroller] frame]));
     if ([self hasVerticalScroller])
-        frame.size.width = (allowScrollersToOverlapContent ? NSMaxX([[self verticalScroller] frame]) : NSMinX([[self verticalScroller] frame]));
+        frame.size.width = (allowsScrollersToOverlapContent ? NSMaxX([[self verticalScroller] frame]) : NSMinX([[self verticalScroller] frame]));
     return frame;
 }
 
@@ -105,7 +115,7 @@ const int WebCoreScrollbarAlwaysOn = ScrollbarAlwaysOn;
 
     // [super tile] sets the contentView size so that it does not overlap with the scrollers,
     // we want to re-set the contentView to overlap scrollers before displaying.
-    if (allowScrollersToOverlapContent)
+    if (allowsScrollersToOverlapContent)
         [[self contentView] setFrame:[self contentViewFrame]];
 }
 
@@ -169,11 +179,16 @@ static const unsigned cMaxUpdateScrollbarsPass = 2;
         newHasHorizontalScroller = (hScroll == ScrollbarAlwaysOn);
     if (vScroll != ScrollbarAuto)
         newHasVerticalScroller = (vScroll == ScrollbarAlwaysOn);
-        
-    newHasHorizontalScroller &= !hideHorizontalScroller;
-    newHasVerticalScroller &= !hideVerticalScroller;
     
     if (!documentView || suppressLayout || suppressScrollers || (hScroll != ScrollbarAuto && vScroll != ScrollbarAuto)) {
+        horizontalScrollingAllowedButScrollerHidden = newHasHorizontalScroller && alwaysHideHorizontalScroller;
+        if (horizontalScrollingAllowedButScrollerHidden)
+            newHasHorizontalScroller = NO;
+        
+        verticalScrollingAllowedButScrollerHidden = newHasVerticalScroller && alwaysHideVerticalScroller;
+        if (verticalScrollingAllowedButScrollerHidden)
+            newHasVerticalScroller = NO;
+        
         inUpdateScrollers = YES;
         if (hasHorizontalScroller != newHasHorizontalScroller)
             [self setHasHorizontalScroller:newHasHorizontalScroller];
@@ -212,9 +227,14 @@ static const unsigned cMaxUpdateScrollbarsPass = 2;
     if (!newHasVerticalScroller && hasVerticalScroller && hScroll != ScrollbarAlwaysOn)
         newHasHorizontalScroller = NO;
 
-    newHasHorizontalScroller &= !hideHorizontalScroller;
-    newHasVerticalScroller &= !hideVerticalScroller;
-
+    horizontalScrollingAllowedButScrollerHidden = newHasHorizontalScroller && alwaysHideHorizontalScroller;
+    if (horizontalScrollingAllowedButScrollerHidden)
+        newHasHorizontalScroller = NO;
+    
+    verticalScrollingAllowedButScrollerHidden = newHasVerticalScroller && alwaysHideVerticalScroller;
+    if (verticalScrollingAllowedButScrollerHidden)
+        newHasVerticalScroller = NO;
+        
     if (hasHorizontalScroller != newHasHorizontalScroller) {
         inUpdateScrollers = YES;
         [self setHasHorizontalScroller:newHasHorizontalScroller];
@@ -250,7 +270,7 @@ static const unsigned cMaxUpdateScrollbarsPass = 2;
 {
     if (clipView == [self contentView]) {
         // Prevent appearance of trails because of overlapping views
-        if (allowScrollersToOverlapContent)
+        if (allowsScrollersToOverlapContent)
             [self setDrawsBackground:NO];
     
         // FIXME: This hack here prevents infinite recursion that takes place when we
@@ -386,8 +406,10 @@ static const unsigned cMaxUpdateScrollbarsPass = 2;
 {
     float deltaX;
     float deltaY;
+    float wheelTicksX;
+    float wheelTicksY;
     BOOL isContinuous;
-    WKGetWheelEventDeltas(event, &deltaX, &deltaY, &isContinuous);
+    WKGetWheelEventDeltas(event, &deltaX, &deltaY, &wheelTicksX, &wheelTicksY, &isContinuous);
 
     BOOL isLatchingEvent = WKIsLatchingWheelEvent(event);
 

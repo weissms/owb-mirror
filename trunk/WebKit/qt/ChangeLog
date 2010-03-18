@@ -1,3 +1,112 @@
+2010-03-18  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Fix Qt build with tiled backing store disabled.
+
+        * Api/qwebframe.cpp:
+        * Api/qwebframe_p.h:
+
+2010-03-17  Chang Shu  <chang.shu@nokia.com>
+
+        Reviewed by Laszlo Gombos.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36139
+        [Qt] Clean up cache while setting cache quota. This behavior matches other platforms,
+        such as mac and gtk.
+
+         * Api/qwebsettings.cpp:
+        (QWebSettings::setOfflineWebApplicationCacheQuota):
+
+2010-03-17  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Enable accelerated compositing by default
+        https://bugs.webkit.org/show_bug.cgi?id=35866
+
+        * Api/qwebsettings.cpp:
+        (QWebSettings::QWebSettings):
+
+2010-03-15  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36121
+        [Qt] Make WebKit scrollbars work with tiling
+        
+        - Use the scrollbar overlay (implemented for accelerated compositing) when in tiled mode. 
+        - Make overlay compile unconditionally, enable on demand. This removes bunch of unneeded ifdefs.
+        - Update the scroll position to the backing store as needed.
+        - Renamed some methods.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewPrivate::):
+        (QGraphicsWebViewPrivate::createOrDeleteOverlay):
+        (QGraphicsWebViewPrivate::setRootGraphicsLayer):
+        (QGraphicsWebViewPrivate::updateCompositingScrollPosition):
+        (QGraphicsWebViewPrivate::scroll):
+        (QGraphicsWebViewPrivate::update):
+        (QGraphicsWebViewPrivate::graphicsItemVisibleRect):
+        (QGraphicsWebView::paint):
+        (QGraphicsWebView::setPage):
+        (QGraphicsWebView::updateGeometry):
+        (QGraphicsWebView::setGeometry):
+        * Api/qwebframe.cpp:
+        (QWebFramePrivate::renderFromTiledBackingStore):
+        * Api/qwebframe_p.h:
+
+2010-03-15  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Fix crash in QWebView::setPage()
+
+        tst_qwebpage was crashing on setPage(0)
+
+        https://bugs.webkit.org/show_bug.cgi?id=36137
+
+        * Api/qwebview.cpp:
+        (QWebView::setPage):
+
+2010-03-16  Yury Semikhatsky <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Introduce InspectorFrontendClient that provides InspectorFrontend with an interface to the embedder. InspectorClient now serves as a delegate for InspectorController and does not contain methods for managing inspector frontend window. That allows to create remote InspectorFrontendHost.
+
+        Introduce InspectorFrontendClient that would provide InspectorFrontend with an interface to the embedder
+        https://bugs.webkit.org/show_bug.cgi?id=35036
+
+        * Api/qwebinspector.cpp:
+        (QWebInspector::hideEvent):
+        (QWebInspector::closeEvent):
+        * Api/qwebinspector.h:
+        * Api/qwebpage.h:
+        * WebCoreSupport/InspectorClientQt.cpp:
+        (WebCore::InspectorClientQt::openInspectorFrontend):
+        (WebCore::InspectorFrontendClientQt::InspectorFrontendClientQt):
+        (WebCore::InspectorFrontendClientQt::frontendLoaded):
+        (WebCore::InspectorFrontendClientQt::localizedStringsURL):
+        (WebCore::InspectorFrontendClientQt::hiddenPanels):
+        (WebCore::InspectorFrontendClientQt::bringToFront):
+        (WebCore::InspectorFrontendClientQt::closeWindow):
+        (WebCore::InspectorFrontendClientQt::attachWindow):
+        (WebCore::InspectorFrontendClientQt::detachWindow):
+        (WebCore::InspectorFrontendClientQt::setAttachedWindowHeight):
+        (WebCore::InspectorFrontendClientQt::inspectedURLChanged):
+        (WebCore::InspectorFrontendClientQt::updateWindowTitle):
+        * WebCoreSupport/InspectorClientQt.h:
+
+2010-03-15  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed.
+
+        [Qt] Build fix if TILED_BACKING_STORE is disabled.
+
+        * Api/qwebframe.cpp:
+        (QWebFramePrivate::renderContentsLayerAbsoluteCoords):
+
 2010-03-15  Chang Shu  <chang.shu@nokia.com>
 
         Reviewed by Simon Hausmann.

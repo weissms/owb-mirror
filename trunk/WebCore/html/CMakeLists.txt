@@ -100,6 +100,7 @@ list(APPEND WEBCORE_SRC
 
 list(APPEND IDL_SRC
     html/Blob.idl
+    html/DOMFormData.idl
     html/DataGridColumnList.idl
     html/DataGridColumn.idl
     html/File.idl

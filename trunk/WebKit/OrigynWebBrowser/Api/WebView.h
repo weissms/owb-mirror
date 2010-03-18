@@ -1660,6 +1660,7 @@ protected:
     friend class WebFrameLoaderClient;
     friend class WebInspector;
     friend class WebInspectorClient;
+    friend class WebInspectorFrontendClient;
     friend class WebViewPrivate;
 
     friend WebCore::Page* core(WebView*);

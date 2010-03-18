@@ -1,3 +1,272 @@
+2010-03-18  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        PlatformTouchEventBuilder should not be resizing the touch point
+        array before appending touch points to it.
+        https://bugs.webkit.org/show_bug.cgi?id=36231
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::PlatformTouchEventBuilder::PlatformTouchEventBuilder):
+
+2010-03-17  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] Roll Chromium builder's DEPS to current revs.
+        https://bugs.webkit.org/show_bug.cgi?id=36241
+
+        * DEPS:
+
+2010-03-17  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Revert WebGL context attributes changes 33416 / r56074 and 36200 / r56093
+        https://bugs.webkit.org/show_bug.cgi?id=36233
+
+        The patch for bug 33416, which added multisampling support to the
+        WebGL back buffer, uncovered some OpenGL driver bugs on the build
+        bots which need further investigation to determine the appropriate
+        workaround. Reverting this change, the minor build fix in 36189,
+        and the skipping of the affected tests in bug 36200.
+
+        Built and tested WebKit and Chromium and ran all WebGL layout
+        tests in both.
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3DInternal::GraphicsContext3DInternal):
+        (WebCore::GraphicsContext3DInternal::~GraphicsContext3DInternal):
+        (WebCore::GraphicsContext3DInternal::reshape):
+        (WebCore::GraphicsContext3DInternal::beginPaint):
+        (WebCore::GraphicsContext3DInternal::bindFramebuffer):
+        (WebCore::GraphicsContext3D::readPixels):
+
+2010-03-16  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by David Levin.
+
+        [Chromium] Size the WebVector of forms after determining how many
+        forms are valid and will be returned.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36204
+
+        No new tests, as this is only triggered by Chromium's use of the
+        WebFormElement API.
+
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::forms):
+
+2010-03-16  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Build breakage from 33416
+        https://bugs.webkit.org/show_bug.cgi?id=36189
+
+        No new tests. Built release Chromium.
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3DInternal::reshape):
+
+2010-03-16  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Hook up WebGLContextAttributes to OpenGL context creation code
+        https://bugs.webkit.org/show_bug.cgi?id=33416
+
+        Test: fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias.html
+
+        * src/GraphicsContext3D.cpp: Hook up WebGLContextAttributes to OpenGL context creation code for Windows.
+
+2010-03-16  Yury Semikhatsky  <yurys@chromium.org>
+
+        Unreviewed.
+
+        Fix Chromium Mac build: remove unused code.
+
+        * src/WebDevToolsAgentImpl.cpp:
+        (WebKit::WebDevToolsAgentImpl::createInspectorFrontendProxy):
+
+2010-03-16  Yury Semikhatsky <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Introduce InspectorFrontendClient that provides InspectorFrontend with an interface to the embedder. InspectorClient now serves as a delegate for InspectorController and does not contain methods for managing inspector frontend window. That allows to create remote InspectorFrontendHost.
+
+        Introduce InspectorFrontendClient that would provide InspectorFrontend with an interface to the embedder
+        https://bugs.webkit.org/show_bug.cgi?id=35036
+
+        * src/InspectorClientImpl.cpp:
+        (WebKit::InspectorClientImpl::openInspectorFrontend):
+        * src/InspectorClientImpl.h:
+        * src/WebDevToolsAgentImpl.cpp:
+        (WebKit::WebDevToolsAgentImpl::attach):
+        (WebKit::WebDevToolsAgentImpl::didCommitProvisionalLoad):
+        (WebKit::WebDevToolsAgentImpl::createInspectorFrontendProxy):
+        (WebKit::WebDevToolsAgentImpl::setInspectorFrontendProxyToInspectorController):
+        * src/WebDevToolsAgentImpl.h:
+        * src/WebDevToolsFrontendImpl.cpp:
+        (WebKit::WebDevToolsFrontendImpl::WebDevToolsFrontendImpl):
+        (WebKit::WebDevToolsFrontendImpl::jsBringToFront):
+        (WebKit::WebDevToolsFrontendImpl::jsInspectedURLChanged):
+        * src/WebDevToolsFrontendImpl.h:
+        * src/js/InjectDispatch.js:
+        (close):
+
+2010-03-16  Pavel Feldman  <pfeldman@chromium.org>
+
+        Not reviewed: chromium tests fix.
+
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+
+2010-03-16  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: migrate to native styles inspector in order to inspect styles from foreighn domains.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36117
+
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+
+2010-03-15  John Gregg  <johnnyg@google.com>
+
+        Reviewed by David Levin.
+
+        Notification object should expose absolute URL of icon
+        https://bugs.webkit.org/show_bug.cgi?id=35800
+
+        * public/WebNotification.h:
+        * src/WebNotification.cpp:
+        (WebKit::WebNotification::iconURL):
+
+2010-03-15  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36152
+        [chromium] Add support for history.pushState and history.replaceState
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::didNavigateWithinPage): Move implementation of
+        didChangeLocationWithinPage to here.  Only add to the redirect chain if
+        we are performing a simple hash change (i.e., no state object on the
+        history item).  Call the old didChangeLocationWithinPage for backwards
+        compat with Chromium.  This will be removed in a subsequent patch.
+
+        (WebKit::WebFrameClient::didChangeLocationWithinPage):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchDidNavigateWithinPage):
+        (WebKit::FrameLoaderClientImpl::dispatchDidChangeLocationWithinPage):
+        Call the new version of didChangeLocationWithinPage without the
+        parameter to indicate whether this is a new navigation or not.  We only
+        need this method on WebFrameClient to support TestShell / DRT.
+
+        (WebKit::FrameLoaderClientImpl::dispatchDidPushStateWithinPage):
+        Call dispatchDidNavigateWithinPage since pushState is just a type of
+        in-page navigation.  This is an in-page navigation that adds another
+        entry to session history.
+
+        (WebKit::FrameLoaderClientImpl::dispatchDidReplaceStateWithinPage):
+        Call dispatchDidNavigateWithinPage since replaceState is just a type of
+        in-page navigation.   This is an in-page navigation that replaces the
+        current session history entry.
+
+        (WebKit::FrameLoaderClientImpl::dispatchDidPopStateWithinPage): Do
+        nothing since dispatchDidNavigateWithinPage is called in this case by
+        the FrameLoader.
+
+        (WebKit::FrameLoaderClientImpl::dispatchDecidePolicyForNavigationAction):
+        (WebKit::FrameLoaderClientImpl::shouldGoToHistoryItem): Move the code
+        for handling the dummy chrome-back-forward://go/ URLs from
+        dispatchDecidePolicyForNavigationAction to shouldGoToHistoryItem, which
+        prevents the URLs from leaking into session history.
+        shouldGoToHistoryItem is called before any work is done by history
+        traversal, so this is a better place for this hack.  Ultimately, this
+        code should be eliminatd in favor of better integration with
+        FrameLoader or HistoryController.
+
+        * src/FrameLoaderClientImpl.h:
+
+2010-03-15  Darin Fisher  <darin@chromium.org>
+
+        Fix build bustage.  We also need to pull down "third_party/tcmalloc"
+
+        * DEPS:
+
+2010-03-15  Darin Fisher  <darin@chromium.org>
+
+        Fix build bustage.  We also need to pull down "gfx"
+
+        * DEPS:
+
+2010-03-15  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by David Levin.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36131
+        Update include paths for chromium Rect, Point, and Size types.
+
+        Update DEPS to pull latest chromium code that reflects the
+        new location of these headers.
+
+        * DEPS:
+        * public/WebPoint.h:
+        * public/WebRect.h:
+        * public/WebSize.h:
+
+2010-03-15  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Send the frame URL on GeolocationServiceBridgeImpl::startUpdating.
+        https://bugs.webkit.org/show_bug.cgi?id=36012
+
+        * public/GeolocationServiceBridgeChromium.h:
+        * src/GeolocationServiceBridgeChromium.cpp:
+        (WebKit::GeolocationServiceBridgeImpl::startUpdating):
+
+2010-03-15  Patrik Persson  <patrik.j.persson@ericsson.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=32369
+
+        Revise iframe sandbox behavior to match the updated HTML5 spec.
+
+        - Enables window.sessionStorage in sandboxed iframes.
+
+        - Raises SECURITY_ERR exceptions when window.localStorage or
+          window.openDatabase() is blocked by iframe sandboxing.
+
+          Note: window.sessionStorage does not raise exceptions.
+
+        WebKit would previously return null references in these cases.  The
+        new behavior is in accordance with HTML5:
+
+          http://dev.w3.org/html5/webstorage/   (sections 4.2 and 4.3)
+          http://dev.w3.org/html5/webdatabase/  (section 4.1)
+          http://www.mail-archive.com/whatwg@lists.whatwg.org/msg19786.html
+
+        * src/StorageAreaProxy.cpp:
+        (WebCore::StorageAreaProxy::storageEvent): exception handling
+        * src/StorageEventDispatcherImpl.cpp:
+        (WebCore::StorageEventDispatcherImpl::dispatchStorageEvent): exception handling
+
+2010-03-15  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        option-pageup/down should move cursor on chromium mac
+        https://bugs.webkit.org/show_bug.cgi?id=36108
+
+        * src/EditorClientImpl.cpp:
+        (WebKit::):
+
 2010-03-15  Eric Roman  <eroman@chromium.org>
 
         Reviewed by Adam Barth.

@@ -49,15 +49,26 @@
 
 namespace WebCore {
 
-InspectorFrontend::InspectorFrontend(InspectorController* inspectorController, ScriptObject webInspector)
-    : m_inspectorController(inspectorController)
-    , m_webInspector(webInspector)
+InspectorFrontend::InspectorFrontend(ScriptObject webInspector)
+    : m_webInspector(webInspector)
 {
 }
 
 InspectorFrontend::~InspectorFrontend() 
 {
     m_webInspector = ScriptObject();
+}
+
+void InspectorFrontend::close()
+{
+    ScriptFunctionCall function(m_webInspector, "close");
+    function.call();
+}
+
+void InspectorFrontend::inspectedPageDestroyed()
+{
+    ScriptFunctionCall function(m_webInspector, "inspectedPageDestroyed");
+    function.call();
 }
 
 ScriptArray InspectorFrontend::newScriptArray()
@@ -91,7 +102,7 @@ void InspectorFrontend::updateConsoleMessageExpiredCount(unsigned count)
     function.call();
 }
 
-void InspectorFrontend::addConsoleMessage(const ScriptObject& messageObj, const Vector<ScriptString>& frames, ScriptState* scriptState, const Vector<ScriptValue> arguments, const String& message)
+void InspectorFrontend::addConsoleMessage(const ScriptObject& messageObj, const Vector<ScriptString>& frames, const Vector<RefPtr<SerializedScriptValue> >& arguments, const String& message)
 {
     ScriptFunctionCall function(m_webInspector, "dispatch"); 
     function.appendArgument("addConsoleMessage");
@@ -100,10 +111,8 @@ void InspectorFrontend::addConsoleMessage(const ScriptObject& messageObj, const 
         for (unsigned i = 0; i < frames.size(); ++i)
             function.appendArgument(frames[i]);
     } else if (!arguments.isEmpty()) {
-        InjectedScript injectedScript = m_inspectorController->injectedScriptHost()->injectedScriptFor(scriptState);
         for (unsigned i = 0; i < arguments.size(); ++i) {
-            RefPtr<SerializedScriptValue> serializedValue = injectedScript.wrapForConsole(arguments[i]);
-            ScriptValue scriptValue = ScriptValue::deserialize(this->scriptState(), serializedValue.get());
+            ScriptValue scriptValue = ScriptValue::deserialize(scriptState(), arguments[i].get());
             if (scriptValue.hasNoValue()) {
                 ASSERT_NOT_REACHED();
                 return;
@@ -218,6 +227,19 @@ void InspectorFrontend::populateInterface()
 void InspectorFrontend::reset()
 {
     callSimpleFunction("reset");
+}
+
+void InspectorFrontend::bringToFront()
+{
+    callSimpleFunction("bringToFront");
+}
+
+void InspectorFrontend::inspectedURLChanged(const String& url)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch");
+    function.appendArgument("inspectedURLChanged");
+    function.appendArgument(url);
+    function.call();
 }
 
 void InspectorFrontend::resourceTrackingWasEnabled()
@@ -465,13 +487,107 @@ void InspectorFrontend::didApplyDomChange(int callId, bool success)
     function.call();
 }
 
-void InspectorFrontend::didGetEventListenersForNode(int callId, int nodeId, ScriptArray& listenersArray)
+void InspectorFrontend::didGetEventListenersForNode(int callId, int nodeId, const ScriptArray& listenersArray)
 {
     ScriptFunctionCall function(m_webInspector, "dispatch"); 
     function.appendArgument("didGetEventListenersForNode");
     function.appendArgument(callId);
     function.appendArgument(nodeId);
     function.appendArgument(listenersArray);
+    function.call();
+}
+
+void InspectorFrontend::didGetStyles(long callId, const ScriptValue& styles)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didGetStyles");
+    function.appendArgument(callId);
+    function.appendArgument(styles);
+    function.call();
+}
+
+void InspectorFrontend::didGetAllStyles(long callId, const ScriptArray& styles)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch");
+    function.appendArgument("didGetAllStyles");
+    function.appendArgument(callId);
+    function.appendArgument(styles);
+    function.call();
+}
+
+void InspectorFrontend::didGetComputedStyle(long callId, const ScriptValue& style)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didGetComputedStyle");
+    function.appendArgument(callId);
+    function.appendArgument(style);
+    function.call();
+}
+
+void InspectorFrontend::didGetInlineStyle(long callId, const ScriptValue& style)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didGetInlineStyle");
+    function.appendArgument(callId);
+    function.appendArgument(style);
+    function.call();
+}
+
+void InspectorFrontend::didApplyStyleText(int callId, bool success, const ScriptValue& style, const ScriptArray& changedProperties)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didApplyStyleText");
+    function.appendArgument(callId);
+    function.appendArgument(success);
+    function.appendArgument(style);
+    function.appendArgument(changedProperties);
+    function.call();
+}
+
+void InspectorFrontend::didSetStyleText(int callId, bool success)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didSetStyleText");
+    function.appendArgument(callId);
+    function.appendArgument(success);
+    function.call();
+}
+
+void InspectorFrontend::didSetStyleProperty(int callId, bool success)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didSetStyleProperty");
+    function.appendArgument(callId);
+    function.appendArgument(success);
+    function.call();
+}
+
+void InspectorFrontend::didToggleStyleEnabled(int callId, const ScriptValue& style)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didToggleStyleEnabled");
+    function.appendArgument(callId);
+    function.appendArgument(style);
+    function.call();
+}
+
+void InspectorFrontend::didSetRuleSelector(int callId, const ScriptValue& rule, bool selectorAffectsNode)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didSetRuleSelector");
+    function.appendArgument(callId);
+    function.appendArgument(rule);
+    function.appendArgument(selectorAffectsNode);
+    function.call();
+}
+
+void InspectorFrontend::didAddRule(int callId, const ScriptValue& rule, bool selectorAffectsNode)
+{
+    ScriptFunctionCall function(m_webInspector, "dispatch"); 
+    function.appendArgument("didAddRule");
+    function.appendArgument(callId);
+    function.appendArgument(rule);
+    function.appendArgument(selectorAffectsNode);
     function.call();
 }
 

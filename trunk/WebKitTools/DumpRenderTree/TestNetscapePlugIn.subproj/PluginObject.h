@@ -41,6 +41,7 @@ typedef struct {
     NPStream* stream;
     NPBool testDocumentOpenInDestroyStream;
     NPBool testWindowOpen;
+    NPBool testKeyboardFocusForPlugins;
     char* onStreamLoad;
     char* onStreamDestroy;
     char* onDestroy;
@@ -52,6 +53,7 @@ typedef struct {
 #ifdef XP_MACOSX
     NPEventModel eventModel;
 #endif
+    NPWindow lastWindow;
 } PluginObject;
 
 extern NPClass *getPluginClass(void);

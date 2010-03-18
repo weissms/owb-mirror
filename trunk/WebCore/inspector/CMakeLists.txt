@@ -9,6 +9,7 @@ if(ENABLE_INSPECTOR)
         inspector/InspectorDOMAgent.cpp
         inspector/InspectorDOMStorageResource.cpp
         inspector/InspectorFrontend.cpp
+        inspector/InspectorFrontendClientLocal.cpp
         inspector/InspectorFrontendHost.cpp
         inspector/InspectorResource.cpp
         inspector/InspectorTimelineAgent.cpp

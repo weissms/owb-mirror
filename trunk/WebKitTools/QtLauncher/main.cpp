@@ -72,7 +72,7 @@ void QWEBKIT_EXPORT qt_drt_garbageCollector_collect();
 
 static const int gExitClickArea = 80;
 static bool gUseGraphicsView = false;
-static bool gUseCompositing = false;
+static bool gUseCompositing = true;
 static bool gCacheWebView = false;
 static bool gShowFrameRate = false;
 static QGraphicsView::ViewportUpdateMode gViewportUpdateMode = QGraphicsView::MinimalViewportUpdate;
@@ -127,6 +127,7 @@ protected slots:
     void toggleSpatialNavigation(bool b);
     void toggleFullScreenMode(bool enable);
     void showFPS(bool enable);
+    void changeViewportUpdateMode(int mode);
 
 public slots:
     void newWindow();
@@ -240,7 +241,7 @@ void LauncherWindow::applyPrefs(LauncherWindow* source)
     QWebSettings* settings = page()->settings();
 
     applySetting(QWebSettings::AcceleratedCompositingEnabled, settings, other, gUseCompositing);
-    applySetting(QWebSettings::TiledBackingStoreEnabled, settings, other, gUseTiledBackingStore);;
+    applySetting(QWebSettings::TiledBackingStoreEnabled, settings, other, gUseTiledBackingStore);
     applySetting(QWebSettings::WebGLEnabled, settings, other, false);
 
     if (!isGraphicsBased())
@@ -529,6 +530,7 @@ void LauncherWindow::setTouchMocking(bool on)
 
 void LauncherWindow::toggleAcceleratedCompositing(bool toggle)
 {
+    gUseCompositing = toggle;
     page()->settings()->setAttribute(QWebSettings::AcceleratedCompositingEnabled, toggle);
 }
 
@@ -608,6 +610,17 @@ void LauncherWindow::showFPS(bool enable)
     gShowFrameRate = enable;
     WebViewGraphicsBased* view = static_cast<WebViewGraphicsBased*>(m_view);
     view->setFrameRateMeasurementEnabled(enable);
+}
+
+void LauncherWindow::changeViewportUpdateMode(int mode)
+{
+    gViewportUpdateMode = QGraphicsView::ViewportUpdateMode(mode);
+
+    if (!isGraphicsBased())
+        return;
+
+    WebViewGraphicsBased* view = static_cast<WebViewGraphicsBased*>(m_view);
+    view->setViewportUpdateMode(gViewportUpdateMode);
 }
 
 void LauncherWindow::newWindow()
@@ -755,6 +768,52 @@ void LauncherWindow::createChrome()
     showFPS->setEnabled(isGraphicsBased());
     showFPS->connect(toggleGraphicsView, SIGNAL(toggled(bool)), SLOT(setEnabled(bool)));
     showFPS->setChecked(gShowFrameRate);
+
+    QMenu* viewportUpdateMenu = graphicsViewMenu->addMenu("Change Viewport Update Mode");
+    viewportUpdateMenu->setEnabled(isGraphicsBased());
+    viewportUpdateMenu->connect(toggleGraphicsView, SIGNAL(toggled(bool)), SLOT(setEnabled(bool)));
+
+    QAction* fullUpdate = viewportUpdateMenu->addAction("FullViewportUpdate");
+    fullUpdate->setCheckable(true);
+    fullUpdate->setChecked((gViewportUpdateMode == QGraphicsView::FullViewportUpdate) ? true : false);
+
+    QAction* minimalUpdate = viewportUpdateMenu->addAction("MinimalViewportUpdate");
+    minimalUpdate->setCheckable(true);
+    minimalUpdate->setChecked((gViewportUpdateMode == QGraphicsView::MinimalViewportUpdate) ? true : false);
+
+    QAction* smartUpdate = viewportUpdateMenu->addAction("SmartViewportUpdate");
+    smartUpdate->setCheckable(true);
+    smartUpdate->setChecked((gViewportUpdateMode == QGraphicsView::SmartViewportUpdate) ? true : false);
+
+    QAction* boundingRectUpdate = viewportUpdateMenu->addAction("BoundingRectViewportUpdate");
+    boundingRectUpdate->setCheckable(true);
+    boundingRectUpdate->setChecked((gViewportUpdateMode == QGraphicsView::BoundingRectViewportUpdate) ? true : false);
+
+    QAction* noUpdate = viewportUpdateMenu->addAction("NoViewportUpdate");
+    noUpdate->setCheckable(true);
+    noUpdate->setChecked((gViewportUpdateMode == QGraphicsView::NoViewportUpdate) ? true : false);
+
+    QSignalMapper* signalMapper = new QSignalMapper(viewportUpdateMenu);
+    signalMapper->setMapping(fullUpdate, QGraphicsView::FullViewportUpdate);
+    signalMapper->setMapping(minimalUpdate, QGraphicsView::MinimalViewportUpdate);
+    signalMapper->setMapping(smartUpdate, QGraphicsView::SmartViewportUpdate);
+    signalMapper->setMapping(boundingRectUpdate, QGraphicsView::BoundingRectViewportUpdate);
+    signalMapper->setMapping(noUpdate, QGraphicsView::NoViewportUpdate);
+
+    connect(fullUpdate, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    connect(minimalUpdate, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    connect(smartUpdate, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    connect(boundingRectUpdate, SIGNAL(triggered()), signalMapper, SLOT(map()));
+    connect(noUpdate, SIGNAL(triggered()), signalMapper, SLOT(map()));
+
+    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(changeViewportUpdateMode(int)));
+
+    QActionGroup* viewportUpdateModeActions = new QActionGroup(viewportUpdateMenu);
+    viewportUpdateModeActions->addAction(fullUpdate);
+    viewportUpdateModeActions->addAction(minimalUpdate);
+    viewportUpdateModeActions->addAction(smartUpdate);
+    viewportUpdateModeActions->addAction(boundingRectUpdate);
+    viewportUpdateModeActions->addAction(noUpdate);
 }
 
 QWebPage* WebPage::createWindow(QWebPage::WebWindowType type)
@@ -859,7 +918,7 @@ void LauncherApplication::handleUserOptions()
     if (args.contains("-help")) {
         qDebug() << "Usage:" << programName.toLatin1().data()
              << "[-graphicsbased]"
-             << "[-compositing]"
+             << "[-no-compositing]"
              << QString("[-viewport-update-mode %1]").arg(formatKeys(updateModes)).toLatin1().data()
              << "[-cache-webview]"
              << "[-show-fps]"
@@ -874,9 +933,9 @@ void LauncherApplication::handleUserOptions()
     if (args.contains("-graphicsbased"))
         gUseGraphicsView = true;
 
-    if (args.contains("-compositing")) {
-        requiresGraphicsView("-compositing");
-        gUseCompositing = true;
+    if (args.contains("-no-compositing")) {
+        requiresGraphicsView("-no-compositing");
+        gUseCompositing = false;
     }
 
     if (args.contains("-show-fps")) {

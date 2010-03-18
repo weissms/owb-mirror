@@ -213,17 +213,15 @@ void InspectorResource::updateScriptObject(InspectorFrontend* frontend)
         m_changes.clearAll();
 }
 
-void InspectorResource::releaseScriptObject(InspectorFrontend* frontend, bool callRemoveResource)
+void InspectorResource::releaseScriptObject(InspectorFrontend* frontend)
 {
     m_changes.setAll();
 
     for (size_t i = 0; i < m_redirects.size(); ++i)
-        m_redirects[i]->releaseScriptObject(frontend, callRemoveResource);
+        m_redirects[i]->releaseScriptObject(frontend);
 
-    if (!callRemoveResource)
-        return;
-
-    frontend->removeResource(m_identifier);
+    if (frontend)
+        frontend->removeResource(m_identifier);
 }
 
 CachedResource* InspectorResource::cachedResource() const

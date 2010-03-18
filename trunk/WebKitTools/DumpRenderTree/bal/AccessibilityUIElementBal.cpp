@@ -427,6 +427,11 @@ AccessibilityUIElement AccessibilityUIElement::disclosedByRow()
     return 0;
 }
 
+void AccessibilityUIElement::press()
+{
+    // FIXME: implement
+}
+
 void AccessibilityUIElement::showMenu()
 {
     // FIXME: implement

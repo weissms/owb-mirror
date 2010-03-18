@@ -134,6 +134,8 @@
 #define WebKitFrameSetFlatteningEnabledPreferenceKey "WebKitFrameSetFlatteningEnabled"
 #define WebKitWebGLEnabledPreferenceKey "WebKitWebGLEnabled"
 #define WebKitAcceleratedCompositingEnabledPreferenceKey "WebKitAcceleratedCompositingEnabled"
+#define WebKitShowDebugBordersPreferenceKey "WebKitShowDebugBorders"
+#define WebKitShowRepaintCounterPreferenceKey "WebKitShowRepaintCounter"
 #define WebKitMemoryLimitPreferenceKey "WebKitMemoryLimit"
 #define WebKitAllowScriptsToCloseWindowsPreferenceKey "WebKitAllowScriptsToCloseWindows"
 #define WebKitCustomDragCursorsEnabledPreferenceKey "WebKitCustomDragCursorsEnabled"

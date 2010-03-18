@@ -1783,6 +1783,8 @@ void FrameLoader::loadInSameDocument(const KURL& url, SerializedScriptValue* sta
         checkLoadComplete();
     }
 
+    m_client->dispatchDidNavigateWithinPage();
+
     if (stateObject) {
         m_frame->document()->statePopped(stateObject);
         m_client->dispatchDidPopStateWithinPage();
@@ -3958,8 +3960,6 @@ void FrameLoader::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* world)
     if (Page* page = m_frame->page()) {
         if (InspectorController* inspector = page->inspectorController())
             inspector->inspectedWindowScriptObjectCleared(m_frame);
-        if (InspectorController* inspector = page->parentInspectorController())
-            inspector->windowScriptObjectAvailable();
     }
 #endif
 }

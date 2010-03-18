@@ -141,9 +141,6 @@ Page::Page(ChromeClient* chromeClient, ContextMenuClient* contextMenuClient, Edi
     , m_areMemoryCacheClientCallsEnabled(true)
     , m_mediaVolume(1)
     , m_javaScriptURLsAreAllowed(true)
-#if ENABLE(INSPECTOR)
-    , m_parentInspectorController(0)
-#endif
     , m_didLoadUserStyleSheet(false)
     , m_userStyleSheetModificationTime(0)
     , m_group(0)
@@ -199,8 +196,6 @@ Page::~Page()
 
     m_editorClient->pageDestroyed();
 #if ENABLE(INSPECTOR)
-    if (m_parentInspectorController)
-        m_parentInspectorController->pageDestroyed();
     m_inspectorController->inspectedPageDestroyed();
 #endif
 

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2008 Apple Computer, Inc.  All rights reserved.
- * Copyright (C) 2009 Igalia S.L.
+ * Copyright (C) 2008 INdT - Instituto Nokia de Tecnologia
+ * Copyright (C) 2009-2010 ProFUSION embedded systems
+ * Copyright (C) 2009-2010 Samsung Electronics
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,7 +12,7 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
@@ -21,27 +22,26 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
-#include "DNS.h"
+#include "Sound.h"
 
-#include "CString.h"
-#include "GOwnPtrSoup.h"
-#include "ResourceHandle.h"
+#include "NotImplemented.h"
+
+#ifdef HAVE_ECORE_X
+#include <Ecore_X.h>
+#include <X11/Xlib.h>
+#endif
 
 namespace WebCore {
 
-void prefetchDNS(const String& hostname)
+void systemBeep()
 {
-#ifdef HAVE_LIBSOUP_2_29_90
-    String uri = "http://"+hostname;
-    GOwnPtr<SoupURI> soupURI(soup_uri_new(uri.utf8().data()));
-    // We may get invalid hostnames, so NULL-check here.
-    if (!soupURI)
-        return;
-    soup_session_prepare_for_uri(ResourceHandle::defaultSession(), soupURI.get());
+#ifdef HAVE_ECORE_X
+    Display* display = (Display*) ecore_x_display_get();
+    XBell(display, 0);
 #endif
 }
 

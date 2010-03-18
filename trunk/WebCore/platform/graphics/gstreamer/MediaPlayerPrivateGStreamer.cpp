@@ -93,6 +93,7 @@ gboolean mediaPlayerPrivateMessageCallback(GstBus* bus, GstMessage* message, gpo
     MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
     bool issueError = true;
     bool attemptNextLocation = false;
+    GstElement* pipeline = mp->pipeline();
 
     if (message->structure) {
         const gchar* messageTypeName = gst_structure_get_name(message->structure);
@@ -137,7 +138,10 @@ gboolean mediaPlayerPrivateMessageCallback(GstBus* bus, GstMessage* message, gpo
         mp->didEnd();
         break;
     case GST_MESSAGE_STATE_CHANGED:
-        mp->updateStates();
+        // Ignore state changes from internal elements. They are
+        // forwarded to playbin2 anyway.
+        if (GST_MESSAGE_SRC(message) == reinterpret_cast<GstObject*>(pipeline))
+            mp->updateStates();
         break;
     case GST_MESSAGE_BUFFERING:
         mp->processBufferingStats(message);
@@ -177,31 +181,11 @@ void mediaPlayerPrivateVolumeChangedCallback(GObject *element, GParamSpec *pspec
     mp->volumeChanged();
 }
 
-gboolean notifyVolumeIdleCallback(gpointer data)
-{
-    MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
-    mp->volumeChangedCallback();
-    return FALSE;
-}
-
 void mediaPlayerPrivateMuteChangedCallback(GObject *element, GParamSpec *pspec, gpointer data)
 {
     // This is called when playbin receives the notify::mute signal.
     MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
     mp->muteChanged();
-}
-
-gboolean notifyMuteIdleCallback(gpointer data)
-{
-    MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
-    mp->muteChangedCallback();
-    return FALSE;
-}
-
-gboolean bufferingTimeoutCallback(gpointer data)
-{
-    MediaPlayerPrivate* mp = reinterpret_cast<MediaPlayerPrivate*>(data);
-    return mp->queryBufferingStats();
 }
 
 static float playbackPosition(GstElement* playbin)
@@ -307,13 +291,14 @@ MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
     , m_buffering(false)
     , m_playbackRate(1)
     , m_errorOccured(false)
-    , m_volumeIdleId(0)
     , m_mediaDuration(0)
-    , m_muteIdleId(0)
     , m_startedBuffering(false)
-    , m_fillTimeoutId(0)
+    , m_fillTimer(this, &MediaPlayerPrivate::fillTimerFired)
     , m_maxTimeLoaded(0)
     , m_bufferingPercentage(0)
+    , m_preload(MediaPlayer::Auto)
+    , m_delayingLoad(false)
+    , m_mediaDurationKnown(true)
 {
     if (doGstInit())
         createGSTPlayBin();
@@ -321,20 +306,8 @@ MediaPlayerPrivate::MediaPlayerPrivate(MediaPlayer* player)
 
 MediaPlayerPrivate::~MediaPlayerPrivate()
 {
-    if (m_fillTimeoutId) {
-        g_source_remove(m_fillTimeoutId);
-        m_fillTimeoutId = 0;
-    }
-
-    if (m_volumeIdleId) {
-        g_source_remove(m_volumeIdleId);
-        m_volumeIdleId = 0;
-    }
-
-    if (m_muteIdleId) {
-        g_source_remove(m_muteIdleId);
-        m_muteIdleId = 0;
-    }
+    if (m_fillTimer.isActive())
+        m_fillTimer.stop();
 
     if (m_buffer)
         gst_buffer_unref(m_buffer);
@@ -368,7 +341,26 @@ MediaPlayerPrivate::~MediaPlayerPrivate()
 
 void MediaPlayerPrivate::load(const String& url)
 {
+    g_object_set(m_playBin, "uri", url.utf8().data(), NULL);
+
     LOG_VERBOSE(Media, "Load %s", url.utf8().data());
+
+    if (m_preload == MediaPlayer::None) {
+        LOG_VERBOSE(Media, "Delaying load.");
+        m_delayingLoad = true;
+        return;
+    }
+
+    commitLoad();
+}
+
+void MediaPlayerPrivate::commitLoad()
+{
+    // GStreamer needs to have the pipeline set to a paused state to
+    // start providing anything useful.
+    gst_element_set_state(m_playBin, GST_STATE_PAUSED);
+
+    LOG_VERBOSE(Media, "Committing load.");
     if (m_networkState != MediaPlayer::Loading) {
         m_networkState = MediaPlayer::Loading;
         m_player->networkStateChanged();
@@ -377,12 +369,6 @@ void MediaPlayerPrivate::load(const String& url)
         m_readyState = MediaPlayer::HaveNothing;
         m_player->readyStateChanged();
     }
-
-    g_object_set(m_playBin, "uri", url.utf8().data(), NULL);
-
-    // GStreamer needs to have the pipeline set to a paused state to
-    // start providing anything useful.
-    gst_element_set_state(m_playBin, GST_STATE_PAUSED);
 }
 
 bool MediaPlayerPrivate::changePipelineState(GstState newState)
@@ -404,6 +390,14 @@ bool MediaPlayerPrivate::changePipelineState(GstState newState)
     return true;
 }
 
+void MediaPlayerPrivate::prepareToPlay()
+{
+    if (m_delayingLoad) {
+        m_delayingLoad = false;
+        commitLoad();
+    }
+}
+
 void MediaPlayerPrivate::play()
 {
     if (changePipelineState(GST_STATE_PLAYING))
@@ -423,6 +417,10 @@ float MediaPlayerPrivate::duration() const
 
     if (m_errorOccured)
         return 0.0;
+
+    // Media duration query failed already, don't attempt new useless queries.
+    if (!m_mediaDurationKnown)
+        return numeric_limits<float>::infinity();
 
     if (m_mediaDuration)
         return m_mediaDuration;
@@ -594,7 +592,7 @@ void MediaPlayerPrivate::setVolume(float volume)
     g_object_set(m_playBin, "volume", static_cast<double>(volume), NULL);
 }
 
-void MediaPlayerPrivate::volumeChangedCallback()
+void MediaPlayerPrivate::volumeChangedTimerFired(Timer<MediaPlayerPrivate>*)
 {
     double volume;
     g_object_get(m_playBin, "volume", &volume, NULL);
@@ -603,9 +601,8 @@ void MediaPlayerPrivate::volumeChangedCallback()
 
 void MediaPlayerPrivate::volumeChanged()
 {
-    if (m_volumeIdleId)
-        g_source_remove(m_volumeIdleId);
-    m_volumeIdleId = g_idle_add((GSourceFunc) notifyVolumeIdleCallback, this);
+    Timer<MediaPlayerPrivate> volumeChangedTimer(this, &MediaPlayerPrivate::volumeChangedTimerFired);
+    volumeChangedTimer.startOneShot(0);
 }
 
 void MediaPlayerPrivate::setRate(float rate)
@@ -704,20 +701,20 @@ void MediaPlayerPrivate::processBufferingStats(GstMessage* message)
 
         m_startedBuffering = true;
 
-        if (m_fillTimeoutId > 0)
-            g_source_remove(m_fillTimeoutId);
+        if (m_fillTimer.isActive())
+            m_fillTimer.stop();
 
-        m_fillTimeoutId = g_timeout_add(200, (GSourceFunc) bufferingTimeoutCallback, this);
+        m_fillTimer.startRepeating(0.2);
     }
 }
 
-bool MediaPlayerPrivate::queryBufferingStats()
+void MediaPlayerPrivate::fillTimerFired(Timer<MediaPlayerPrivate>*)
 {
     GstQuery* query = gst_query_new_buffering(GST_FORMAT_PERCENT);
 
     if (!gst_element_query(m_playBin, query)) {
         gst_query_unref(query);
-        return TRUE;
+        return;
     }
 
     gint64 start, stop;
@@ -743,16 +740,15 @@ bool MediaPlayerPrivate::queryBufferingStats()
 
     if (fillStatus != 100.0) {
         updateStates();
-        return TRUE;
+        return;
     }
 
     // Media is now fully loaded. It will play even if network
     // connection is cut. Buffering is done, remove the fill source
     // from the main loop.
-    m_fillTimeoutId = 0;
+    m_fillTimer.stop();
     m_startedBuffering = false;
     updateStates();
-    return FALSE;
 }
 
 float MediaPlayerPrivate::maxTimeSeekable() const
@@ -774,7 +770,7 @@ float MediaPlayerPrivate::maxTimeLoaded() const
         return 0.0;
 
     float loaded = m_maxTimeLoaded;
-    if (!loaded && !m_fillTimeoutId)
+    if (!loaded && !m_fillTimer.isActive())
         loaded = duration();
     LOG_VERBOSE(Media, "maxTimeLoaded: %f", loaded);
     return loaded;
@@ -875,15 +871,17 @@ void MediaPlayerPrivate::updateStates()
                     LOG_VERBOSE(Media, "[Buffering] Restarting playback.");
                     gst_element_set_state(m_playBin, GST_STATE_PLAYING);
                 }
-            } else if (!m_buffering)
+            } else if (!m_buffering && (currentTime() < duration())) {
                 m_paused = true;
+            }
         } else if (state == GST_STATE_PLAYING) {
             m_readyState = MediaPlayer::HaveEnoughData;
             m_paused = false;
 
             if (!m_mediaDuration) {
                 float newDuration = duration();
-                if (!isinf(newDuration))
+                m_mediaDurationKnown = !isinf(newDuration);
+                if (m_mediaDurationKnown)
                     m_mediaDuration = newDuration;
             }
 
@@ -899,8 +897,7 @@ void MediaPlayerPrivate::updateStates()
             m_paused = true;
 
         // Is on-disk buffering in progress?
-
-        if (m_fillTimeoutId)
+        if (m_fillTimer.isActive())
             m_networkState = MediaPlayer::Loading;
 
         if (m_changingRate) {
@@ -1122,7 +1119,22 @@ void MediaPlayerPrivate::durationChanged()
     m_mediaDuration = 0;
 
     // And re-cache it if possible.
+    GstState state;
+    gst_element_get_state(m_playBin, &state, 0, 0);
     float newDuration = duration();
+
+    if (state <= GST_STATE_READY) {
+        // Don't set m_mediaDurationKnown yet if the pipeline is not
+        // paused. This allows duration() query to fail at least once
+        // before playback starts and duration becomes known.
+        if (!isinf(newDuration))
+            m_mediaDuration = newDuration;
+    } else {
+        m_mediaDurationKnown = !isinf(newDuration);
+        if (m_mediaDurationKnown)
+            m_mediaDuration = newDuration;
+    }
+
     if (!isinf(newDuration))
         m_mediaDuration = newDuration;
 
@@ -1142,7 +1154,7 @@ void MediaPlayerPrivate::setMuted(bool muted)
     g_object_set(m_playBin, "mute", muted, NULL);
 }
 
-void MediaPlayerPrivate::muteChangedCallback()
+void MediaPlayerPrivate::muteChangedTimerFired(Timer<MediaPlayerPrivate>*)
 {
     gboolean muted;
     g_object_get(m_playBin, "mute", &muted, NULL);
@@ -1151,10 +1163,8 @@ void MediaPlayerPrivate::muteChangedCallback()
 
 void MediaPlayerPrivate::muteChanged()
 {
-    if (m_muteIdleId)
-        g_source_remove(m_muteIdleId);
-
-    m_muteIdleId = g_idle_add((GSourceFunc) notifyMuteIdleCallback, this);
+    Timer<MediaPlayerPrivate> muteChangedTimer(this, &MediaPlayerPrivate::muteChangedTimerFired);
+    muteChangedTimer.startOneShot(0);
 }
 
 void MediaPlayerPrivate::loadingFailed(MediaPlayer::NetworkState error)
@@ -1365,12 +1375,19 @@ void MediaPlayerPrivate::setPreload(MediaPlayer::Preload preload)
 {
     ASSERT(m_playBin);
 
+    m_preload = preload;
+
     GstPlayFlags flags;
     g_object_get(m_playBin, "flags", &flags, NULL);
     if (preload == MediaPlayer::None)
         g_object_set(m_playBin, "flags", flags & ~GST_PLAY_FLAG_DOWNLOAD, NULL);
     else
         g_object_set(m_playBin, "flags", flags | GST_PLAY_FLAG_DOWNLOAD, NULL);
+
+    if (m_delayingLoad && m_preload != MediaPlayer::None) {
+        m_delayingLoad = false;
+        commitLoad();
+    }
 }
 
 void MediaPlayerPrivate::createGSTPlayBin()

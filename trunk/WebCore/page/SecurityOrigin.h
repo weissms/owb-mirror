@@ -117,7 +117,7 @@ public:
     bool isSandboxed(SandboxFlags mask) const { return m_sandboxFlags & mask; }
 
     bool canAccessDatabase() const { return !isUnique(); }
-    bool canAccessStorage() const { return !isUnique(); }
+    bool canAccessLocalStorage() const { return !isUnique(); }
     bool canAccessCookies() const { return !isUnique(); }
 
     bool isSecureTransitionTo(const KURL&) const;
@@ -204,6 +204,7 @@ private:
     SandboxFlags m_sandboxFlags;
     String m_protocol;
     String m_host;
+    mutable String m_encodedHost;
     String m_domain;
     unsigned short m_port;
     bool m_isUnique;

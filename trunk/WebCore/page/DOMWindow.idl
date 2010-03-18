@@ -165,7 +165,8 @@ module window {
 #endif
 #if defined(ENABLE_DOM_STORAGE) && ENABLE_DOM_STORAGE
         readonly attribute [EnabledAtRuntime] Storage sessionStorage;
-        readonly attribute [EnabledAtRuntime] Storage localStorage;
+        readonly attribute [EnabledAtRuntime] Storage localStorage
+            getter raises(DOMException);
 #endif
 #if defined(ENABLE_NOTIFICATIONS) && ENABLE_NOTIFICATIONS
         readonly attribute [EnabledAtRuntime] NotificationCenter webkitNotifications;
@@ -716,6 +717,8 @@ module window {
 #if defined(ENABLE_TOUCH_EVENTS) && ENABLE_TOUCH_EVENTS
         attribute TouchEventConstructor TouchEvent;
 #endif
+
+        attribute DOMFormDataConstructor FormData;
 
 #endif // defined(LANGUAGE_JAVASCRIPT)
 

@@ -146,6 +146,16 @@ ResourceHandle::~ResourceHandle()
     cleanupGioOperation(this, true);
 }
 
+void ResourceHandle::prepareForURL(const KURL &url)
+{
+#ifdef HAVE_LIBSOUP_2_29_90
+    GOwnPtr<SoupURI> soupURI(soup_uri_new(url.prettyURL().utf8().data()));
+    if (!soupURI)
+        return;
+    soup_session_prepare_for_uri(ResourceHandle::defaultSession(), soupURI.get());
+#endif
+}
+
 // All other kinds of redirections, except for the *304* status code
 // (SOUP_STATUS_NOT_MODIFIED) which needs to be fed into WebCore, will be
 // handled by soup directly.
@@ -415,7 +425,7 @@ static bool startData(ResourceHandle* handle, String urlString)
 
     // If parseDataUrl is called synchronously the job is not yet effectively started
     // and webkit won't never know that the data has been parsed even didFinishLoading is called.
-    d->m_idleHandler = g_idle_add(parseDataUrl, handle);
+    d->m_idleHandler = g_timeout_add(0, parseDataUrl, handle);
     return true;
 }
 
