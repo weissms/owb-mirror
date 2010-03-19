@@ -1,3 +1,9 @@
+2010-03-19  Mario Bensi  <mbensi@connected-labs.com>
+
+        fix jit on x86_64
+
+        * cmake/AddGlobalCompilerFlags.cmake:
+
 2010-03-10  Guillaume Penin  <gpenin@sand-labs.org>
 
         Fixed KJS_LD_FLAGS so that JavaScriptCore programs are rebuilt
