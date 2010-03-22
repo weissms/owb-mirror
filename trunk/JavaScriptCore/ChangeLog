@@ -1,3 +1,150 @@
+2010-03-22  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        New class; QScriptProgram.
+
+        The class should be used to evaluate the same script multiple times
+        more efficiently.
+
+        [Qt] QtScript should have QScriptProgram class
+        https://bugs.webkit.org/show_bug.cgi?id=36008
+
+        * qt/api/QtScript.pro:
+        * qt/api/qscriptengine.cpp:
+        (QScriptEngine::evaluate):
+        * qt/api/qscriptengine.h:
+        * qt/api/qscriptengine_p.cpp:
+        (QScriptEnginePrivate::evaluate):
+        * qt/api/qscriptengine_p.h:
+        (QScriptEnginePrivate::evaluate):
+        * qt/api/qscriptprogram.cpp: Added.
+        (QScriptProgram::QScriptProgram):
+        (QScriptProgram::~QScriptProgram):
+        (QScriptProgram::operator=):
+        (QScriptProgram::isNull):
+        (QScriptProgram::sourceCode):
+        (QScriptProgram::fileName):
+        (QScriptProgram::firstLineNumber):
+        (QScriptProgram::operator==):
+        (QScriptProgram::operator!=):
+        * qt/api/qscriptprogram.h: Added.
+        * qt/api/qscriptprogram_p.h: Added.
+        (QScriptProgramPrivate::get):
+        (QScriptProgramPrivate::QScriptProgramPrivate):
+        (QScriptProgramPrivate::~QScriptProgramPrivate):
+        (QScriptProgramPrivate::isNull):
+        (QScriptProgramPrivate::sourceCode):
+        (QScriptProgramPrivate::fileName):
+        (QScriptProgramPrivate::firstLineNumber):
+        (QScriptProgramPrivate::operator==):
+        (QScriptProgramPrivate::operator!=):
+        (QScriptProgramPrivate::program):
+        (QScriptProgramPrivate::file):
+        (QScriptProgramPrivate::line):
+        * qt/tests/qscriptengine/tst_qscriptengine.cpp:
+        (tst_QScriptEngine::evaluateProgram):
+
+2010-03-21  David Kilzer  <ddkilzer@apple.com>
+
+        Blind attempt #2 to fix the Windows build after r56314
+
+        * API/tests/testapi.c: Include JSObjectRefPrivate.h for the new
+        methods instead of declaring them locally (and non-extern).
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        Backed out previous change.
+
+2010-03-21  David Kilzer  <ddkilzer@apple.com>
+
+        Blind attempt to fix the Windows build after r56314
+
+        Try to fix the following errors on the Windows buildbot:
+
+            Linking...
+            testapi.obj : error LNK2001: unresolved external symbol "bool __cdecl JSObjectSetPrivateProperty(struct OpaqueJSContext const *,struct OpaqueJSValue *,struct OpaqueJSString *,struct OpaqueJSValue const *)" (?JSObjectSetPrivateProperty@@YA_NPBUOpaqueJSContext@@PAUOpaqueJSValue@@PAUOpaqueJSString@@PBU2@@Z)
+            testapi.obj : error LNK2001: unresolved external symbol "struct OpaqueJSValue const * __cdecl JSObjectGetPrivateProperty(struct OpaqueJSContext const *,struct OpaqueJSValue *,struct OpaqueJSString *)" (?JSObjectGetPrivateProperty@@YAPBUOpaqueJSValue@@PBUOpaqueJSContext@@PAU1@PAUOpaqueJSString@@@Z)
+            C:\cygwin\home\buildbot\slave\win-release\build\WebKitBuild\bin\testapi.exe : fatal error LNK1120: 2 unresolved externals
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def: Added
+        missing symbols to be exported.
+
+2010-03-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Documentation fix for previous patch.
+
+        * API/JSObjectRefPrivate.h:
+
+2010-03-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        JSC needs an API to allow custom objects to have aprivate GC-accessible properties
+        https://bugs.webkit.org/show_bug.cgi?id=36420
+
+        Add new API methods to support "private" properties on custom
+        objects.
+
+        * API/JSCallbackObject.h:
+        (JSC::JSCallbackObjectData::JSCallbackObjectData):
+        (JSC::JSCallbackObjectData::~JSCallbackObjectData):
+        (JSC::JSCallbackObjectData::getPrivateProperty):
+        (JSC::JSCallbackObjectData::setPrivateProperty):
+        (JSC::JSCallbackObjectData::deletePrivateProperty):
+        (JSC::JSCallbackObjectData::markChildren):
+        (JSC::JSCallbackObjectData::JSPrivatePropertyMap::getPrivateProperty):
+        (JSC::JSCallbackObjectData::JSPrivatePropertyMap::setPrivateProperty):
+        (JSC::JSCallbackObjectData::JSPrivatePropertyMap::deletePrivateProperty):
+        (JSC::JSCallbackObjectData::JSPrivatePropertyMap::markChildren):
+        (JSC::JSCallbackObject::getPrivateProperty):
+        (JSC::JSCallbackObject::setPrivateProperty):
+        (JSC::JSCallbackObject::deletePrivateProperty):
+        (JSC::JSCallbackObject::markChildren):
+        * API/JSObjectRef.cpp:
+        (JSObjectGetPrivateProperty):
+        (JSObjectSetPrivateProperty):
+        (JSObjectDeletePrivateProperty):
+        * API/JSObjectRefPrivate.h: Added.
+        * API/tests/testapi.c:
+        (main):
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+
+2010-03-20  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fixes after introduction of Brew files.
+
+        * wscript:
+
+2010-03-18  Tom Callaway  <tcallawa@redhat.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 35429: Fix compile on SPARC64
+        https://bugs.webkit.org/show_bug.cgi?id=35429
+
+        * wtf/Platform.h: Set WTF_USE_JSVALUE64 for SPARC64
+
+2010-03-18  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add API to directly expose JSON parsing
+        https://bugs.webkit.org/show_bug.cgi?id=34887
+
+        Add API to expose JSON parsing directly, and add tests to testapi
+
+        * API/JSValueRef.cpp:
+        (JSValueMakeFromJSONString):
+        (JSValueCreateJSONString):
+        * API/tests/testapi.c:
+        (main):
+        * JavaScriptCore.exp:
+        * runtime/JSONObject.cpp:
+        (JSC::JSONStringify):
+        * runtime/JSONObject.h:
+
 2010-03-18  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Darin Adler and Mark Rowe.

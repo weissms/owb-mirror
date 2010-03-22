@@ -46,6 +46,7 @@
 #include "HTMLNames.h"
 #include "NotImplemented.h"
 #include "Page.h"
+#include "QtStyleOptionWebComboBox.h"
 #include "QWebPageClient.h"
 #include "RenderBox.h"
 #if ENABLE(PROGRESS_TAG)
@@ -180,6 +181,17 @@ QStyle* RenderThemeQt::qStyle() const
 #endif
 
     return QApplication::style();
+}
+
+String RenderThemeQt::extraDefaultStyleSheet()
+{
+#if ENABLE(NO_LISTBOX_RENDERING)
+    return RenderTheme::extraDefaultStyleSheet() +
+           String(themeQtNoListboxesUserAgentStyleSheet,
+                  sizeof(themeQtNoListboxesUserAgentStyleSheet));
+#else
+    return RenderTheme::extraDefaultStyleSheet();
+#endif
 }
 
 bool RenderThemeQt::supportsHover(const RenderStyle*) const
@@ -589,7 +601,7 @@ bool RenderThemeQt::paintMenuList(RenderObject* o, const RenderObject::PaintInfo
     if (!p.isValid())
         return true;
 
-    QStyleOptionComboBox opt;
+    QtStyleOptionWebComboBox opt(o);
     if (p.widget)
         opt.initFrom(p.widget);
     initializeCommonQStyleOptions(opt, o);
@@ -629,7 +641,7 @@ bool RenderThemeQt::paintMenuListButton(RenderObject* o, const RenderObject::Pai
     if (!p.isValid())
         return true;
 
-    QStyleOptionComboBox option;
+    QtStyleOptionWebComboBox option(o);
     if (p.widget)
         option.initFrom(p.widget);
     initializeCommonQStyleOptions(option, o);

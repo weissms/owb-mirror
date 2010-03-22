@@ -28,6 +28,7 @@
 
 from webkitpy.irc.messagepump import MessagePump, MessagePumpDelegate
 from webkitpy.thirdparty.autoinstalled import ircbot
+from webkitpy.thirdparty.autoinstalled import irclib
 
 
 class IRCBot(ircbot.SingleServerIRCBot, MessagePumpDelegate):
@@ -36,10 +37,11 @@ class IRCBot(ircbot.SingleServerIRCBot, MessagePumpDelegate):
                  message_queue,
                  server="irc.freenode.net",
                  port=6667,
-                 nickname="webkit-smokey",
+                 nickname="sheriffbot",
+                 password=None, # sheriffbot actually needs a password.
                  channel="#webkit-test"):
         self._message_queue = message_queue
-        ircbot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
+        ircbot.SingleServerIRCBot.__init__(self, [(server, port, password)], nickname, nickname)
         self._channel = channel
 
     # ircbot.SingleServerIRCBot methods
@@ -50,6 +52,11 @@ class IRCBot(ircbot.SingleServerIRCBot, MessagePumpDelegate):
     def on_welcome(self, connection, event):
         connection.join(self._channel)
         self._message_pump = MessagePump(self, self._message_queue)
+
+    def on_pubmsg(self, connection, event):
+        salute = event.arguments()[0].split(":", 1)
+        if len(salute) > 1 and irclib.irc_lower(salute[0]) == irclib.irc_lower(self.connection.get_nickname()):
+            connection.privmsg(self._channel, '"Only you can prevent forest fires." -- Smokey the Bear')
 
     # MessagePumpDelegate methods
 

@@ -80,7 +80,9 @@ greaterThan(QT_MINOR_VERSION, 5) {
 !contains(DEFINES, ENABLE_DATALIST=.): DEFINES += ENABLE_DATALIST=1
 
 # Tiled Backing Store support
-!contains(DEFINES, ENABLE_TILED_BACKING_STORE=.): DEFINES += ENABLE_TILED_BACKING_STORE=1
+greaterThan(QT_MINOR_VERSION, 5) {
+    !contains(DEFINES, ENABLE_TILED_BACKING_STORE=.): DEFINES += ENABLE_TILED_BACKING_STORE=1
+}
 
 # Nescape plugins support (NPAPI)
 !contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=.) {
@@ -207,6 +209,10 @@ STYLESHEETS_EMBED = \
     $$PWD/css/wml.css \
     $$PWD/css/mediaControls.css \
     $$PWD/css/mediaControlsQt.css
+
+contains(DEFINES, ENABLE_NO_LISTBOX_RENDERING=1) {
+    STYLESHEETS_EMBED += $$PWD/css/themeQtNoListboxes.css
+}
 
 IDL_BINDINGS += \
     css/Counter.idl \

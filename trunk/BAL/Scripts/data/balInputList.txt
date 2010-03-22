@@ -959,6 +959,7 @@ BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PlatformScreenQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/PopupMenuQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtAbstractWebPopup.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QtAbstractWebPopup.cpp
+BAL/Widgets/WebCore/Qt  WebCore/platform/qt/QtStyleOptionWebComboBox.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/QWebPageClient.h
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/RenderThemeQt.cpp
 BAL/Widgets/WebCore/Qt	WebCore/platform/qt/RenderThemeQt.h

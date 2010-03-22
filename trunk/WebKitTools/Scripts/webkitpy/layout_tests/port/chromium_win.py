@@ -54,10 +54,11 @@ class ChromiumWinPort(chromium.ChromiumPort):
     def baseline_search_path(self):
         dirs = []
         if self._name == 'chromium-win-xp':
-            dirs.append(self._chromium_baseline_path(self._name))
+            dirs.append(self._webkit_baseline_path('chromium-win-xp'))
         if self._name in ('chromium-win-xp', 'chromium-win-vista'):
-            dirs.append(self._chromium_baseline_path('chromium-win-vista'))
-        dirs.append(self._chromium_baseline_path('chromium-win'))
+            dirs.append(self._webkit_baseline_path('chromium-win-vista'))
+        dirs.append(self._webkit_baseline_path('chromium-win'))
+        dirs.append(self._webkit_baseline_path('chromium'))
         dirs.append(self._webkit_baseline_path('win'))
         dirs.append(self._webkit_baseline_path('mac'))
         return dirs

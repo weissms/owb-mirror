@@ -51,6 +51,8 @@ public:
     virtual void setSelectedIndex(int index, bool deselect = true);
     virtual void setSelectedIndexByUser(int index, bool deselect = true, bool fireOnChangeNow = false);
 
+    virtual void listBoxSelectItem(int listIndex, bool allowMultiplySelections, bool shift, bool fireOnChangeNow = true);
+
     virtual int size() const { return m_data.size(); }
     virtual bool multiple() const { return m_data.multiple(); }
 

@@ -1,3 +1,637 @@
+2010-03-22  Martin Robinson  <mrobinson@webkit.org>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] eventSender.zoomPageOut() bug?
+        https://bugs.webkit.org/show_bug.cgi?id=30575
+
+        Make zoomPage{In/Out}Callback respect the 1.2f zoom factor that DRT should be using.
+
+        * DumpRenderTree/gtk/EventSender.cpp:
+        (zoomIn): Added.
+        (zoomOut): Added.
+        (textZoomInCallback): Use zoomIn helper function.
+        (textZoomOutCallback): Use zoomOut helper function.
+        (zoomPageInCallback): Use zoomIn helper function, which respects zoom factor.
+        (zoomPageOutCallback): Use zoomOut helper function, which respects zoom factor.
+
+2010-03-20  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix after recent database API change.
+
+        * wx/browser/browser.cpp:
+        (MyApp::OnInit):
+
+2010-03-20  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Renamed UnitTestLogStream to TestLogStream in webkitpy.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36099
+
+        TestLogStream is more concise and more consistent with the name of
+        the module (logtesting rather than logunittesting) and its main
+        class (LogTesting rather than LogUnitTesting).
+
+        * Scripts/webkitpy/init/logtesting.py:
+          - Renamings.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Renamings.
+
+        * Scripts/webkitpy/style_references.py:
+          - Renamings.
+
+2010-03-20  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fixes for new method in LayoutTestController.
+
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setSpatialNavigationEnabled):
+        * wx/build/settings.py:
+
+2010-03-20  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Unreviewed, tool fix.
+
+        Remove vestiges of downstream directory names to unbreak rebaselining tool.
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py: Changed paths to use WebKit repo.
+
+2010-03-20  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Re-enable the downstream test_expectations overrides file that was
+        disabled in bug 36396 / r56287.
+
+        https://bugs.chromium.org/show_bug.cgi?id=36401
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+
+2010-03-19  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Disable the downstream override expectations temporarily to allow
+        us to test that we've upstreamed everything correctly. Also, stop
+        looking at the downstream baselines at all (now you will only be
+        able to update baselines upstream). In theory this should work, but
+        if we need to we can always add the downstream dirs back in.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36396
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+
+2010-03-19  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        fix typo in chromium test expectations overrides routine
+        https://bugs.webkit.org/show_bug.cgi?id=36397
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+
+2010-03-19  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Flip the Chromium ports to look first for the test expectations
+        in LayoutTests/platform/chromium and only afterwards look in the
+        Chromium repo downstream for overrides.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36326
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+
+2010-03-19  James Hawkins  <jhawkins@chromium.org>
+
+        Unreviewed.
+
+        Add myself to the committers list.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Fix SheriffBot exception lock when we can't retrieve the first build
+        from buildbot.  (I'll ask Eric to review this change after the fact,
+        but he's at lunch and I want to get the bot unlocked.)
+
+        * Scripts/webkitpy/buildbot.py:
+        * Scripts/webkitpy/buildbot_unittest.py:
+
+2010-03-19  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36380
+        websocket/tests/frame-lengths.html times out on Tiger bot
+
+        https://bugs.webkit.org/show_bug.cgi?id=35041
+        websocket/tests/frame-lengths.html / websocket/tests/simple-stress.html fail on Windows bot
+
+        Double the timeout (from 15 seconds to 30 seconds). We can increase it more, if necessary -
+        sampling the DRT process on Mac OS X takes much longer anyway, so it's better to avoid
+        timing out than to detect it early.
+
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setWaitToDump):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::waitUntilDone):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        * Scripts/run-webkit-tests:
+
+2010-03-19  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed.
+
+        Buildfix for Qt v4.5.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (LauncherWindow::applyZoom):
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Operational tweaks to SheriffBot
+        https://bugs.webkit.org/show_bug.cgi?id=36385
+
+        These changes aren't pretty, but they're helpful to make SheriffBot
+        work operationally.  I plan to iterate in these areas, but I wanted to
+        get this patch landed so I could be running the bot against TOT.
+
+        * Scripts/webkitpy/commands/sheriffbot.py:
+        * Scripts/webkitpy/irc/ircbot.py:
+        * Scripts/webkitpy/thirdparty/autoinstalled/__init__.py:
+
+2010-03-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Help sheriff-bot avoid warning about flaky tests (and add more unit testing)
+        https://bugs.webkit.org/show_bug.cgi?id=36354
+
+        * Scripts/webkitpy/buildbot.py:
+         - Make Build creation easier to Mock and test
+        * Scripts/webkitpy/buildbot_unittest.py:
+         - Test finding green to red transitions and suspect revisions
+        * Scripts/webkitpy/commands/queries.py:
+         - Make what-broke note when builders have only failed once.
+
+2010-03-19  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Fix the rebaselining tool, which was broken by r36324 when I
+        added the concept of overridding expectations.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36374
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Misc bug fixes to make the SheriffBot actually work
+        https://bugs.webkit.org/show_bug.cgi?id=36355
+
+        With these changes, I can actually run the sheriff-bot from start to
+        finish.
+
+        * Scripts/webkitpy/irc/ircproxy.py:
+        * Scripts/webkitpy/patch/patcher.py:
+        * Scripts/webkitpy/statusserver.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Actually import the sheriff-bot command so we can run it.  Also, move
+        the bot to #webkit-test so it doesn't cause a ruckus while we test it.
+
+        * Scripts/webkitpy/patch/patcher.py:
+        * Scripts/webkitpy/irc/ircbot.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Second cut at SheriffBot
+        https://bugs.webkit.org/show_bug.cgi?id=36353
+
+        This patch should contain a complete SheriffBot that's capable of
+        saying reasonable things on IRC.  I had to refactor the use of
+        CommitInfo to make the SheriffBot testable, but I did the minimum
+        necessary.  We should grow webkitcheckout over time to contain the
+        knowledge of ChangeLogs from scm.
+
+        * Scripts/webkitpy/commands/sheriffbot.py:
+        * Scripts/webkitpy/commands/sheriffbot_unittest.py:
+        * Scripts/webkitpy/mock_bugzillatool.py:
+        * Scripts/webkitpy/patch/patcher.py:
+        * Scripts/webkitpy/webkitcheckout.py: Added.
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Fix Hyatt's IRC nickname.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Add IRC nicknames for the non-reviewer committers.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        More reviewer IRC nicknames.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Add a bunch of IRC nicknames for reviewers.
+
+        * Scripts/webkitpy/committers.py:
+
+2010-03-19  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Oliver Hunt.
+
+        Added USE_SYSTEM_MALLOC flag to build-webkit
+        https://bugs.webkit.org/show_bug.cgi?id=21272
+
+        Add system-alloc flag to build-webkit. It makes easy to switch
+        between system allocator and TCmalloc.
+
+        * Scripts/build-webkit:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed "build" fix.
+
+        Of course, I caused a regression in the file that isn't tested.  :(
+
+        * Scripts/webkitpy/statusserver.py:
+
+2010-03-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add basic "who-broke-it" command and revision -> broken builder association code
+        https://bugs.webkit.org/show_bug.cgi?id=36352
+
+        The "what-broke" command prints builders and what revisions we suspect
+        broke them.  who-broke-it prints revisions and what builders we suspect
+        they broke.  The sheriff-bot needs this revision to broken builder mapping
+        so this change adds it!
+
+        * Scripts/webkitpy/buildbot.py:
+        * Scripts/webkitpy/commands/queries.py:
+
+2010-03-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Simplify BuildBot core builder code for easier re-use
+        https://bugs.webkit.org/show_bug.cgi?id=36350
+
+        I simply couldn't see anything through all this Yak-hair.
+
+        * Scripts/webkitpy/buildbot.py:
+        * Scripts/webkitpy/commands/queries.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        committers.py should know IRC nicknames
+        https://bugs.webkit.org/show_bug.cgi?id=36349
+
+        I'll add the actual nicknames in another patch.
+
+        * Scripts/webkitpy/committers.py:
+        * Scripts/webkitpy/committers_unittest.py:
+
+2010-03-18  Anders Bakken  <Anders Bakken <agbakken@gmail.com>>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36318
+
+        QtLauncher runs as a GuiClient by default in Qt Embedded which will
+        make it try to connect to an existing GuiServer. This patch makes it
+        run like a stand-alone app.
+
+        * QtLauncher/main.cpp:
+        (LauncherApplication::LauncherApplication):
+
+2010-03-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Move find_green_to_red_transition out of "what-broke" onto Builder for easier re-use
+        https://bugs.webkit.org/show_bug.cgi?id=36345
+
+        * Scripts/webkitpy/buildbot.py:
+        * Scripts/webkitpy/commands/queries.py:
+
+2010-03-19  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Actually pass the IRC password to the IRC object
+        https://bugs.webkit.org/show_bug.cgi?id=36346
+
+        I wanted to do this before, but both patches were in flight.  This
+        patch finally closes the loop and makes the IRCProxy system complete.
+
+        * Scripts/webkitpy/patch/patcher.py:
+
+2010-03-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add a StatusServer front end to the SVNRevision table on QueueStatusServer
+        https://bugs.webkit.org/show_bug.cgi?id=36344
+
+        No test because Browser was too hard to mock.  :(  I couldn't figure
+        out how to make Mock be a dictionary as well as an object.
+
+        * Scripts/webkitpy/statusserver.py:
+
+2010-03-18  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Split out CommitInfo class and add unit tests
+        https://bugs.webkit.org/show_bug.cgi?id=36343
+
+        Move more logic out of "what-broke" into a shared CommitInfo
+        class so that it can be used by other commands and unit tested.
+
+        * Scripts/webkitpy/commands/queries.py:
+        * Scripts/webkitpy/commitinfo.py: Added.
+        * Scripts/webkitpy/commitinfo_unittest.py: Added.
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-18  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Fix LayoutTests/http/tests/appcache/max-size.html
+        https://bugs.webkit.org/show_bug.cgi?id=36207
+
+        Implement setAppCacheMaximumSize() for Qt.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setAppCacheMaximumSize):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-03-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        QueueStatusServer should be able to log broken bots
+        https://bugs.webkit.org/show_bug.cgi?id=36341
+
+        We need to add a new table to the QueueStatusServer to store persistent
+        information for the SheriffBot.  The new table will keep track of which
+        bots each SVN revision broke.
+
+        * QueueStatusServer/handlers/__init__.py:
+        * QueueStatusServer/handlers/svnrevision.py: Added.
+        * QueueStatusServer/handlers/updatebase.py: Added.
+        * QueueStatusServer/handlers/updatestatus.py:
+        * QueueStatusServer/handlers/updatesvnrevision.py: Added.
+        * QueueStatusServer/index.yaml:
+        * QueueStatusServer/main.py:
+        * QueueStatusServer/model/__init__.py:
+        * QueueStatusServer/model/svnrevision.py: Added.
+        * QueueStatusServer/templates/updatesvnrevision.html: Added.
+
+2010-03-18  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Add a new method to the Qt LayoutTestController for
+        changing media type and make the DRT support dry-run printing.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::DumpRenderTree::DumpRenderTree):
+        (WebCore::DumpRenderTree::dryRunPrint):
+        * DumpRenderTree/qt/DumpRenderTreeQt.h:
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setMediaType):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-03-18  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Add upstream LayoutTests/platform/chromium* directories to the
+        baseline search path for new-run-webkit-tests in preparation for
+        upstreaming all of the Chromium baselines. Note that this does
+        not actually create the directories themselves, but that's okay.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36324
+
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+
+2010-03-18  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36327
+        Test that a plug-in can override Node methods of its element
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (normalizeOverride):
+        (pluginInvoke):
+        Override "normalize", and call back to let a test know that the plug-in was called.
+
+2010-03-17  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Add the concept of an "overrides" file for expectations so that we
+        can store test_expectations both upstream and downstream for a port
+        that runs both in webkit.org and in a separate repository (like
+        Chromium). Also add some unit tests for the expectations module.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36249
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations_test.py: Added.
+        * Scripts/webkitpy/layout_tests/port/base.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-03-18  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add an overlay QGraphicsTextItem to QtLauncher so we can display FPS info
+        on the launcher and not on the terminal anymore.
+
+        [Qt] QtLauncher's FPS info should be displayed on an overlay text item
+        https://bugs.webkit.org/show_bug.cgi?id=36244
+
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::WebViewGraphicsBased):
+        (WebViewGraphicsBased::setFrameRateMeasurementEnabled):
+        (WebViewGraphicsBased::updateFrameRate):
+        * QtLauncher/webview.h:
+
+2010-03-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        First cut at SheriffBot
+        https://bugs.webkit.org/show_bug.cgi?id=36253
+
+        This patch contains a first attempt at writing a sheriff bot.
+        Currently, we're missing the logic that actually finds the SVN revision
+        numbers to complain about, but once we have that, we'll have the rest
+        of the infrustructure to ping IRC and to file bugs.
+
+        There's a lot to fill in for the SheriffBot, but this patch give us the
+        framework in which to do it.
+
+        This patch required a bit of refactoring of AbstractQueue because
+        SheriffBot is the first bot that doesn't process patches (it processes
+        SVN revisions).  Accordingly, I've factored out AbstractPatchQueue to
+        hold the parts of AbstractQueue that are specific to dealing with
+        patches.  Some of the choices here might not be obvious yet, but we can
+        tweak them as our needs become clearer.
+
+        * Scripts/webkitpy/commands/queues.py:
+        * Scripts/webkitpy/commands/queues_unittest.py:
+        * Scripts/webkitpy/commands/sheriffbot.py: Added.
+        * Scripts/webkitpy/commands/sheriffbot_unittest.py: Added.
+        * Scripts/webkitpy/mock_bugzillatool.py:
+            Added a MockIRC object to the mock tool.
+        * Scripts/webkitpy/multicommandtool.py:
+            Added a finalize method so the tool can disconnect from IRC
+            cleanly instead of just droping the socket.
+        * Scripts/webkitpy/multicommandtool_unittest.py:
+        * Scripts/webkitpy/patch/patcher.py:
+            Added support for talking to IRC.
+        * Scripts/webkitpy/unittests.py:
+            We should add a commands/unittests.py file at some point to make
+            the commands module more self-contained.
+
+2010-03-18  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36102
+        [Qt] Scaling control API for tiled backing store
+        
+        Add animated smooth zooming to Qt launcher when in tiled mode.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::LauncherWindow):
+        (LauncherWindow::zoomAnimationFinished):
+        (LauncherWindow::applyZoom):
+        (LauncherWindow::zoomIn):
+        (LauncherWindow::zoomOut):
+        * QtLauncher/webview.h:
+        (WebViewGraphicsBased::graphicsWebView):
+
+2010-03-18  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Support using IRC accounts with a password
+        https://bugs.webkit.org/show_bug.cgi?id=36287
+
+        Add a global option to specify an IRC password so we can use the
+        sheriffbot account (which needs a password).
+
+        * Scripts/webkitpy/irc/ircbot.py:
+        * Scripts/webkitpy/irc/ircproxy.py:
+        * Scripts/webkitpy/patch/patcher.py:
+
+2010-03-18  Eric Seidel  <eric@webkit.org>
+
+        Just fixing missing parenthesis typo, no review.
+
+        * Scripts/webkitpy/commands/queries.py: '%' has higher precedence than 'or', use parentheses.
+
+2010-03-18  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Adam Roben and Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36210
+        plugins/resize-from-plugin.html fails on some platforms
+
+        Turns out that most platforms don't use "cross-platform" main.cpp. Copied code added for
+        the test to their versions of the file.
+
+        * DumpRenderTree/unix/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (webkit_test_plugin_set_window):
+        * DumpRenderTree/win/TestNetscapePlugin/main.cpp:
+        (NPP_SetWindow):
+
+2010-03-18  Leandro Pereira  <leandro@profusion.mobi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add support to run-launcher to open the EFL example browser.
+        http://webkit.org/b/36181
+
+        * Scripts/webkitdirs.pm:
+        * Scripts/run-launcher:
+
+2010-03-18  Sergio Villar Senin  <svillar@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [GTK] Failing tests http/tests/misc/image-blocked-src-change.html
+        & http/tests/misc/image-blocked-src-no-change.html
+        https://bugs.webkit.org/show_bug.cgi?id=36227
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewConsoleMessage): print only the file name instead of the
+        whole URI when printing messages with local URI's
+
+2010-03-18  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Teach what-broke how to look up reviewer and author Committer objects by name
+        https://bugs.webkit.org/show_bug.cgi?id=36264
+
+        * Scripts/webkitpy/commands/queries.py:
+         - Add committer_by_name lookups for both reviewer and author
+         - Improve printing in the cases where lookups fail.
+        * Scripts/webkitpy/committers.py:
+         - Add committer_by_name
+        * Scripts/webkitpy/committers_unittest.py:
+         - Test committer_by_name
+
 2010-03-18  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Eric Seidel.

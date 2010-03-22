@@ -2,7 +2,7 @@
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
- * Copyright (C) 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Apple Inc. All rights reserved.
  *           (C) 2006 Alexey Proskuryakov (ap@nypop.com)
  * Copyright (C) 2007 Samuel Weinig (sam@webkit.org)
  *
@@ -59,6 +59,7 @@
 #include "RenderText.h"
 #include "RenderTextControlSingleLine.h"
 #include "RenderTheme.h"
+#include "StepRange.h"
 #include "StringHash.h"
 #include "TextEvent.h"
 #include <wtf/HashMap.h>
@@ -312,12 +313,13 @@ bool HTMLInputElement::rangeUnderflow() const
     case DATETIMELOCAL:
     case MONTH:
     case NUMBER:
-    case RANGE:
     case TIME:
     case WEEK: {
         double doubleValue = parseToDouble(value(), nan);
         return isfinite(doubleValue) && doubleValue < minimum();
     }
+    case RANGE: // Guaranteed by sanitization.
+        ASSERT(parseToDouble(value(), nan) >= minimum());
     case BUTTON:
     case CHECKBOX:
     case COLOR:
@@ -348,12 +350,13 @@ bool HTMLInputElement::rangeOverflow() const
     case DATETIMELOCAL:
     case MONTH:
     case NUMBER:
-    case RANGE:
     case TIME:
     case WEEK: {
         double doubleValue = parseToDouble(value(), nan);
-        return isfinite(doubleValue) && doubleValue >  maximum();
+        return isfinite(doubleValue) && doubleValue > maximum();
     }
+    case RANGE: // Guaranteed by sanitization.
+        ASSERT(parseToDouble(value(), nan) <= maximum());
     case BUTTON:
     case CHECKBOX:
     case COLOR:
@@ -506,7 +509,8 @@ bool HTMLInputElement::stepMismatch() const
     switch (inputType()) {
     case RANGE:
         // stepMismatch doesn't occur for RANGE. RenderSlider guarantees the
-        // value matches to step.
+        // value matches to step on user input, and sanitation takes care
+        // of the general case.
         return false;
     case NUMBER: {
         double doubleValue;
@@ -1444,8 +1448,8 @@ void HTMLInputElement::setChecked(bool nowChecked, bool sendChangeEvent)
 
 void HTMLInputElement::setIndeterminate(bool _indeterminate)
 {
-    // Only checkboxes honor indeterminate.
-    if (inputType() != CHECKBOX || indeterminate() == _indeterminate)
+    // Only checkboxes and radio buttons honor indeterminate.
+    if (!allowsIndeterminate() || indeterminate() == _indeterminate)
         return;
 
     m_indeterminate = _indeterminate;
@@ -1487,10 +1491,16 @@ String HTMLInputElement::value() const
     String value = m_data.value();
     if (value.isNull()) {
         value = sanitizeValue(getAttribute(valueAttr));
-
-        // If no attribute exists, then just use "on" or "" based off the checked() state of the control.
-        if (value.isNull() && (inputType() == CHECKBOX || inputType() == RADIO))
-            return checked() ? "on" : "";
+        
+        // If no attribute exists, extra handling may be necessary.
+        // For Checkbox Types just use "on" or "" based off the checked() state of the control.
+        // For a Range Input use the calculated default value.
+        if (value.isNull()) {
+            if (inputType() == CHECKBOX || inputType() == RADIO)
+                return checked() ? "on" : "";
+            else if (inputType() == RANGE)
+                return serializeForNumberType(StepRange(this).defaultValue());
+        }
     }
 
     return value;
@@ -1982,6 +1992,16 @@ bool HTMLInputElement::storesValueSeparateFromAttribute() const
     return false;
 }
 
+struct EventHandlingState {
+    RefPtr<HTMLInputElement> m_currRadio;
+    bool m_indeterminate;
+    bool m_checked;
+    
+    EventHandlingState(bool indeterminate, bool checked)
+        : m_indeterminate(indeterminate)
+        , m_checked(checked) { }
+};
+
 void* HTMLInputElement::preDispatchEventHandler(Event *evt)
 {
     // preventDefault or "return false" are used to reverse the automatic checking/selection we do here.
@@ -1989,17 +2009,14 @@ void* HTMLInputElement::preDispatchEventHandler(Event *evt)
     void* result = 0; 
     if ((inputType() == CHECKBOX || inputType() == RADIO) && evt->isMouseEvent()
             && evt->type() == eventNames().clickEvent && static_cast<MouseEvent*>(evt)->button() == LeftButton) {
+        
+        EventHandlingState* state = new EventHandlingState(indeterminate(), checked());
+
         if (inputType() == CHECKBOX) {
-            // As a way to store the state, we return 0 if we were unchecked, 1 if we were checked, and 2 for
-            // indeterminate.
-            if (indeterminate()) {
-                result = (void*)0x2;
+            if (indeterminate())
                 setIndeterminate(false);
-            } else {
-                if (checked())
-                    result = (void*)0x1;
+            else
                 setChecked(!checked(), true);
-            }
         } else {
             // For radio buttons, store the current selected radio object.
             // We really want radio groups to end up in sane states, i.e., to have something checked.
@@ -2009,11 +2026,13 @@ void* HTMLInputElement::preDispatchEventHandler(Event *evt)
             if (currRadio) {
                 // We have a radio button selected that is not us.  Cache it in our result field and ref it so
                 // that it can't be destroyed.
-                currRadio->ref();
-                result = currRadio;
+                state->m_currRadio = currRadio;
             }
+            if (indeterminate())
+                setIndeterminate(false);
             setChecked(true, true);
         }
+        result = state;
     }
     return result;
 }
@@ -2022,28 +2041,30 @@ void HTMLInputElement::postDispatchEventHandler(Event *evt, void* data)
 {
     if ((inputType() == CHECKBOX || inputType() == RADIO) && evt->isMouseEvent()
             && evt->type() == eventNames().clickEvent && static_cast<MouseEvent*>(evt)->button() == LeftButton) {
-        if (inputType() == CHECKBOX) {
-            // Reverse the checking we did in preDispatch.
-            if (evt->defaultPrevented() || evt->defaultHandled()) {
-                if (data == (void*)0x2)
-                    setIndeterminate(true);
-                else
-                    setChecked(data);
-            }
-        } else if (data) {
-            HTMLInputElement* input = static_cast<HTMLInputElement*>(data);
-            if (evt->defaultPrevented() || evt->defaultHandled()) {
-                // Restore the original selected radio button if possible.
-                // Make sure it is still a radio button and only do the restoration if it still
-                // belongs to our group.
+        
+        if (EventHandlingState* state = reinterpret_cast<EventHandlingState*>(data)) {
+            if (inputType() == CHECKBOX) {
+                // Reverse the checking we did in preDispatch.
+                if (evt->defaultPrevented() || evt->defaultHandled()) {
+                    setIndeterminate(state->m_indeterminate);
+                    setChecked(state->m_checked);
+                }
+            } else {
+                HTMLInputElement* input = state->m_currRadio.get();
+                if (evt->defaultPrevented() || evt->defaultHandled()) {
+                    // Restore the original selected radio button if possible.
+                    // Make sure it is still a radio button and only do the restoration if it still
+                    // belongs to our group.
 
-                if (input->form() == form() && input->inputType() == RADIO && input->name() == name()) {
-                    // Ok, the old radio button is still in our form and in our group and is still a 
-                    // radio button, so it's safe to restore selection to it.
-                    input->setChecked(true);
+                    if (input && input->form() == form() && input->inputType() == RADIO && input->name() == name()) {
+                        // Ok, the old radio button is still in our form and in our group and is still a 
+                        // radio button, so it's safe to restore selection to it.
+                        input->setChecked(true);
+                    }
+                    setIndeterminate(state->m_indeterminate);
                 }
             }
-            input->deref();
+            delete state;
         }
 
         // Left clicks on radio buttons and check boxes already performed default actions in preDispatchEventHandler(). 
@@ -2497,6 +2518,13 @@ String HTMLInputElement::sanitizeValue(const String& proposedValue) const
 {
     if (isTextField())
         return InputElement::sanitizeValue(this, proposedValue);
+
+    // If the proposedValue is null than this is a reset scenario and we
+    // want the range input's value attribute to take priority over the
+    // calculated default (middle) value.
+    if (inputType() == RANGE && !proposedValue.isNull())
+        return serializeForNumberType(StepRange(this).clampValue(proposedValue));
+
     return proposedValue;
 }
 

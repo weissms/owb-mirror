@@ -94,6 +94,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLViewSourceDocument.cpp
     html/ImageData.cpp
     html/PreloadScanner.cpp
+    html/StepRange.cpp
     html/TimeRanges.cpp
     html/ValidityState.cpp
 )

@@ -1572,6 +1572,10 @@ li.editing .swatch, li.editing .enabled-button,  li.editing-sub-part .delete-but
     display: block;
 }
 
+.section .properties li.disabled .enabled-button {
+    display: block;
+}
+
 .section .properties .name, .event-properties .name {
     color: rgb(136, 19, 145);
 }
@@ -3875,6 +3879,15 @@ ol.breakpoint-list {
     border: 1px solid rgb(163, 41, 34);
     margin: -1px;
     background-color: rgb(255, 255, 194);
+}
+
+.styles-sidebar-separator {
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(243, 243, 243)), color-stop(0.05, rgb(243, 243, 243)), color-stop(0.05, rgb(230, 230, 230)), to(rgb(209, 209, 209)));
+    padding: 0 5px;
+    border-top: 1px solid rgb(189, 189, 189);
+    border-bottom: 1px solid rgb(189, 189, 189);
+    color: rgb(110, 110, 110);
+    text-shadow: white 0 1px 0;
 }
 
 .timeline-details {

@@ -80,9 +80,8 @@
 #include "PluginDatabase.h"
 #include "PluginDocument.h"
 #include "ProgressTracker.h"
-#include "RenderPart.h"
+#include "RenderEmbeddedObject.h"
 #include "RenderView.h"
-#include "RenderWidget.h"
 #include "ResourceHandle.h"
 #include "ResourceRequest.h"
 #include "ScriptController.h"
@@ -358,7 +357,7 @@ void FrameLoader::urlSelected(const ResourceRequest& request, const String& pass
     m_suppressOpenerInNewFrame = false;
 }
 
-bool FrameLoader::requestFrame(HTMLFrameOwnerElement* ownerElement, const String& urlString, const AtomicString& frameName)
+bool FrameLoader::requestFrame(HTMLFrameOwnerElement* ownerElement, const String& urlString, const AtomicString& frameName, bool lockHistory, bool lockBackForwardList)
 {
     // Support for <frame src="javascript:string">
     KURL scriptURL;
@@ -371,7 +370,7 @@ bool FrameLoader::requestFrame(HTMLFrameOwnerElement* ownerElement, const String
 
     Frame* frame = ownerElement->contentFrame();
     if (frame)
-        frame->redirectScheduler()->scheduleLocationChange(url.string(), m_outgoingReferrer, true, true, isProcessingUserGesture());
+        frame->redirectScheduler()->scheduleLocationChange(url.string(), m_outgoingReferrer, lockHistory, lockBackForwardList, isProcessingUserGesture());
     else
         frame = loadSubframe(ownerElement, url, frameName, m_outgoingReferrer);
     
@@ -735,8 +734,6 @@ void FrameLoader::clear(bool clearWindowProperties, bool clearScriptObjects, boo
     m_frame->eventHandler()->clear();
     if (clearFrameView && m_frame->view())
         m_frame->view()->clear();
-
-    m_frame->setSelectionGranularity(CharacterGranularity);
 
     // Do not drop the document before the ScriptController and view are cleared
     // as some destructors might still try to access the document.
@@ -1265,7 +1262,7 @@ String FrameLoader::encoding() const
     return settings ? settings->defaultTextEncodingName() : String();
 }
 
-bool FrameLoader::requestObject(RenderPart* renderer, const String& url, const AtomicString& frameName,
+bool FrameLoader::requestObject(RenderEmbeddedObject* renderer, const String& url, const AtomicString& frameName,
     const String& mimeType, const Vector<String>& paramNames, const Vector<String>& paramValues)
 {
     if (url.isEmpty() && mimeType.isEmpty())
@@ -1364,7 +1361,7 @@ static HTMLPlugInElement* toPlugInElement(Node* node)
     return static_cast<HTMLPlugInElement*>(node);
 }
     
-bool FrameLoader::loadPlugin(RenderPart* renderer, const KURL& url, const String& mimeType, 
+bool FrameLoader::loadPlugin(RenderEmbeddedObject* renderer, const KURL& url, const String& mimeType, 
     const Vector<String>& paramNames, const Vector<String>& paramValues, bool useFallback)
 {
     RefPtr<Widget> widget;
@@ -1756,7 +1753,10 @@ void FrameLoader::loadInSameDocument(const KURL& url, SerializedScriptValue* sta
         history()->updateBackForwardListForFragmentScroll();
     }
     
+    String oldURL;
     bool hashChange = equalIgnoringFragmentIdentifier(url, m_URL) && url.fragmentIdentifier() != m_URL.fragmentIdentifier();
+    oldURL = m_URL;
+    
     m_URL = url;
     history()->updateForSameDocumentNavigation();
 
@@ -1791,7 +1791,7 @@ void FrameLoader::loadInSameDocument(const KURL& url, SerializedScriptValue* sta
     }
     
     if (hashChange) {
-        m_frame->document()->dispatchWindowEvent(Event::create(eventNames().hashchangeEvent, false, false));
+        m_frame->document()->enqueueHashchangeEvent(oldURL, m_URL);
         m_client->dispatchDidChangeLocationWithinPage();
     }
     

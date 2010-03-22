@@ -949,7 +949,12 @@ WebHistoryItem WebFrameImpl::previousHistoryItem() const
 
 WebHistoryItem WebFrameImpl::currentHistoryItem() const
 {
-    m_frame->loader()->history()->saveDocumentAndScrollState();
+    // If we are still loading, then we don't want to clobber the current
+    // history item as this could cause us to lose the scroll position and 
+    // document state.  However, it is OK for new navigations.
+    if (m_frame->loader()->loadType() == FrameLoadTypeStandard
+        || !m_frame->loader()->activeDocumentLoader()->isLoadingInAPISense())
+        m_frame->loader()->history()->saveDocumentAndScrollState();
 
     return WebHistoryItem(m_frame->page()->backForwardList()->currentItem());
 }
@@ -1184,11 +1189,10 @@ void WebFrameImpl::selectWordAroundPosition(Frame* frame, VisiblePosition pos)
     VisibleSelection selection(pos);
     selection.expandUsingGranularity(WordGranularity);
 
-    if (selection.isRange())
-        frame->setSelectionGranularity(WordGranularity);
-
-    if (frame->shouldChangeSelection(selection))
-        frame->selection()->setSelection(selection);
+    if (frame->shouldChangeSelection(selection)) {
+        TextGranularity granularity = selection.isRange() ? WordGranularity : CharacterGranularity;
+        frame->selection()->setSelection(selection, granularity);
+    }
 }
 
 bool WebFrameImpl::selectWordAroundCaret()
@@ -1753,11 +1757,23 @@ void WebFrameImpl::layout()
         view->layoutIfNeededRecursive();
 }
 
+void WebFrameImpl::paintWithContext(GraphicsContext& gc, const WebRect& rect)
+{
+    IntRect dirtyRect(rect);
+    gc.save();
+    if (m_frame->document() && frameView()) {
+        gc.clip(dirtyRect);
+        frameView()->paint(&gc, dirtyRect);
+        m_frame->page()->inspectorController()->drawNodeHighlight(gc);
+    } else
+        gc.fillRect(dirtyRect, Color::white, DeviceColorSpace);
+    gc.restore();
+}
+
 void WebFrameImpl::paint(WebCanvas* canvas, const WebRect& rect)
 {
     if (rect.isEmpty())
         return;
-    IntRect dirtyRect(rect);
 #if WEBKIT_USING_CG
     GraphicsContext gc(canvas);
     LocalCurrentGraphicsContext localContext(&gc);
@@ -1769,14 +1785,7 @@ void WebFrameImpl::paint(WebCanvas* canvas, const WebRect& rect)
 #else
     notImplemented();
 #endif
-    gc.save();
-    if (m_frame->document() && frameView()) {
-        gc.clip(dirtyRect);
-        frameView()->paint(&gc, dirtyRect);
-        m_frame->page()->inspectorController()->drawNodeHighlight(gc);
-    } else
-        gc.fillRect(dirtyRect, Color::white, DeviceColorSpace);
-    gc.restore();
+    paintWithContext(gc, rect);
 }
 
 void WebFrameImpl::createFrameView()

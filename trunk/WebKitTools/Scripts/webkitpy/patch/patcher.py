@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2010 Google Inc. All rights reserved.
 # Copyright (c) 2009 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -39,9 +38,12 @@ from webkitpy.commands.early_warning_system import *
 from webkitpy.commands.openbugs import OpenBugs
 from webkitpy.commands.queries import *
 from webkitpy.commands.queues import *
+from webkitpy.commands.sheriffbot import *
 from webkitpy.commands.upload import *
 from webkitpy.executive import Executive
+from webkitpy.irc.ircproxy import IRCProxy
 from webkitpy.webkit_logging import log
+from webkitpy.webkitcheckout import WebKitCheckout
 from webkitpy.multicommandtool import MultiCommandTool
 from webkitpy.scm import detect_scm_system
 from webkitpy.user import User
@@ -51,6 +53,7 @@ class WebKitPatch(MultiCommandTool):
     global_options = [
         make_option("--dry-run", action="store_true", dest="dry_run", default=False, help="do not touch remote servers"),
         make_option("--status-host", action="store", dest="status_host", type="string", nargs=1, help="Hostname (e.g. localhost or commit.webkit.org) where status updates should be posted."),
+        make_option("--irc-password", action="store", dest="irc_password", type="string", nargs=1, help="Password to use when communicating via IRC."),
     ]
 
     def __init__(self, path):
@@ -60,8 +63,10 @@ class WebKitPatch(MultiCommandTool):
         self.bugs = Bugzilla()
         self.buildbot = BuildBot()
         self.executive = Executive()
+        self._irc = None
         self.user = User()
         self._scm = None
+        self._checkout = None
         self.status_server = StatusServer()
 
     def scm(self):
@@ -80,8 +85,28 @@ class WebKitPatch(MultiCommandTool):
 
         return self._scm
 
+    def checkout(self):
+        if not self._checkout:
+            self._checkout = WebKitCheckout(self.scm())
+        return self._checkout
+
+    # FIXME: Add a parameter for nickname?
+    def ensure_irc_connected(self):
+        if not self._irc:
+            self._irc = IRCProxy(password=self._irc_password)
+
+    def irc(self):
+        # We don't automatically construct IRCProxy here because constructing
+        # IRCProxy actually connects to IRC.  We want clients to explicitly
+        # connect to IRC.
+        return self._irc
+
     def path(self):
         return self._path
+
+    def command_completed(self):
+        if self._irc:
+            self._irc.disconnect()
 
     def should_show_in_main_help(self, command):
         if not command.show_in_main_help:
@@ -97,6 +122,8 @@ class WebKitPatch(MultiCommandTool):
             self.bugs.dryrun = True
         if options.status_host:
             self.status_server.set_host(options.status_host)
+        if options.irc_password:
+            self._irc_password = options.irc_password
 
     def should_execute_command(self, command):
         if command.requires_local_commits and not self.scm().supports_local_commits():

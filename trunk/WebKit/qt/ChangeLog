@@ -1,3 +1,73 @@
+2010-03-22  Kristian Amlie  <kristian.amlie@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fixed updating the VKB display when inputting into QGraphicsWebView.
+        https://bugs.webkit.org/show_bug.cgi?id=36292
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewPrivate::_q_updateMicroFocus):
+        (QGraphicsWebView::setPage):
+        * Api/qgraphicswebview.h:
+
+2010-03-19  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed.
+
+        Buildfix for Qt v4.5.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewOverlay::q):
+
+2010-03-18  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Make it possible for the Qt DRT to set the media type from
+        the LayoutTestController.
+
+        * Api/qwebframe.cpp:
+        (qt_drt_setMediaType):
+
+2010-03-18  Joe Ligman  <joseph.ligman@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] New API scrollRecursively has several problems.
+        https://bugs.webkit.org/show_bug.cgi?id=35873
+
+        Remove scrollRecursively from the Qt 4.7 API
+        Update the internal API to accept a hit test position 
+        for nested scrolling
+
+        * Api/qwebframe.cpp:
+        (webframe_scrollOverflow):
+        (qtwebkit_webframe_scrollRecursively):
+        * Api/qwebframe.h:
+        * Api/qwebframe_p.h:
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2010-03-18  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36102
+        [Qt] Scaling control API for tiled backing store
+        
+        The scale is set by passing the QGraphicsWebView scale to the backing store. The
+        only new API is the tiledBackingStoreFrozen property which allows disabling
+        all updates (for example during zoom animation).
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewPrivate::_q_scaleChanged):
+        (QGraphicsWebViewPrivate::updateTiledBackingStoreScale):
+        (QGraphicsWebView::QGraphicsWebView):
+        (QGraphicsWebView::isTiledBackingStoreFrozen):
+        (QGraphicsWebView::setTiledBackingStoreFrozen):
+        * Api/qgraphicswebview.h:
+        * Api/qwebframe.cpp:
+        * Api/qwebframe_p.h:
+
 2010-03-18  Antti Koivisto  <koivisto@iki.fi>
 
         Reviewed by Tor Arne Vestbø.

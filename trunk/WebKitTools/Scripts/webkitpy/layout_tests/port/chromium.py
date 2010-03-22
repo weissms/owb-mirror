@@ -114,8 +114,8 @@ class ChromiumPort(base.Port):
         return os.path.join(self._chromium_base_dir, *comps)
 
     def path_to_test_expectations_file(self):
-        return self.path_from_chromium_base('webkit', 'tools', 'layout_tests',
-                                            'test_expectations.txt')
+        return self.path_from_webkit_base('LayoutTests', 'platform',
+            'chromium', 'test_expectations.txt')
 
     def results_directory(self):
         return self.path_from_chromium_base('webkit', self._options.target,
@@ -165,6 +165,14 @@ class ChromiumPort(base.Port):
         expectations_file = self.path_to_test_expectations_file()
         return file(expectations_file, "r").read()
 
+    def test_expectations_overrides(self):
+        overrides_file = self.path_from_chromium_base('webkit', 'tools',
+            'layout_tests', 'test_expectations.txt')
+        if os.path.exists(overrides_file):
+            return file(overrides_file, "r").read()
+        else:
+            return None
+
     def test_platform_names(self):
         return self.test_base_platform_names() + ('win-xp',
             'win-vista', 'win-7')
@@ -208,8 +216,7 @@ class ChromiumPort(base.Port):
     def _chromium_baseline_path(self, platform):
         if platform is None:
             platform = self.name()
-        return self.path_from_chromium_base('webkit', 'data', 'layout_tests',
-            'platform', platform, 'LayoutTests')
+        return self.path_from_webkit_base('LayoutTests', 'platform', platform)
 
 
 class ChromiumDriver(base.Driver):

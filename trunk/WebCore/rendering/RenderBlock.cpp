@@ -2358,8 +2358,14 @@ void RenderBlock::removeFloatingObject(RenderBox* o)
         DeprecatedPtrListIterator<FloatingObject> it(*m_floatingObjects);
         while (it.current()) {
             if (it.current()->m_renderer == o) {
-                if (childrenInline())
-                    markLinesDirtyInVerticalRange(0, it.current()->m_bottom);
+                if (childrenInline()) {
+                    int bottom = it.current()->m_bottom;
+                    // Special-case zero- and less-than-zero-height floats: those don't touch
+                    // the line that they're on, but it still needs to be dirtied. This is
+                    // accomplished by pretending they have a height of 1.
+                    bottom = max(bottom, it.current()->m_top + 1);
+                    markLinesDirtyInVerticalRange(0, bottom);
+                }
                 m_floatingObjects->removeRef(it.current());
             }
             ++it;
@@ -3010,8 +3016,8 @@ void RenderBlock::clearFloats()
         addIntrudingFloats(block, xoffset, offset);
 
     if (childrenInline()) {
-        int changeTop = INT_MAX;
-        int changeBottom = INT_MIN;
+        int changeTop = numeric_limits<int>::max();
+        int changeBottom = numeric_limits<int>::min();
         if (m_floatingObjects) {
             for (FloatingObject* f = m_floatingObjects->first(); f; f = m_floatingObjects->next()) {
                 FloatingObject* oldFloatingObject = floatMap.get(f->m_renderer);
@@ -4639,7 +4645,7 @@ void RenderBlock::updateFirstLetter()
 
     // Drill into inlines looking for our first text child.
     RenderObject* currChild = firstLetterBlock->firstChild();
-    while (currChild && currChild->needsLayout() && (!currChild->isReplaced() || currChild->isFloatingOrPositioned()) && !currChild->isText()) {
+    while (currChild && currChild->needsLayout() && ((!currChild->isReplaced() && !currChild->isRenderButton() && !currChild->isMenuList()) || currChild->isFloatingOrPositioned()) && !currChild->isText()) {
         if (currChild->isFloatingOrPositioned()) {
             if (currChild->style()->styleType() == FIRST_LETTER)
                 break;

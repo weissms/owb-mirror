@@ -132,7 +132,6 @@ Frame::Frame(Page* page, HTMLFrameOwnerElement* ownerElement, FrameLoaderClient*
     , m_redirectScheduler(this)
     , m_ownerElement(ownerElement)
     , m_script(this)
-    , m_selectionGranularity(CharacterGranularity)
     , m_selectionController(this)
     , m_editor(this)
     , m_eventHandler(this)
@@ -365,12 +364,7 @@ Editor* Frame::editor() const
 
 TextGranularity Frame::selectionGranularity() const
 {
-    return m_selectionGranularity;
-}
-
-void Frame::setSelectionGranularity(TextGranularity granularity)
-{
-    m_selectionGranularity = granularity;
+    return m_selectionController.granularity();
 }
 
 SelectionController* Frame::dragCaretController() const
@@ -717,7 +711,8 @@ void Frame::setZoomFactor(float percent, ZoomMode mode)
 void Frame::setPrinting(bool printing, float minPageWidth, float maxPageWidth, bool adjustViewSize)
 {
     m_doc->setPrinting(printing);
-    view()->setMediaType(printing ? "print" : "screen");
+    view()->adjustMediaTypeForPrinting(printing);
+
     m_doc->updateStyleSelector();
     view()->forceLayoutWithPageWidthRange(minPageWidth, maxPageWidth, adjustViewSize);
 

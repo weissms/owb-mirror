@@ -112,6 +112,10 @@ void WMLSelectElement::setSelectedIndexByUser(int optionIndex, bool deselect, bo
 {
    SelectElement::setSelectedIndex(m_data, this, optionIndex, deselect, fireOnChangeNow, true);
 }
+
+void WMLSelectElement::listBoxSelectItem(int listIndex, bool allowMultiplySelections, bool shift, bool fireOnChangeNow)
+{
+}
     
 bool WMLSelectElement::saveFormControlState(String& value) const
 {
