@@ -438,9 +438,9 @@ void Chrome::runOpenPanel(Frame* frame, PassRefPtr<FileChooser> fileChooser)
     m_client->runOpenPanel(frame, fileChooser);
 }
 
-void Chrome::iconForFiles(const Vector<String>& filenames, PassRefPtr<FileChooser> fileChooser)
+void Chrome::chooseIconForFiles(const Vector<String>& filenames, PassRefPtr<FileChooser> fileChooser)
 {
-    m_client->iconForFiles(filenames, fileChooser);
+    m_client->chooseIconForFiles(filenames, fileChooser);
 }
 
 bool Chrome::setCursor(PlatformCursorHandle cursor)

@@ -62,6 +62,7 @@ public:
     // Returns the frame the document belongs to or 0 if the document is frameless.
     WEBKIT_API WebFrame* frame() const;
     WEBKIT_API bool isHTMLDocument() const;
+    WEBKIT_API bool isPluginDocument() const;
     WEBKIT_API WebURL baseURL() const;
     WEBKIT_API WebURL firstPartyForCookies() const;
     WEBKIT_API WebElement documentElement() const;
@@ -70,7 +71,7 @@ public:
     WEBKIT_API WebString title() const;
     WEBKIT_API WebNodeCollection all();
     WEBKIT_API WebURL completeURL(const WebString&) const;
-    WEBKIT_API WebElement getElementById(const WebString& id) const;
+    WEBKIT_API WebElement getElementById(const WebString&) const;
     WEBKIT_API WebNodeList getElementsByTagName(const WebString&);
     WEBKIT_API WebString applicationID() const;
     WEBKIT_API WebNode focusedNode() const;

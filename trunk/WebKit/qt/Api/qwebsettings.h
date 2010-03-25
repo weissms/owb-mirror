@@ -68,12 +68,13 @@ public:
 #endif
         LocalContentCanAccessRemoteUrls,
         DnsPrefetchEnabled,
-        XSSAuditorEnabled,
+        XSSAuditingEnabled,
         AcceleratedCompositingEnabled,
         WebGLEnabled,
         SpatialNavigationEnabled,
         LocalContentCanAccessFileUrls,
-        TiledBackingStoreEnabled
+        TiledBackingStoreEnabled,
+        FrameFlatteningEnabled
     };
     enum WebGraphic {
         MissingImageGraphic,

@@ -40,6 +40,7 @@ public:
 
     void updateWidgetPosition();
     void widgetPositionsUpdated();
+    IntRect windowClipRect() const { return m_windowClipRect; }
 
     void showSubstituteImage(PassRefPtr<Image>);
 
@@ -55,11 +56,11 @@ protected:
 
     virtual void styleDidChange(StyleDifference, const RenderStyle* oldStyle);
     virtual void layout();
+    virtual void paint(PaintInfo&, int x, int y);
 
 private:
     virtual bool isWidget() const { return true; }
 
-    virtual void paint(PaintInfo&, int x, int y);
     virtual void destroy();
     virtual void setSelectionState(SelectionState);
     virtual bool nodeAtPoint(const HitTestRequest&, HitTestResult&, int x, int y, int tx, int ty, HitTestAction);
@@ -74,6 +75,7 @@ private:
     RefPtr<Widget> m_widget;
     RefPtr<Image> m_substituteImage;
     FrameView* m_frameView;
+    IntRect m_windowClipRect;
     int m_refCount;
 };
 

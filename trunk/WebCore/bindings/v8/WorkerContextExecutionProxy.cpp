@@ -40,6 +40,7 @@
 #include "SharedWorker.h"
 #include "SharedWorkerContext.h"
 #include "V8Binding.h"
+#include "V8ConsoleMessage.h"
 #include "V8DOMMap.h"
 #include "V8DedicatedWorkerContext.h"
 #include "V8Proxy.h"
@@ -56,6 +57,26 @@ static void reportFatalErrorInV8(const char* location, const char* message)
 {
     // FIXME: We temporarily deal with V8 internal error situations such as out-of-memory by crashing the worker.
     CRASH();
+}
+
+static void v8MessageHandler(v8::Handle<v8::Message> message, v8::Handle<v8::Value> data)
+{
+    static bool isReportingException = false;
+    // Exceptions that occur in error handler should be ignored since in that case
+    // WorkerContext::reportException will send the exception to the worker object.
+    if (isReportingException)
+        return;
+    isReportingException = true;
+
+    // During the frame teardown, there may not be a valid context.
+    if (ScriptExecutionContext* context = getScriptExecutionContext()) {
+        String errorMessage = toWebCoreString(message->Get());
+        int lineNumber = message->GetLineNumber();
+        String sourceURL = toWebCoreString(message->GetScriptResourceName());
+        context->reportException(errorMessage, lineNumber, sourceURL);
+    }
+
+    isReportingException = false;
 }
 
 WorkerContextExecutionProxy::WorkerContextExecutionProxy(WorkerContext* workerContext)
@@ -121,22 +142,28 @@ void WorkerContextExecutionProxy::initV8IfNeeded()
     v8Initialized = true;
 }
 
-void WorkerContextExecutionProxy::initContextIfNeeded()
+bool WorkerContextExecutionProxy::initContextIfNeeded()
 {
     // Bail out if the context has already been initialized.
     if (!m_context.IsEmpty())
-        return;
+        return true;
+
+    // Setup the security handlers and message listener. This only has
+    // to be done once.
+    static bool isV8Initialized = false;
+    if (!isV8Initialized)
+        v8::V8::AddMessageListener(&v8MessageHandler);
 
     // Create a new environment
     v8::Persistent<v8::ObjectTemplate> globalTemplate;
     m_context = v8::Context::New(0, globalTemplate);
+    if (m_context.IsEmpty())
+        return false;
 
     // Starting from now, use local context only.
     v8::Local<v8::Context> context = v8::Local<v8::Context>::New(m_context);
-    v8::Context::Scope scope(context);
 
-    // Allocate strings used during initialization.
-    v8::Handle<v8::String> implicitProtoString = v8::String::New("__proto__");
+    v8::Context::Scope scope(context);
 
     // Create a new JS object and use it as the prototype for the shadow global object.
     WrapperTypeInfo* contextType = &V8DedicatedWorkerContext::info;
@@ -149,7 +176,7 @@ void WorkerContextExecutionProxy::initContextIfNeeded()
     // Bail out if allocation failed.
     if (jsWorkerContext.IsEmpty()) {
         dispose();
-        return;
+        return false;
     }
 
     // Wrap the object.
@@ -159,8 +186,9 @@ void WorkerContextExecutionProxy::initContextIfNeeded()
     m_workerContext->ref();
 
     // Insert the object instance as the prototype of the shadow object.
-    v8::Handle<v8::Object> globalObject = m_context->Global();
-    globalObject->Set(implicitProtoString, jsWorkerContext);
+    v8::Handle<v8::Object> globalObject = v8::Handle<v8::Object>::Cast(m_context->Global()->GetPrototype());
+    globalObject->SetPrototype(jsWorkerContext);
+    return true;
 }
 
 bool WorkerContextExecutionProxy::forgetV8EventObject(Event* event)
@@ -176,7 +204,9 @@ ScriptValue WorkerContextExecutionProxy::evaluate(const String& script, const St
 {
     v8::HandleScope hs;
 
-    initContextIfNeeded();
+    if (!initContextIfNeeded())
+        return ScriptValue();
+
     v8::Context::Scope scope(m_context);
 
     v8::TryCatch exceptionCatcher;

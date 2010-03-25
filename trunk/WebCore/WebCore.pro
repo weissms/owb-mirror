@@ -6,9 +6,12 @@ symbian: {
     TARGET.EPOCALLOWDLLDATA=1
     TARGET.EPOCHEAPSIZE = 0x20000 0x2000000 // Min 128kB, Max 32MB
     TARGET.CAPABILITY = All -Tcb
-    TARGET.UID3 = 0x200267C2
-
-    webkitlibs.sources = QtWebKit.dll
+    isEmpty(QT_LIBINFIX) {
+        TARGET.UID3 = 0x200267C2
+    } else {
+        TARGET.UID3 = 0xE00267C2
+    }
+    webkitlibs.sources = QtWebKit$${QT_LIBINFIX}.dll
     webkitlibs.path = /sys/bin
     vendorinfo = \
         "; Localised Vendor name" \
@@ -465,6 +468,7 @@ SOURCES += \
     dom/CompositionEvent.cpp \
     dom/ContainerNode.cpp \
     dom/CSSMappedAttributeDeclaration.cpp \
+    dom/CustomEvent.cpp \
     dom/Document.cpp \
     dom/DocumentFragment.cpp \
     dom/DocumentType.cpp \
@@ -988,6 +992,7 @@ SOURCES += \
     rendering/style/StyleVisualData.cpp \
     xml/DOMParser.cpp \
     xml/XMLHttpRequest.cpp \
+    xml/XMLHttpRequestProgressEventThrottle.cpp \
     xml/XMLHttpRequestUpload.cpp \
     xml/XMLSerializer.cpp 
 
@@ -1174,6 +1179,7 @@ HEADERS += \
     dom/Comment.h \
     dom/ContainerNode.h \
     dom/CSSMappedAttributeDeclaration.h \
+    dom/CustomEvent.h \
     dom/default/PlatformMessagePortChannel.h \
     dom/DocumentFragment.h \
     dom/Document.h \
@@ -2887,8 +2893,7 @@ WEBKIT_INSTALL_HEADERS = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
     }
 }
 
-CONFIG(QTDIR_build):isEqual(QT_MAJOR_VERSION, 4):greaterThan(QT_MINOR_VERSION, 4) {
-    # start with 4.5
+CONFIG(QTDIR_build) {
     # Remove the following 2 lines if you want debug information in WebCore
     CONFIG -= separate_debug_info
     CONFIG += no_debug_info

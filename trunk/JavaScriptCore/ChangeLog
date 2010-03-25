@@ -1,3 +1,238 @@
+2010-03-25  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (windows build fix).
+
+2010-03-24  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Switch String::latin1, String::utf8, String::fromUTF8 to
+        use WTF's Unicode conversion methods rather than TextEncoder.
+        These methods only perform simple conversion, and don't need
+        really require TextEncoder's full capability (to look up arbitrary
+        encodings by name), switching to only be dependent on WTF will
+        make it easier if we chose to move WebCore::String to WTF.
+
+        * JavaScriptCore.exp:
+
+2010-03-24  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        * wtf/FastMalloc.h: Added a using directive for fastMallocSize, like we do for all public
+        WTF symbols. Also sorted the list alphabetically.
+
+2010-03-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (speculative windows build fix part II).
+
+2010-03-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (speculative windows build fix).
+
+2010-03-23  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 36519 - JSGlobalContextRelease is unnecessarily slow
+
+        Since [ http://trac.webkit.org/changeset/35917 ], calling
+        JSGlobalContextRelease always triggers a GC heap collection
+        (if not a full destroy). As per 35917's changelog "This is
+        only really necessary when the (JSGlobalObject's) last
+        reference is released, but there is no way to determine that,
+        and no harm in collecting slightly more often."
+        
+        Well, we now know of cases of API clients who are harmed by
+        the performance penalty of collecting too often, so it's time
+        to add a way to determine whether a call to JSGlobalContextRelease
+        is removing the last protect from it's global object.  If further
+        protects are retaining the global object (likely from other
+        JSGlobalContextRefs), then don't trigger a GC collection.
+
+        * API/JSContextRef.cpp:
+        * runtime/Collector.cpp:
+        (JSC::Heap::unprotect): return a boolean indicating that the value is now unprotected.
+        * runtime/Collector.h:
+        * wtf/HashCountedSet.h:
+        (WTF::::remove): return a boolean indicating whether the value was removed from the set.
+
+2010-03-23  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncSplice): Some versions of GCC emit a warning about the implicit 64- to 32-bit truncation
+        that takes place here. An explicit cast is sufficient to silence it.
+
+2010-03-23  Alexey Proskuryakov  <ap@apple.com>
+
+        Build fix.
+
+        * runtime/ArrayPrototype.cpp: (JSC::arrayProtoFuncSplice): Fixed a typo - length doesn't
+        need to be converted with toInteger().
+
+2010-03-23  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36511
+        <rdar://problem/7753498> Safari freezes when using SPUTNIK JavaScript conformance check
+
+        Test: fast/js/sputnik-S15.4.4.12_A3_T3.html
+
+        * runtime/ArrayPrototype.cpp: (JSC::arrayProtoFuncSplice): We were incorrectly computing
+        the start offset, and iterated over (almost) all integers. Note that this can be fixed
+        without using doubles, but the code would be much more complicated, and there is no important
+        reason to stick to integers here.
+
+2010-03-23  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Fix compilation on Itanium in 32-bit mode
+        https://bugs.webkit.org/show_bug.cgi?id=36494
+
+        * wtf/Platform.h: Introduce CPU(IA64_32). Don't define
+          WTF_USE_JSVALUE64 if the CPU is in 32-bit mode.
+
+2010-03-23  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Interpreter fix for <rdar://problem/7728196> REGRESSION (r46701): -(-2147483648)
+        evaluates to -2147483648 on 32 bit (35842)
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute): Only take the fast negate path if
+        a bit other than bit 31 is set. If none of bits 0-30 are set, then the
+        value we're negating can only be 0 or -2147483648, and neither can be
+        negated in int space.
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_negate):
+        (JSC::JIT::emitSlow_op_negate): Updated the JIT implementation to match
+        the interpreter, since it's slightly simpler.
+
+2010-03-22  Siddharth Mathur  <siddharth.mathur@nokia.com>
+
+        Reviewed by Laszlo Gombos.
+
+        [Symbian] More efficient aligned memory allocation for JSC Collector
+        https://bugs.webkit.org/show_bug.cgi?id=34350
+
+        * JavaScriptCore.pri: Added 2 new Symbian source files and HAL linkage
+
+        * runtime/Collector.cpp: Reduced port-specific code and added private data member
+        (JSC::Heap::Heap):
+        (JSC::Heap::~Heap):
+        (JSC::Heap::destroy):
+        (JSC::Heap::allocateBlock):
+        (JSC::Heap::freeBlockPtr):
+
+        * runtime/Collector.h: Added private data member
+
+        * wtf/symbian: Added.
+        * wtf/symbian/BlockAllocatorSymbian.cpp: Added.
+        (WTF::AlignedBlockAllocator::AlignedBlockAllocator): Helper class to allocate 
+        aligned blocks more efficiently as required by Collector
+        (WTF::AlignedBlockAllocator::alloc):
+        (WTF::AlignedBlockAllocator::free):
+        (WTF::AlignedBlockAllocator::destroy):
+        (WTF::AlignedBlockAllocator::~AlignedBlockAllocator):
+        * wtf/symbian/BlockAllocatorSymbian.h: Added.
+
+2010-03-22  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fixed <rdar://problem/7728196> REGRESSION (r46701): -(-2147483648)
+        evaluates to -2147483648 on 32 bit (35842)
+        
+        Two ways to fix the same bug:
+        
+        1. Check for overflow when negating, since negating the largest negative
+        int causes overflow.
+        
+        2. Constant-fold even when negating a negative, since, like they say in
+        high school, "math works."
+
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::branchNeg32):
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::branchNeg32): Added a branching version
+        of the negate operator.
+
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_negate): Use the branching version of the negate 
+        operator to check for overflow.
+
+        (JSC::JIT::emitSlow_op_negate): Link the check for overflow to a slow case.
+        (We could emit inline code for this, since we know what the result would
+        be, but that's probably just a waste of generated code.)
+
+        * parser/Grammar.y: Constant fold even when negating a negative.
+
+2010-03-22  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/36431> Clean up 'int' use in UString.cpp after r54789
+
+        Reviewed by Darin Adler.
+
+        * runtime/UString.cpp:
+        (JSC::UString::from): Changed argument type from 'unsigned int'
+        to 'unsigned' to match WebKit coding style.
+        (JSC::UString::find): Changed static_cast<int>() to
+        static_cast<unsigned>() now that this method returns unsigned.
+        (JSC::UString::rfind): Ditto.
+        * runtime/UString.h:
+        (JSC::UString::from): Changed argument type from 'unsigned int'
+        to 'unsigned' to match WebKit coding style.
+
+2010-03-22  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add support for syntax checking in the QtScript API.
+
+        New class was created; the QScriptSyntaxCheckResult which main
+        responsibility is to provide results of the ECMA Script code
+        syntax check. The class is not fully functional as the JSC C API
+        doesn't expose an error column number, but it is a good start point
+        for a future development.
+
+        [Qt] QtScript functionality should be extended by syntax checking.
+        https://bugs.webkit.org/show_bug.cgi?id=36123
+
+        * qt/api/QtScript.pro:
+        * qt/api/qscriptengine.cpp:
+        (QScriptEngine::checkSyntax):
+        * qt/api/qscriptengine.h:
+        * qt/api/qscriptengine_p.cpp:
+        (QScriptEnginePrivate::checkSyntax):
+        * qt/api/qscriptengine_p.h:
+        * qt/api/qscriptsyntaxcheckresult.cpp: Added.
+        (QScriptSyntaxCheckResult::QScriptSyntaxCheckResult):
+        (QScriptSyntaxCheckResult::~QScriptSyntaxCheckResult):
+        (QScriptSyntaxCheckResult::operator=):
+        (QScriptSyntaxCheckResult::state):
+        (QScriptSyntaxCheckResult::errorLineNumber):
+        (QScriptSyntaxCheckResult::errorColumnNumber):
+        (QScriptSyntaxCheckResult::errorMessage):
+        * qt/api/qscriptsyntaxcheckresult.h: Added.
+        * qt/api/qscriptsyntaxcheckresult_p.cpp: Added.
+        (QScriptSyntaxCheckResultPrivate::~QScriptSyntaxCheckResultPrivate):
+        (QScriptSyntaxCheckResultPrivate::errorMessage):
+        (QScriptSyntaxCheckResultPrivate::errorLineNumber):
+        * qt/api/qscriptsyntaxcheckresult_p.h: Added.
+        (QScriptSyntaxCheckResultPrivate::get):
+        (QScriptSyntaxCheckResultPrivate::QScriptSyntaxCheckResultPrivate):
+        (QScriptSyntaxCheckResultPrivate::state):
+        (QScriptSyntaxCheckResultPrivate::errorColumnNumber):
+        * qt/tests/qscriptengine/tst_qscriptengine.cpp:
+        (tst_QScriptEngine::checkSyntax_data):
+        (tst_QScriptEngine::checkSyntax):
+
 2010-03-22  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
 
         Reviewed by Simon Hausmann.

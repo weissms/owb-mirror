@@ -14,9 +14,9 @@ set(ENABLE_EVENTSOURCE OFF CACHE BOOLEAN "Enable HTML5 server-sent events suppor
 set(ENABLE_GEOLOCATION OFF CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR OFF CACHE BOOLEAN "Enable web inspector support" FORCE)
 
-if(ARCH MATCHES "[ix][3-6]86")
+if(ARCH MATCHES "[ix][3-6]*86*")
     set(ENABLE_JIT_JSC ON CACHE BOOLEAN "Enable JavascriptCore JIT compilation (for x86 only)" FORCE)
-endif(ARCH MATCHES "[ix][3-6]86")
+endif(ARCH MATCHES "[ix][3-6]*86*")
 
 if(ARCH MATCHES "[ix][3-6]*86*")
     set(ENABLE_YARR ON CACHE BOOLEAN "Enable RegExp JIT compilation (for x86 and x86_64 only)" FORCE)

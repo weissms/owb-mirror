@@ -666,10 +666,12 @@ void V8Proxy::setDOMException(int exceptionCode)
         exception = toV8(XPathException::create(description));
         break;
 #endif
+    default:
+        ASSERT_NOT_REACHED();
     }
 
-    ASSERT(!exception.IsEmpty());
-    v8::ThrowException(exception);
+    if (!exception.IsEmpty())
+        v8::ThrowException(exception);
 }
 
 v8::Handle<v8::Value> V8Proxy::throwError(ErrorType type, const char* message)
@@ -765,6 +767,8 @@ void V8Proxy::createUtilityContext()
     // JavaScript stack frame.
     DEFINE_STATIC_LOCAL(const char*, frameSourceLineSource,
         ("function frameSourceLine(exec_state) {"
+        "  if (!exec_state.frameCount())"
+        "      return undefined;"
         "  return exec_state.frame(0).sourceLine();"
         "}"));
     v8::Script::Compile(v8::String::New(frameSourceLineSource))->Run();
@@ -773,6 +777,8 @@ void V8Proxy::createUtilityContext()
     // JavaScript stack frame.
     DEFINE_STATIC_LOCAL(const char*, frameSourceNameSource,
         ("function frameSourceName(exec_state) {"
+        "  if (!exec_state.frameCount())"
+        "      return undefined;"
         "  var frame = exec_state.frame(0);"
         "  if (frame.func().resolved() && "
         "      frame.func().script() && "

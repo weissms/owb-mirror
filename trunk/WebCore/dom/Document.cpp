@@ -44,6 +44,7 @@
 #include "InspectorTimelineAgent.h"
 #endif
 #include "CookieJar.h"
+#include "CustomEvent.h"
 #include "DOMImplementation.h"
 #include "DOMWindow.h"
 #include "DocLoader.h"
@@ -2771,7 +2772,9 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             focusChangeBlocked = true;
             newFocusedNode = 0;
         }
-        oldFocusedNode->dispatchUIEvent(eventNames().DOMFocusOutEvent, 0, 0);
+        
+        oldFocusedNode->dispatchUIEvent(eventNames().focusoutEvent, 0, 0); // DOM level 3 name for the bubbling blur event.
+
         if (m_focusedNode) {
             // handler shifted focus
             focusChangeBlocked = true;
@@ -2801,7 +2804,9 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             focusChangeBlocked = true;
             goto SetFocusedNodeDone;
         }
-        m_focusedNode->dispatchUIEvent(eventNames().DOMFocusInEvent, 0, 0);
+
+        m_focusedNode->dispatchUIEvent(eventNames().focusinEvent, 0, 0); // DOM level 3 bubbling focus event.
+
         if (m_focusedNode != newFocusedNode) { 
             // handler shifted focus
             focusChangeBlocked = true;
@@ -3030,6 +3035,8 @@ PassRefPtr<Event> Document::createEvent(const String& eventType, ExceptionCode& 
     RefPtr<Event> event;
     if (eventType == "Event" || eventType == "Events" || eventType == "HTMLEvents")
         event = Event::create();
+    else if (eventType == "CustomEvent")
+        event = CustomEvent::create();
     else if (eventType == "KeyboardEvent" || eventType == "KeyboardEvents")
         event = KeyboardEvent::create();
     else if (eventType == "MessageEvent")

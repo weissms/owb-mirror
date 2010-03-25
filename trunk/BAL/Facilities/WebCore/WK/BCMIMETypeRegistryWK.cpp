@@ -383,6 +383,8 @@ bool MIMETypeRegistry::isSupportedImageResourceMIMEType(const String& mimeType)
 
 bool MIMETypeRegistry::isSupportedImageMIMETypeForEncoding(const String& mimeType)
 {
+    ASSERT(isMainThread());
+
     if (mimeType.isEmpty())
         return false;
     if (!supportedImageMIMETypesForEncoding)

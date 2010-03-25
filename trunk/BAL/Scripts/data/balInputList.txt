@@ -553,6 +553,8 @@ BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStrea
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/DataSourceGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/GOwnPtrGStreamer.h BCGOwnPtrGStreamerGStreamer.h
+BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gstreamer/ImageGStreamer.h
+BAL/Media/WebCore/GStreamer WebCore/platform/graphics/gstreamer/ImageGStreamerCairo.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp BCMediaPlayerPrivateGStreamer.cpp
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h BCMediaPlayerPrivateGStreamer.h
 BAL/Media/WebCore/GStreamer	WebCore/platform/graphics/gstreamer/VideoSinkGStreamer.cpp VideoSinkGStreamer.cpp
@@ -932,6 +934,7 @@ BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PlatformScreenGtk.cpp	BCPlatformScr
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PopupMenuGtk.cpp	BCPopupMenuGtk.cpp
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/GtkPluginWidget.h
 BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/GtkPluginWidget.cpp
+BAL/Widgets/WebCore/Gtk WebCore/platform/gtk/GtkVersioning.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/RenderThemeGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ScrollViewGtk.cpp	BCScrollViewGtk.cpp

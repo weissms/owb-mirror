@@ -690,9 +690,14 @@ void InspectorDOMAgent::getStyles(long callId, long nodeId, bool authorOnly)
         m_frontend->didGetStyles(callId, ScriptValue::undefined());
         return;
     }
-    Element* element = static_cast<Element*>(node);
-
+    
     DOMWindow* defaultView = node->ownerDocument()->defaultView();
+    if (!defaultView) {
+        m_frontend->didGetStyles(callId, ScriptValue::undefined());
+        return;
+    }
+
+    Element* element = static_cast<Element*>(node);
     RefPtr<CSSStyleDeclaration> computedStyle = defaultView->getComputedStyle(element, "");
 
     ScriptObject result = m_frontend->newScriptObject();
@@ -748,9 +753,14 @@ void InspectorDOMAgent::getComputedStyle(long callId, long nodeId)
         m_frontend->didGetComputedStyle(callId, ScriptValue::undefined());
         return;
     }
-    Element* element = static_cast<Element*>(node);
 
     DOMWindow* defaultView = node->ownerDocument()->defaultView();
+    if (!defaultView) {
+        m_frontend->didGetComputedStyle(callId, ScriptValue::undefined());
+        return;
+    }
+
+    Element* element = static_cast<Element*>(node);
     RefPtr<CSSStyleDeclaration> computedStyle = defaultView->getComputedStyle(element, "");
     m_frontend->didGetComputedStyle(callId, buildObjectForStyle(computedStyle.get(), false));
 }
@@ -758,6 +768,9 @@ void InspectorDOMAgent::getComputedStyle(long callId, long nodeId)
 ScriptArray InspectorDOMAgent::getMatchedCSSRules(Element* element, bool authorOnly)
 {
     DOMWindow* defaultView = element->ownerDocument()->defaultView();
+    if (!defaultView)
+        return m_frontend->newScriptArray();
+
     RefPtr<CSSRuleList> matchedRules = defaultView->getMatchedCSSRules(element, "", authorOnly);
     ScriptArray matchedCSSRules = m_frontend->newScriptArray();
     unsigned counter = 0;
@@ -1089,6 +1102,7 @@ ScriptObject InspectorDOMAgent::buildObjectForRule(CSSStyleRule* rule)
     ScriptObject result = m_frontend->newScriptObject();
     result.set("selectorText", rule->selectorText());
     result.set("cssText", rule->cssText());
+    result.set("sourceLine", rule->sourceLine());
     if (parentStyleSheet) {
         ScriptObject parentStyleSheetValue = m_frontend->newScriptObject();
         result.set("parentStyleSheet", parentStyleSheetValue);

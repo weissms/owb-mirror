@@ -161,6 +161,7 @@ XMLHttpRequest::XMLHttpRequest(ScriptExecutionContext* context)
     , m_receivedLength(0)
     , m_lastSendLineNumber(0)
     , m_exceptionCode(0)
+    , m_progressEventThrottle(this)
 {
     initializeXMLHttpRequestStaticData();
 #ifndef NDEBUG
@@ -218,7 +219,7 @@ Document* XMLHttpRequest::responseXML() const
             // The W3C spec requires this.
             m_responseXML = 0;
         } else {
-            m_responseXML = document()->implementation()->createDocument(0);
+            m_responseXML = Document::create(0);
             m_responseXML->open();
             m_responseXML->setURL(m_url);
             // FIXME: Set Last-Modified.
@@ -262,7 +263,7 @@ void XMLHttpRequest::callReadyStateChangeListener()
         timelineAgent->willChangeXHRReadyState(m_url.string(), m_state);
 #endif
 
-    dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().readystatechangeEvent));
+    m_progressEventThrottle.dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().readystatechangeEvent), m_state == DONE ? FlushProgressEvent : DoNotFlushProgressEvent);
 
 #if ENABLE(INSPECTOR)
     if (callTimelineAgentOnReadyStateChange && (timelineAgent = InspectorTimelineAgent::retrieve(scriptExecutionContext())))
@@ -277,7 +278,7 @@ void XMLHttpRequest::callReadyStateChangeListener()
             timelineAgent->willLoadXHR(m_url.string());
 #endif
 
-        dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().loadEvent));
+        m_progressEventThrottle.dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().loadEvent));
 
 #if ENABLE(INSPECTOR)
         if (callTimelineAgentOnLoad && (timelineAgent = InspectorTimelineAgent::retrieve(scriptExecutionContext())))
@@ -489,7 +490,7 @@ void XMLHttpRequest::createRequest(ExceptionCode& ec)
     // Also, only async requests support upload progress events.
     bool forcePreflight = false;
     if (m_async) {
-        dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().loadstartEvent));
+        m_progressEventThrottle.dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().loadstartEvent));
         if (m_requestEntityBody && m_upload) {
             forcePreflight = m_upload->hasEventListeners();
             m_upload->dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().loadstartEvent));
@@ -581,7 +582,7 @@ void XMLHttpRequest::abort()
         m_state = UNSENT;
     }
 
-    dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().abortEvent));
+    m_progressEventThrottle.dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().abortEvent));
     if (!m_uploadComplete) {
         m_uploadComplete = true;
         if (m_upload && m_uploadEventsAllowed)
@@ -635,7 +636,7 @@ void XMLHttpRequest::genericError()
 void XMLHttpRequest::networkError()
 {
     genericError();
-    dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().errorEvent));
+    m_progressEventThrottle.dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().errorEvent));
     if (!m_uploadComplete) {
         m_uploadComplete = true;
         if (m_upload && m_uploadEventsAllowed)
@@ -647,7 +648,7 @@ void XMLHttpRequest::networkError()
 void XMLHttpRequest::abortError()
 {
     genericError();
-    dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().abortEvent));
+    m_progressEventThrottle.dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().abortEvent));
     if (!m_uploadComplete) {
         m_uploadComplete = true;
         if (m_upload && m_uploadEventsAllowed)
@@ -950,9 +951,8 @@ void XMLHttpRequest::didReceiveData(const char* data, int len)
         long long expectedLength = m_response.expectedContentLength();
         m_receivedLength += len;
 
-        // FIXME: the spec requires that we dispatch the event according to the least
-        // frequent method between every 350ms (+/-200ms) and for every byte received.
-        dispatchEvent(XMLHttpRequestProgressEvent::create(eventNames().progressEvent, expectedLength && m_receivedLength <= expectedLength, static_cast<unsigned>(m_receivedLength), static_cast<unsigned>(expectedLength)));
+        bool lengthComputable = expectedLength && m_receivedLength <= expectedLength;
+        m_progressEventThrottle.dispatchProgressEvent(lengthComputable, static_cast<unsigned>(m_receivedLength), static_cast<unsigned>(expectedLength));
 
         if (m_state != LOADING)
             changeState(LOADING);
@@ -965,6 +965,16 @@ void XMLHttpRequest::didReceiveData(const char* data, int len)
 bool XMLHttpRequest::canSuspend() const
 {
     return !m_loader;
+}
+
+void XMLHttpRequest::suspend()
+{
+    m_progressEventThrottle.suspend();
+}
+
+void XMLHttpRequest::resume()
+{
+    m_progressEventThrottle.resume();
 }
 
 void XMLHttpRequest::stop()

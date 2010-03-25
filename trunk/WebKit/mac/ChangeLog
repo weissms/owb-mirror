@@ -1,3 +1,142 @@
+2010-03-25  Mark Rowe  <mrowe@apple.com>
+
+        Build fix after r56474.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCRunSyncOpenPanel):
+
+2010-03-24  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36563
+        A plug-in makes Safari crash on http://www.itscodingtime.com/
+
+        * Plugins/Hosted/NetscapePluginHostProxy.h:
+        (WebKit::NetscapePluginHostProxy::port): Assert that the object is still alive. This isn't
+        beautifully systemic, but helped catch a bug, and may help catch more.
+        (WebKit::NetscapePluginHostProxy::clientPort): Ditto.
+        (WebKit::NetscapePluginHostProxy::isProcessingRequests): Changed m_processingRequests to a
+        static. This doesn't change behavior much, but helps avoid writing into deallocated memory.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WebKit::NetscapePluginHostProxy::NetscapePluginHostProxy): Changed m_processingRequests
+        to a static.
+        (WebKit::NetscapePluginHostProxy::processRequests): Ditto. Changing m_processingRequests
+        after destroying the object in pluginHostDied() was wrong, but reasonably harmless, as there
+        wasn't much time for some other object to be allocated at this address.
+        (WKPCEvaluate): Refetch host proxy, as it may have been destroyed.
+        (WKPCInvoke): Ditto.
+        (WKPCInvokeDefault): Ditto.
+        (WKPCGetProperty): Ditto.
+        (WKPCSetProperty): Ditto.
+        (WKPCRemoveProperty): Ditto.
+        (WKPCHasProperty): Ditto.
+        (WKPCHasMethod): Ditto.
+        (WKPCEnumerate): Ditto.
+        (WKPCRunSyncOpenPanel): Ditto.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::processRequestsAndWaitForReply): Bail out of the 
+        "event loop" if host proxy went away while processing a request.
+
+2010-03-24  Hayato Ito  <hayato@chromium.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Refactor computePageRects so that Mac can make use of it.
+        https://bugs.webkit.org/show_bug.cgi?id=36159
+
+        Refactoring only, so no new tests.
+
+        * WebView/WebFrame.mm:
+        (-[WebFrame _computePageRectsWithPrintWidthScaleFactor:printHeight:]):
+
+2010-03-24  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Make Icon::createIconForFiles() optional.
+        https://bugs.webkit.org/show_bug.cgi?id=35072
+
+        - Rename iconForFiles() to chooseIconForFiles().
+        - Call Icon::createIconForFiles() from chooseIconForFiles().
+
+        * WebCoreSupport/WebChromeClient.h:
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::chooseIconForFiles):
+
+2010-03-23  Dan Bernstein  <mitz@apple.com>
+
+        Reverted accidental change from r56429.
+
+        * WebCoreSupport/WebContextMenuClient.mm:
+        (WebContextMenuClient::getCustomMenuFromDefaultItems):
+
+2010-03-23  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        WebKit part of
+        <rdar://problem/7197736> Plug-in clip rect does not update when overflow
+        clip changes
+        https://bugs.webkit.org/show_bug.cgi?id=36479.
+
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView visibleRectDidChange]): Added. Calls
+        WKSyncSurfaceToView().
+        * Plugins/WebBaseNetscapePluginView.h:
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (-[WebBaseNetscapePluginView _windowClipRect]): Changed to use Widget::windowClipRect().
+        (-[WebBaseNetscapePluginView visibleRectDidChange]): Added. Invokes -renewGState.
+
+2010-03-22  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36328
+
+        This patch entirely WebNullPluginView.
+        
+        * Plugins/WebNetscapePluginView.mm:
+        * Plugins/WebNullPluginView.h: Removed.
+        * Plugins/WebNullPluginView.mm: Removed.
+        * Resources/nullplugin.tiff: Removed.
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::createPlugin): Invoke the resource load delegate if the plug-in failed to load.
+
+2010-03-22  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by John Sullivan.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36455
+        Make WebKit more resistant against plug-in crashes
+
+        No tests, because crashing on build bots isn't good, even if it's only helper processes
+        that crash.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::waitForReply): Protect "this", because this function
+        needs it after waiting for reply. Some callers used to do this, but not all, and we really
+        shouldn't depend on callers here.
+
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::wheelEvent): Don't protect the plug-in instance proxy,
+        because this function doesn't use it after waiting for reply.
+        (WebKit::NetscapePluginInstanceProxy::createBindingsInstance): Ditto.
+
+        * Plugins/Hosted/ProxyInstance.mm: (WebKit::ProxyInstance::invoke): Added an m_instanceProxy
+        null check for another code path.
+
+2010-03-22  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by John Sullivan.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36328
+
+        * WebCoreSupport/WebViewFactory.mm:
+        (-[WebViewFactory missingPluginText]): Added.
+
 2010-03-22  Alexey Proskuryakov  <ap@apple.com>
 
         Reviewed by Darin Adler.

@@ -28,6 +28,7 @@
 #include "MediaPlayerPrivateGStreamer.h"
 
 
+#include "ColorSpace.h"
 #include "CString.h"
 #include "DataSourceGStreamer.h"
 #include "Document.h"
@@ -35,6 +36,8 @@
 #include "FrameView.h"
 #include "GOwnPtrGStreamer.h"
 #include "GraphicsContext.h"
+#include "GraphicsTypes.h"
+#include "ImageGStreamer.h"
 #include "IntRect.h"
 #include "KURL.h"
 #include "MIMETypeRegistry.h"
@@ -734,7 +737,10 @@ void MediaPlayerPrivate::fillTimerFired(Timer<MediaPlayerPrivate>*)
     // Update maxTimeLoaded only if the media duration is
     // available. Otherwise we can't compute it.
     if (m_mediaDuration) {
-        m_maxTimeLoaded = static_cast<float>((fillStatus * m_mediaDuration) / 100.0);
+        if (fillStatus == 100.0)
+            m_maxTimeLoaded = m_mediaDuration;
+        else
+            m_maxTimeLoaded = static_cast<float>((fillStatus * m_mediaDuration) / 100.0);
         LOG_VERBOSE(Media, "[Buffering] Updated maxTimeLoaded: %f", m_maxTimeLoaded);
     }
 
@@ -1204,42 +1210,12 @@ void MediaPlayerPrivate::paint(GraphicsContext* context, const IntRect& rect)
     if (!m_buffer)
         return;
 
-    int width = 0, height = 0;
-    GstCaps* caps = gst_buffer_get_caps(m_buffer);
-    GstVideoFormat format;
+    RefPtr<ImageGStreamer> gstImage = ImageGStreamer::createImage(m_buffer);
+    if (!gstImage)
+        return;
 
-    if (!gst_video_format_parse_caps(caps, &format, &width, &height)) {
-      gst_caps_unref(caps);
-      return;
-    }
-
-    cairo_format_t cairoFormat;
-    if (format == GST_VIDEO_FORMAT_ARGB || format == GST_VIDEO_FORMAT_BGRA)
-        cairoFormat = CAIRO_FORMAT_ARGB32;
-    else
-        cairoFormat = CAIRO_FORMAT_RGB24;
-
-    cairo_t* cr = context->platformContext();
-    cairo_surface_t* src = cairo_image_surface_create_for_data(GST_BUFFER_DATA(m_buffer),
-                                                               cairoFormat,
-                                                               width, height,
-                                                               4 * width);
-
-    cairo_save(cr);
-
-    // translate and scale the context to correct size
-    cairo_translate(cr, rect.x(), rect.y());
-    cairo_scale(cr, static_cast<double>(rect.width()) / width, static_cast<double>(rect.height()) / height);
-
-    // And paint it.
-    cairo_set_source_surface(cr, src, 0, 0);
-    cairo_pattern_set_extend(cairo_get_source(cr), CAIRO_EXTEND_PAD);
-    cairo_rectangle(cr, 0, 0, width, height);
-    cairo_fill(cr);
-    cairo_restore(cr);
-
-    cairo_surface_destroy(src);
-    gst_caps_unref(caps);
+    context->drawImage(reinterpret_cast<Image*>(gstImage->image().get()), sRGBColorSpace,
+                       rect, CompositeCopy, false);
 }
 
 static HashSet<String> mimeTypeCache()

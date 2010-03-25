@@ -53,11 +53,6 @@
 #include <mach/thread_act.h>
 #include <mach/vm_map.h>
 
-#elif OS(SYMBIAN)
-#include <e32std.h>
-#include <e32cmn.h>
-#include <unistd.h>
-
 #elif OS(WINDOWS)
 
 #include <windows.h>
@@ -201,11 +196,6 @@ const size_t ALLOCATIONS_PER_COLLECTION = 3600;
 // a PIC branch in Mach-O binaries, see <rdar://problem/5971391>.
 #define MIN_ARRAY_SIZE (static_cast<size_t>(14))
 
-#if OS(SYMBIAN)
-const size_t MAX_NUM_BLOCKS = 256; // Max size of collector heap set to 16 MB
-static RHeap* userChunk = 0;
-#endif
-
 #if ENABLE(JSC_MULTIPLE_THREADS)
 
 #if OS(DARWIN)
@@ -242,29 +232,11 @@ Heap::Heap(JSGlobalData* globalData)
     , m_currentThreadRegistrar(0)
 #endif
     , m_globalData(globalData)
+#if OS(SYMBIAN)
+    , m_blockallocator(JSCCOLLECTOR_VIRTUALMEM_RESERVATION, BLOCK_SIZE)
+#endif
 {
     ASSERT(globalData);
-    
-#if OS(SYMBIAN)
-    // Symbian OpenC supports mmap but currently not the MAP_ANON flag.
-    // Using fastMalloc() does not properly align blocks on 64k boundaries
-    // and previous implementation was flawed/incomplete.
-    // UserHeap::ChunkHeap allows allocation of continuous memory and specification
-    // of alignment value for (symbian) cells within that heap.
-    //
-    // Clarification and mapping of terminology:
-    // RHeap (created by UserHeap::ChunkHeap below) is continuos memory chunk,
-    // which can dynamically grow up to 8 MB,
-    // that holds all CollectorBlocks of this session (static).
-    // Each symbian cell within RHeap maps to a 64kb aligned CollectorBlock.
-    // JSCell objects are maintained as usual within CollectorBlocks.
-    if (!userChunk) {
-        userChunk = UserHeap::ChunkHeap(0, 0, MAX_NUM_BLOCKS * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-        if (!userChunk)
-            CRASH();
-    }
-#endif // OS(SYMBIAN)
-    
     memset(&m_heap, 0, sizeof(CollectorHeap));
     allocateBlock();
 }
@@ -307,7 +279,9 @@ void Heap::destroy()
         t = next;
     }
 #endif
-
+#if OS(SYMBIAN)
+    m_blockallocator.destroy();
+#endif
     m_globalData = 0;
 }
 
@@ -317,11 +291,9 @@ NEVER_INLINE CollectorBlock* Heap::allocateBlock()
     vm_address_t address = 0;
     vm_map(current_task(), &address, BLOCK_SIZE, BLOCK_OFFSET_MASK, VM_FLAGS_ANYWHERE | VM_TAG_FOR_COLLECTOR_MEMORY, MEMORY_OBJECT_NULL, 0, FALSE, VM_PROT_DEFAULT, VM_PROT_DEFAULT, VM_INHERIT_DEFAULT);
 #elif OS(SYMBIAN)
-    // Allocate a 64 kb aligned CollectorBlock
-    unsigned char* mask = reinterpret_cast<unsigned char*>(userChunk->Alloc(BLOCK_SIZE));
-    if (!mask)
+    void* address = m_blockallocator.alloc();  
+    if (!address)
         CRASH();
-    uintptr_t address = reinterpret_cast<uintptr_t>(mask);
 #elif OS(WINCE)
     void* address = VirtualAlloc(NULL, BLOCK_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 #elif OS(WINDOWS)
@@ -416,7 +388,7 @@ NEVER_INLINE void Heap::freeBlockPtr(CollectorBlock* block)
 #if OS(DARWIN)    
     vm_deallocate(current_task(), reinterpret_cast<vm_address_t>(block), BLOCK_SIZE);
 #elif OS(SYMBIAN)
-    userChunk->Free(reinterpret_cast<TAny*>(block));
+    m_blockallocator.free(reinterpret_cast<void*>(block));
 #elif OS(WINCE)
     VirtualFree(block, 0, MEM_RELEASE);
 #elif OS(WINDOWS)
@@ -1143,15 +1115,15 @@ void Heap::protect(JSValue k)
     m_protectedValues.add(k.asCell());
 }
 
-void Heap::unprotect(JSValue k)
+bool Heap::unprotect(JSValue k)
 {
     ASSERT(k);
     ASSERT(JSLock::currentThreadIsHoldingLock() || !m_globalData->isSharedInstance);
 
     if (!k.isCell())
-        return;
+        return false;
 
-    m_protectedValues.remove(k.asCell());
+    return m_protectedValues.remove(k.asCell());
 }
 
 void Heap::markProtectedObjects(MarkStack& markStack)

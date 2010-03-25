@@ -526,6 +526,11 @@ String validationMessageStepMismatchText()
     return String();
 }
 
+String missingPluginText() 
+{ 
+    return String::fromUTF8("Label text to be used when a plugin is missing"); 
+}
+
 #if ENABLE(CEHTML)
 
 String opCodeElementReplacementText(int keyCode)

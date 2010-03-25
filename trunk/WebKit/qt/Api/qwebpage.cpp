@@ -208,6 +208,8 @@ public:
         Q_ASSERT(view);
     }
 
+    virtual bool isQWidgetClient() const { return true; }
+
     virtual void scroll(int dx, int dy, const QRect&);
     virtual void update(const QRect& dirtyRect);
     virtual void setInputMethodEnabled(bool enable);
@@ -281,10 +283,8 @@ QPalette QWebPageWidgetClient::palette() const
 int QWebPageWidgetClient::screenNumber() const
 {
 #if defined(Q_WS_X11)
-    if (view)
-        return view->x11Info().screen();
+    return view->x11Info().screen();
 #endif
-
     return 0;
 }
 
@@ -1055,10 +1055,8 @@ QWebPage::WebAction QWebPagePrivate::editorActionForKeyEvent(QKeyEvent* event)
         { QKeySequence::SelectEndOfDocument, QWebPage::SelectEndOfDocument },
         { QKeySequence::DeleteStartOfWord, QWebPage::DeleteStartOfWord },
         { QKeySequence::DeleteEndOfWord, QWebPage::DeleteEndOfWord },
-#if QT_VERSION >= 0x040500
         { QKeySequence::InsertParagraphSeparator, QWebPage::InsertParagraphSeparator },
         { QKeySequence::InsertLineSeparator, QWebPage::InsertLineSeparator },
-#endif
         { QKeySequence::SelectAll, QWebPage::SelectAll },
         { QKeySequence::UnknownKey, QWebPage::NoWebAction }
     };
@@ -1316,8 +1314,8 @@ void QWebPagePrivate::inputMethodEvent(QInputMethodEvent *ev)
 #if QT_VERSION >= 0x040600
         case QInputMethodEvent::Selection: {
             if (renderTextControl) {
-                renderTextControl->setSelectionStart(a.start);
-                renderTextControl->setSelectionEnd(a.start + a.length);
+                renderTextControl->setSelectionStart(qMin(a.start, (a.start + a.length)));
+                renderTextControl->setSelectionEnd(qMax(a.start, (a.start + a.length)));
             }
             break;
         }
@@ -1782,7 +1780,7 @@ QWebPage::QWebPage(QObject *parent)
     : QObject(parent)
     , d(new QWebPagePrivate(this))
 {
-    setView(qobject_cast<QWidget *>(parent));
+    setView(qobject_cast<QWidget*>(parent));
 
     connect(this, SIGNAL(loadProgress(int)), this, SLOT(_q_onLoadProgressChanged(int)));
 #ifndef NDEBUG
@@ -1866,21 +1864,28 @@ QWebHistory *QWebPage::history() const
 
     \sa view()
 */
-void QWebPage::setView(QWidget *view)
+void QWebPage::setView(QWidget* view)
 {
-    if (this->view() != view) {
-        d->view = view;
-        if (!view) {
-            delete d->client;
-            d->client = 0;
-        } else {
-            if (!d->client) 
-                d->client = new QWebPageWidgetClient(view);
-            else
-                static_cast<QWebPageWidgetClient*>(d->client)->view = view;
-        }
-        setViewportSize(view ? view->size() : QSize(0, 0));
+    if (this->view() == view)
+        return;
+
+    d->view = view;
+    setViewportSize(view ? view->size() : QSize(0, 0));
+
+    // If we have no client, we install a special client delegating
+    // the responsibility to the QWidget. This is the code path
+    // handling a.o. the "legacy" QWebView.
+    //
+    // If such a special delegate already exist, we substitute the view.
+
+    if (d->client) {
+        if (d->client->isQWidgetClient())
+            static_cast<QWebPageWidgetClient*>(d->client)->view = view;
+        return;
     }
+
+    if (view)
+        d->client = new QWebPageWidgetClient(view);
 }
 
 /*!

@@ -18,6 +18,7 @@ list(APPEND WEBCORE_SRC
     dom/Comment.cpp
     dom/CompositionEvent.cpp
     dom/ContainerNode.cpp
+    dom/CustomEvent.cpp
     dom/DOMImplementation.cpp
     dom/Document.cpp
     dom/DocumentFragment.cpp
@@ -116,6 +117,7 @@ list(APPEND IDL_SRC
     dom/CDATASection.idl
     dom/Comment.idl
     dom/CompositionEvent.idl
+    dom/CustomEvent.idl
     dom/DocumentFragment.idl
     dom/Document.idl
     dom/DocumentType.idl

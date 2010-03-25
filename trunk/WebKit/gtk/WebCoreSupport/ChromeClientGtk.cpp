@@ -28,10 +28,12 @@
 #include "FileChooser.h"
 #include "FloatRect.h"
 #include "FrameLoadRequest.h"
+#include "GtkVersioning.h"
 #include "IntRect.h"
 #include "PlatformString.h"
 #include "CString.h"
 #include "HitTestResult.h"
+#include "Icon.h"
 #include "KURL.h"
 #include "webkitgeolocationpolicydecision.h"
 #include "webkitwebview.h"
@@ -65,11 +67,7 @@ void ChromeClient::chromeDestroyed()
 FloatRect ChromeClient::windowRect()
 {
     GtkWidget* window = gtk_widget_get_toplevel(GTK_WIDGET(m_webView));
-#if GTK_CHECK_VERSION(2, 18, 0)
     if (gtk_widget_is_toplevel(window)) {
-#else
-    if (GTK_WIDGET_TOPLEVEL(window)) {
-#endif
         gint left, top, width, height;
         gtk_window_get_position(GTK_WINDOW(window), &left, &top);
         gtk_window_get_size(GTK_WINDOW(window), &width, &height);
@@ -98,11 +96,7 @@ void ChromeClient::setWindowRect(const FloatRect& rect)
         return;
 
     GtkWidget* window = gtk_widget_get_toplevel(GTK_WIDGET(m_webView));
-#if GTK_CHECK_VERSION(2, 18, 0)
     if (gtk_widget_is_toplevel(window)) {
-#else
-    if (GTK_WIDGET_TOPLEVEL(window)) {
-#endif
         gtk_window_move(GTK_WINDOW(window), intrect.x(), intrect.y());
         gtk_window_resize(GTK_WINDOW(window), intrect.width(), intrect.height());
     }
@@ -128,11 +122,7 @@ void ChromeClient::focus()
 void ChromeClient::unfocus()
 {
     GtkWidget* window = gtk_widget_get_toplevel(GTK_WIDGET(m_webView));
-#if GTK_CHECK_VERSION(2, 18, 0)
     if (gtk_widget_is_toplevel(window))
-#else
-    if (GTK_WIDGET_TOPLEVEL(window))
-#endif
         gtk_window_set_focus(GTK_WINDOW(window), NULL);
 }
 
@@ -260,11 +250,7 @@ void ChromeClient::closeWindowSoon()
 
 bool ChromeClient::canTakeFocus(FocusDirection)
 {
-#if GTK_CHECK_VERSION(2, 18, 0)
     return gtk_widget_get_can_focus(GTK_WIDGET(m_webView));
-#else
-    return GTK_WIDGET_CAN_FOCUS(m_webView);
-#endif
 }
 
 void ChromeClient::takeFocus(FocusDirection)
@@ -439,7 +425,7 @@ void ChromeClient::contentsSizeChanged(Frame* frame, const IntSize& size) const
     // We need to queue a resize request only if the size changed,
     // otherwise we get into an infinite loop!
     GtkWidget* widget = GTK_WIDGET(m_webView);
-    if (GTK_WIDGET_REALIZED(widget)
+    if (gtk_widget_get_realized(widget)
         && (widget->requisition.height != size.height())
         || (widget->requisition.width != size.width()))
         gtk_widget_queue_resize_no_redraw(widget);
@@ -573,10 +559,9 @@ void ChromeClient::runOpenPanel(Frame*, PassRefPtr<FileChooser> prpFileChooser)
     gtk_widget_destroy(dialog);
 }
 
-void ChromeClient::iconForFiles(const Vector<WebCore::String>&, PassRefPtr<WebCore::FileChooser>)
+void ChromeClient::chooseIconForFiles(const Vector<WebCore::String>& filenames, PassRefPtr<WebCore::FileChooser> chooser)
 {
-    // FIXME: Move the code in Icon::createIconForFiles() here.
-    notImplemented();
+    chooser->iconLoaded(Icon::createIconForFiles(filenames));
 }
 
 bool ChromeClient::setCursor(PlatformCursorHandle)

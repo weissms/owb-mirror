@@ -24,9 +24,9 @@ set(ENABLE_OFFLINE_DYNAMIC_ENTRIES ON CACHE BOOLEAN "Enable HTML5 offline dynami
 set(ENABLE_GEOLOCATION ON CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR ON CACHE BOOLEAN "Enable web inspector support" FORCE)
 
-if(ARCH MATCHES "[ix][3-6]86")
+if(ARCH MATCHES "[ix][3-6]*86*")
     set(ENABLE_JIT_JSC ON CACHE BOOLEAN "Enable JavascriptCore JIT compilation (for x86 only)" FORCE)
-endif(ARCH MATCHES "[ix][3-6]86")
+endif(ARCH MATCHES "[ix][3-6]*86*")
 
 if(ARCH MATCHES "[ix][3-6]*86*")
     set(ENABLE_YARR ON CACHE BOOLEAN "Enable RegExp compilation (for x86 and x86_64 only)" FORCE)

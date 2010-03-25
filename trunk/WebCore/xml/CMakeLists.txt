@@ -1,6 +1,7 @@
 LIST (APPEND WEBCORE_SRC
     xml/DOMParser.cpp
     xml/XMLHttpRequest.cpp
+    xml/XMLHttpRequestProgressEventThrottle.cpp
     xml/XMLHttpRequestUpload.cpp
     xml/XMLSerializer.cpp
 )

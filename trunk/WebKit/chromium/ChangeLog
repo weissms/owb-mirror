@@ -1,3 +1,425 @@
+2010-03-25  Vangelis Kokkevis  <vangelis@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Eliminate unecessary redraws of GraphicsLayer contents when doing accelerated compositing:
+        https://bugs.webkit.org/show_bug.cgi?id=36470
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::paint):
+        Remove call that forced redrawing the contents of the entire layer hierarchy.
+
+2010-03-24  Dmitry Titov  <dimich@chromium.org>
+
+        No review, rolling out r56453.
+        http://trac.webkit.org/changeset/56453
+        https://bugs.webkit.org/show_bug.cgi?id=36426
+
+        In Chromium port, it broke invalid-image-data-standalone.html
+        invalid-image-data.html multipart-wait-before-boundary.html
+        stop-crash.html win-boundary-crash.html
+
+        * src/ResourceHandle.cpp:
+        (WebCore::ResourceHandleInternal::ResourceHandleInternal):
+        (WebCore::ResourceHandleInternal::start):
+        (WebCore::ResourceHandleInternal::cancel):
+        (WebCore::ResourceHandleInternal::didReceiveResponse):
+        (WebCore::ResourceHandleInternal::didReceiveData):
+        (WebCore::ResourceHandleInternal::didFinishLoading):
+        (WebCore::ResourceHandleInternal::didFail):
+
+2010-03-24  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium]WebKit side of adding search support to Pepper.
+        https://bugs.webkit.org/show_bug.cgi?id=36434
+
+        * WebKit.gyp:
+        * public/WebDocument.h:
+        * public/WebNode.h:
+        (WebKit::WebNode::to):
+        (WebKit::WebNode::toConst):
+        * public/WebPluginDocument.h: Added.
+        (WebKit::WebPluginDocument::WebPluginDocument):
+        (WebKit::WebPluginDocument::operator=):
+        (WebKit::WebPluginDocument::assign):
+        * src/WebDocument.cpp:
+        (WebKit::WebDocument::isPluginDocument):
+        * src/WebPluginDocument.cpp: Added.
+        (WebKit::WebPluginDocument::plugin):
+        (WebKit::WebPluginDocument::WebPluginDocument):
+        (WebKit::WebPluginDocument::operator=):
+        (WebKit::WebPluginDocument::operator PassRefPtr<PluginDocument>):
+
+2010-03-24  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Add some diagnostics to try to track down cause of crash in ArchiveFactory::isArchiveMimeType().
+
+        https://bugs.webkit.org/show_bug.cgi?id=36426
+
+        * src/ResourceHandle.cpp: Track state across ResourceHandle invocations.
+        (WebCore::ResourceHandleInternal::ResourceHandleInternal):
+        (WebCore::ResourceHandleInternal::):
+        (WebCore::ResourceHandleInternal::start):
+        (WebCore::ResourceHandleInternal::cancel):
+        (WebCore::ResourceHandleInternal::didReceiveResponse):
+        (WebCore::ResourceHandleInternal::didReceiveData):
+        (WebCore::ResourceHandleInternal::didFinishLoading):
+        (WebCore::ResourceHandleInternal::didFail):
+
+2010-03-24  Jay Campan  <jcampan@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Making Chromium select popups not steal activation from the browser.
+        Select popups are now like autocomplete popups, shown in non-activated
+        windows.
+        https://bugs.webkit.org/show_bug.cgi?id=36062
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createPopupMenu):
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::popupOpened):
+        (WebKit::ChromeClientImpl::popupClosed):
+        * src/ChromeClientImpl.h:
+        * src/WebViewImpl.cpp:
+        (WebKit::):
+        (WebKit::WebViewImpl::mouseDown):
+        (WebKit::WebViewImpl::keyEvent):
+        (WebKit::WebViewImpl::selectPopupHandleKeyEvent):
+        (WebKit::WebViewImpl::hideSelectPopup):
+        (WebKit::WebViewImpl::popupOpened):
+        (WebKit::WebViewImpl::popupClosed):
+        (WebKit::WebViewImpl::setFocus):
+        (WebKit::WebViewImpl::applyAutoFillSuggestions):
+        (WebKit::WebViewImpl::applyAutocompleteSuggestions):
+        * src/WebViewImpl.h:
+
+2010-03-24  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: [Chromium] Audits never complete
+        https://bugs.webkit.org/show_bug.cgi?id=36544
+
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+
+2010-03-24  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        [Chromium] Fix VKEY_F10, VKEY_F11 translation in WebInputEvent.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=36524
+
+        * src/WebInputEvent.cpp:
+        (WebKit::staticKeyIdentifiers):
+
+2010-03-24  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Make Icon::createIconForFiles() optional.
+        https://bugs.webkit.org/show_bug.cgi?id=35072
+
+        - Rename iconForFiles() to chooseIconForFiles().
+        - Call Icon::createIconForFiles() from chooseIconForFiles().
+
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::chooseIconForFiles):
+        * src/ChromeClientImpl.h:
+
+2010-03-23  Kenneth Russell  <kbr@google.com>
+
+        Unreviewed build fix.
+
+        Add #include <stdio.h> to fix Chromium Linux build.
+
+        * src/WebGraphicsContext3DDefaultImpl.cpp:
+
+2010-03-23  Nate Chapin  <japhet@chromium.org>
+
+        Unreviewed, revert r56376.
+
+        This revision introduced a crash in a couple of layout tests
+        on Chromium Linux.
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createPopupMenu):
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::popupOpened):
+        * src/ChromeClientImpl.h:
+        * src/WebViewImpl.cpp:
+        (WebKit::):
+        (WebKit::WebViewImpl::mouseDown):
+        (WebKit::WebViewImpl::keyEvent):
+        (WebKit::WebViewImpl::setFocus):
+        (WebKit::WebViewImpl::applyAutoFillSuggestions):
+        (WebKit::WebViewImpl::applyAutocompleteSuggestions):
+        * src/WebViewImpl.h:
+
+2010-03-23  Sergey Ulanov  <sergeyu@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Changes needed to implement Show/Hide Controls command for <video> in
+        chrome: (1) added Controls action in WebMediaPlayerAction that toggles
+        controls for media player, (2) added MediaHasVideo in
+        WebContextMenuData so that controls can be made toggleable only for
+        video player but not for audio.
+        https://bugs.webkit.org/show_bug.cgi?id=36460
+
+        * public/WebContextMenuData.h:
+        (WebKit::WebContextMenuData::):
+        * public/WebMediaPlayerAction.h:
+        (WebKit::WebMediaPlayerAction::):
+        * src/ContextMenuClientImpl.cpp:
+        (WebKit::ContextMenuClientImpl::getCustomMenuFromDefaultItems):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::performMediaPlayerAction):
+
+2010-03-23  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        When uncaught exception happens reveal Scripts panel only if reporting uncaught exceptions is on.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36498
+
+        * src/js/DebuggerAgent.js:
+        (devtools.DebuggerAgent.prototype.handleExceptionEvent_):
+
+2010-03-23  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: TimelinePanel stays in the recording state after reopening WebInspector.
+        https://bugs.webkit.org/show_bug.cgi?id=36503
+
+        * src/WebDevToolsAgentImpl.cpp:
+        (WebKit::WebDevToolsAgentImpl::detach):
+
+2010-03-22  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Add GraphicsContext3D abstraction to WebKit API
+        https://bugs.webkit.org/show_bug.cgi?id=36262
+
+        Added WebGraphicsContext3D to the WebKit API and refactored Chromium's
+        GraphicsContext3D implementation to use it. All of the OpenGL calls have
+        been moved out of WebKit/chromium/src/GraphicsContext3D.cpp and into the
+        WebGraphicsContext3D implementation. GraphicsContext3D is still
+        responsible for the transfer of rendered output from the
+        WebGraphicsContext3D to the HTMLCanvasElement.
+
+        The GraphicsContext3DInternal class, which is a data member of
+        GraphicsContext3D for the Chromium port, remains. It is possible to
+        eliminate this class and thereby one level of delegation, but this is
+        being deferred.
+
+        The needed entry point for a Chrome implementation of
+        WebGraphicsContext3D has been added to WebKitClient, but it is not being
+        called yet by GraphicsContext3D. It will be once this patch lands and
+        Chromium is rolled forward to support this entry point.
+
+        This is a large patch, but the transformation is almost entirely
+        mechanical and there is no change in functionality. Nearly all of
+        GraphicsContext3D and GraphicsContext3DInternal has been moved to
+        WebGraphicsContext3DDefaultImpl. The only area where the splitting of
+        logic is less than mechanical is GraphicsContext3D::beginPaint() and its
+        callees.
+
+        Ran all WebGL layout tests and demos from Khronos site in Chromium
+        on Mac and Windows.
+
+        * WebKit.gyp:
+        * public/WebGraphicsContext3D.h: Added.
+        (WebKit::WebGraphicsContext3D::Attributes::Attributes):
+        (WebKit::WebGraphicsContext3D::~WebGraphicsContext3D):
+        * public/WebKitClient.h:
+        (WebKit::WebKitClient::createGraphicsContext3D):
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3DInternal::GraphicsContext3DInternal):
+        (WebCore::GraphicsContext3DInternal::~GraphicsContext3DInternal):
+        (WebCore::GraphicsContext3DInternal::initialize):
+        (WebCore::GraphicsContext3DInternal::platformGraphicsContext3D):
+        (WebCore::GraphicsContext3DInternal::platformTexture):
+        (WebCore::GraphicsContext3DInternal::beginPaint):
+        (WebCore::GraphicsContext3DInternal::endPaint):
+        (WebCore::GraphicsContext3DInternal::reshape):
+        (WebCore::GraphicsContext3DInternal::bindAttribLocation):
+        (WebCore::GraphicsContext3DInternal::bindTexture):
+        (WebCore::GraphicsContext3DInternal::bufferData):
+        (WebCore::GraphicsContext3DInternal::bufferSubData):
+        (WebCore::GraphicsContext3DInternal::getActiveAttrib):
+        (WebCore::GraphicsContext3DInternal::getActiveUniform):
+        (WebCore::GraphicsContext3DInternal::getAttribLocation):
+        (WebCore::GraphicsContext3DInternal::getContextAttributes):
+        (WebCore::GraphicsContext3DInternal::getProgramInfoLog):
+        (WebCore::GraphicsContext3DInternal::getShaderInfoLog):
+        (WebCore::GraphicsContext3DInternal::getShaderSource):
+        (WebCore::GraphicsContext3DInternal::getString):
+        (WebCore::GraphicsContext3DInternal::getUniformLocation):
+        (WebCore::GraphicsContext3DInternal::readPixels):
+        (WebCore::GraphicsContext3DInternal::shaderSource):
+        (WebCore::GraphicsContext3DInternal::texImage2D):
+        (WebCore::GraphicsContext3DInternal::texSubImage2D):
+        (WebCore::GraphicsContext3DInternal::uniform1fv):
+        (WebCore::GraphicsContext3DInternal::uniform1iv):
+        (WebCore::GraphicsContext3DInternal::uniform2fv):
+        (WebCore::GraphicsContext3DInternal::uniform2iv):
+        (WebCore::GraphicsContext3DInternal::uniform3fv):
+        (WebCore::GraphicsContext3DInternal::uniform3iv):
+        (WebCore::GraphicsContext3DInternal::uniform4fv):
+        (WebCore::GraphicsContext3DInternal::uniform4iv):
+        (WebCore::GraphicsContext3DInternal::uniformMatrix2fv):
+        (WebCore::GraphicsContext3DInternal::uniformMatrix3fv):
+        (WebCore::GraphicsContext3DInternal::uniformMatrix4fv):
+        (WebCore::GraphicsContext3D::GraphicsContext3D):
+        (WebCore::GraphicsContext3D::~GraphicsContext3D):
+        (WebCore::GraphicsContext3D::create):
+        (WebCore::GraphicsContext3D::platformGraphicsContext3D):
+        (WebCore::GraphicsContext3D::platformTexture):
+        (WebCore::GraphicsContext3D::texImage2D):
+        (WebCore::GraphicsContext3D::texSubImage2D):
+        * src/WebGraphicsContext3D.cpp: Added.
+        (WebKit::WebGraphicsContext3D::createDefault):
+        * src/WebGraphicsContext3DDefaultImpl.cpp: Added.
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::create):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::~GLConnection):
+        (WebKit::WebGraphicsContext3DDefaultImpl::VertexAttribPointerState::VertexAttribPointerState):
+        (WebKit::WebGraphicsContext3DDefaultImpl::WebGraphicsContext3DDefaultImpl):
+        (WebKit::WebGraphicsContext3DDefaultImpl::~WebGraphicsContext3DDefaultImpl):
+        (WebKit::WebGraphicsContext3DDefaultImpl::initialize):
+        (WebKit::WebGraphicsContext3DDefaultImpl::makeContextCurrent):
+        (WebKit::WebGraphicsContext3DDefaultImpl::width):
+        (WebKit::WebGraphicsContext3DDefaultImpl::height):
+        (WebKit::WebGraphicsContext3DDefaultImpl::sizeInBytes):
+        (WebKit::createTextureObject):
+        (WebKit::WebGraphicsContext3DDefaultImpl::reshape):
+        (WebKit::WebGraphicsContext3DDefaultImpl::flipVertically):
+        (WebKit::WebGraphicsContext3DDefaultImpl::readBackFramebuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::activeTexture):
+        (WebKit::WebGraphicsContext3DDefaultImpl::bindBuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::bindFramebuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::disableVertexAttribArray):
+        (WebKit::WebGraphicsContext3DDefaultImpl::drawElements):
+        (WebKit::WebGraphicsContext3DDefaultImpl::enableVertexAttribArray):
+        (WebKit::WebGraphicsContext3DDefaultImpl::generateMipmap):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getActiveAttrib):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getActiveUniform):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getContextAttributes):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getError):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getProgramInfoLog):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getShaderInfoLog):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getShaderSource):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getString):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getVertexAttribOffset):
+        (WebKit::WebGraphicsContext3DDefaultImpl::releaseShaderCompiler):
+        (WebKit::WebGraphicsContext3DDefaultImpl::shaderSource):
+        (WebKit::WebGraphicsContext3DDefaultImpl::vertexAttribPointer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::createBuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::createFramebuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::createProgram):
+        (WebKit::WebGraphicsContext3DDefaultImpl::createRenderbuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::createTexture):
+        (WebKit::WebGraphicsContext3DDefaultImpl::deleteBuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::deleteFramebuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::deleteProgram):
+        (WebKit::WebGraphicsContext3DDefaultImpl::deleteRenderbuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::deleteShader):
+        (WebKit::WebGraphicsContext3DDefaultImpl::deleteTexture):
+        (WebKit::WebGraphicsContext3DDefaultImpl::synthesizeGLError):
+        * src/WebGraphicsContext3DDefaultImpl.h: Added.
+        (WebKit::WebGraphicsContext3DDefaultImpl::):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::chooseFBConfig):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::createNewContext):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::createPbuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::destroyPbuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::makeCurrent):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::destroyContext):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::getCurrentContext):
+        (WebKit::WebGraphicsContext3DDefaultImpl::GLConnection::GLConnection):
+
+2010-03-22  Jay Campan  <jcampan@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Making Chromium select popups not steal activation from the browser.
+        Select popups are now like autocomplete popups, shown in non-activated
+        windows.
+        https://bugs.webkit.org/show_bug.cgi?id=36062
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createPopupMenu):
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::popupOpened):
+        (WebKit::ChromeClientImpl::popupClosed):
+        * src/ChromeClientImpl.h:
+        * src/WebViewImpl.cpp:
+        (WebKit::):
+        (WebKit::WebViewImpl::mouseDown):
+        (WebKit::WebViewImpl::keyEvent):
+        (WebKit::WebViewImpl::selectPopupHandleKeyEvent):
+        (WebKit::WebViewImpl::hideSelectPopup):
+        (WebKit::WebViewImpl::popupOpened):
+        (WebKit::WebViewImpl::popupClosed):
+        (WebKit::WebViewImpl::setFocus):
+        (WebKit::WebViewImpl::applyAutoFillSuggestions):
+        (WebKit::WebViewImpl::applyAutocompleteSuggestions):
+        * src/WebViewImpl.h:
+
+2010-03-22  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Nate Chapin.
+
+        [chromium] Renderer crashes when navigating to a reference fragment in
+        a frame that has no current HistoryItem.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36443
+
+        Test: fast/loader/crash-replacing-location-before-load.html
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchDidNavigateWithinPage):
+
+2010-03-22  Kevin Decker  <kdecker@apple.com>
+
+        Reviewed by John Sullivan.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36328
+
+        * src/LocalizedStrings.cpp:
+        (WebCore::missingPluginText): Added
+
+2010-03-22  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Fix inspected Page crash in destructor when Web Inspector is open.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36441
+
+        * src/js/InjectDispatch.js:
+        (inspectedPageDestroyed): Added stub for missing method.
+
+2010-03-22  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Added methods to WebSecurityOrigin for invoking
+        SecurityOrigin::canAccess and SecurityOrigin::Create
+        https://bugs.webkit.org/show_bug.cgi?id=36356
+
+        * public/WebSecurityOrigin.h:
+        * src/WebSecurityOrigin.cpp:
+        (WebKit::WebSecurityOrigin::create):
+        (WebKit::WebSecurityOrigin::canAccess):
+
 2010-03-22  Dimitri Glazkov  <dglazkov@chromium.org>
 
         No review, rolling out r56294.

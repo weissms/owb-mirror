@@ -31,9 +31,11 @@
 
 #include "Clipboard.h"
 #include "CompositionEvent.h"
+#include "CustomEvent.h"
 #include "Event.h"
 #include "JSBeforeLoadEvent.h"
 #include "JSClipboard.h"
+#include "JSCustomEvent.h"
 #include "JSCompositionEvent.h"
 #include "JSErrorEvent.h"
 #include "JSKeyboardEvent.h"
@@ -163,6 +165,8 @@ JSValue toJS(ExecState* exec, JSDOMGlobalObject* globalObject, Event* event)
 #endif
     else if (event->isPopStateEvent())
         wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, PopStateEvent, event);
+    else if (event->isCustomEvent())
+        wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, CustomEvent, event);
 #if ENABLE(DAE)
     else if (event->isDAEEvent()) {
         DAEEvent* daeEvent = static_cast<DAEEvent*>(event);
@@ -174,7 +178,7 @@ JSValue toJS(ExecState* exec, JSDOMGlobalObject* globalObject, Event* event)
 #endif
         else
             wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, Event, event);
-    }
+     }
 #endif
     else
         wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, Event, event);

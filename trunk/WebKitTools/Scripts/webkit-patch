@@ -35,7 +35,7 @@ import logging
 import os
 import sys
 
-import webkitpy.init.versioning as versioning
+import webkitpy.python24.versioning as versioning
 
 
 # FIXME: Consider logging more than just messages from the
@@ -60,7 +60,7 @@ def main():
     # Import webkit-patch code only after version-checking so that
     # script doesn't error out before having a chance to report the
     # version warning.
-    from webkitpy.patch.patcher import WebKitPatch
+    from webkitpy.tool.main import WebKitPatch
 
     WebKitPatch(__file__).main()
 

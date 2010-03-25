@@ -190,9 +190,7 @@ WebInspector.StylesSidebarPane.prototype = {
             {
                 var entry = {};
                 entry.isInheritedNodeSeparator = true;
-                entry.nodeName = node.nodeName;
-                entry.nodeClass = node.getAttribute("class");
-                entry.nodeId = node.getAttribute("id");
+                entry.node = node;
                 styleRules.push(entry);
             }
 
@@ -334,12 +332,12 @@ WebInspector.StylesSidebarPane.prototype = {
                 if (styleRule.isInheritedNodeSeparator) {
                     var separatorElement = document.createElement("div");
                     separatorElement.className = "styles-sidebar-separator";
-                    var title = styleRule.nodeName.toLowerCase();
-                    if (styleRule.nodeClass)
-                        title += "." + styleRule.nodeClass;
-                    if (styleRule.nodeId)
-                        title += "#" + styleRule.nodeId;
-                    separatorElement.innerText = WebInspector.UIString("Inherited from %s", title);
+                    var link = document.createElement("a");
+                    link.href = "";
+                    link.addEventListener("mousedown", this._selectNode.bind(this, styleRule.node.id), false);
+                    WebInspector.panels.elements.decorateNodeLabel(styleRule.node, link);
+                    separatorElement.appendChild(document.createTextNode(WebInspector.UIString("Inherited from") + " "));
+                    separatorElement.appendChild(link);
                     this.bodyElement.appendChild(separatorElement);
                     continue;
                 }
@@ -370,6 +368,12 @@ WebInspector.StylesSidebarPane.prototype = {
                 this.sections.push(section);
             }
         }
+    },
+
+    _selectNode: function(nodeId, e)
+    {
+        WebInspector.updateFocusedNode(nodeId);
+        e.preventDefault();
     },
 
     _containsInherited: function(payload)
@@ -446,7 +450,6 @@ WebInspector.StylePropertiesSection = function(styleRule, subtitle, computedStyl
 {
     WebInspector.PropertiesSection.call(this, styleRule.selectorText);
 
-    this.titleElement.addEventListener("click", this._clickSelector.bind(this), false);
     this.titleElement.addEventListener("dblclick", this._dblclickSelector.bind(this), false);
     this.element.addEventListener("dblclick", this._dblclickEmptySpace.bind(this), false);
 
@@ -490,8 +493,7 @@ WebInspector.StylePropertiesSection = function(styleRule, subtitle, computedStyl
         if (!subtitle) {
             if (this.styleRule.parentStyleSheet && this.styleRule.parentStyleSheet.href) {
                 var url = this.styleRule.parentStyleSheet.href;
-                subtitle = WebInspector.linkifyURL(url, WebInspector.displayNameForURL(url));
-                this.subtitleElement.addStyleClass("file");
+                this.subtitleElement.appendChild(WebInspector.linkifyResourceAsNode(url, "resources", this.rule.sourceLine + 1));
             } else if (isUserAgent)
                 subtitle = WebInspector.UIString("user agent stylesheet");
             else if (isUser)
@@ -503,7 +505,8 @@ WebInspector.StylePropertiesSection = function(styleRule, subtitle, computedStyl
         }
         if (isInherited)
             this.element.addStyleClass("show-inherited");
-        this.subtitle = subtitle;
+        if (subtitle)
+            this.subtitle = subtitle;
     }
 
     this.identifier = styleRule.selectorText;
@@ -669,19 +672,6 @@ WebInspector.StylePropertiesSection.prototype = {
         item.listItemElement.textContent = "";
         item._newProperty = true;
         return item;
-    },
-
-    _clickSelector: function(event)
-    {
-        event.stopPropagation();
-
-        // Don't search "Computed Styles", "Style Attribute", or Mapped Attributes.
-        if (this.computedStyle || !this.rule || this.rule.isUser)
-            return;
-
-        var searchElement = document.getElementById("search");
-        searchElement.value = this.styleRule.selectorText;
-        WebInspector.performSearch({ target: searchElement });
     },
 
     _dblclickEmptySpace: function(event)

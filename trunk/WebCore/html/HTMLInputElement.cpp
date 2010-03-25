@@ -808,7 +808,6 @@ void HTMLInputElement::setInputType(const String& t)
     // type change, otherwise a JavaScript programmer would be able to set a text
     // field's value to something like /etc/passwd and then change it to a file field.
     if (inputType() != newType) {
-        bool oldWillValidate = willValidate();
         if (newType == FILE && m_haveType)
             // Set the attribute back to the old value.
             // Useful in case we were called from inside parseMappedAttribute.
@@ -865,9 +864,8 @@ void HTMLInputElement::setInputType(const String& t)
             checkedRadioButtons(this).addButton(this);
         }
 
+        setNeedsWillValidateCheck();
         setNeedsValidityCheck();
-        if (oldWillValidate != willValidate())
-            setNeedsWillValidateCheck();
         InputElement::notifyFormStateChanged(this);
     }
     m_haveType = true;
@@ -1149,8 +1147,14 @@ void HTMLInputElement::parseMappedAttribute(MappedAttribute *attr)
                || attr->name() == incrementalAttr)
         setNeedsStyleRecalc();
     else if (attr->name() == minAttr
-             || attr->name() == maxAttr
-             || attr->name() == multipleAttr
+             || attr->name() == maxAttr) {
+        if (inputType() == RANGE) {
+            // Sanitize the value.
+            setValue(value());
+            setNeedsStyleRecalc();
+        }
+        setNeedsValidityCheck();
+    } else if (attr->name() == multipleAttr
              || attr->name() == patternAttr
              || attr->name() == precisionAttr
              || attr->name() == stepAttr)
@@ -1578,10 +1582,14 @@ void HTMLInputElement::setValue(const String& value, bool sendChangeEvent)
 
     setFormControlValueMatchesRenderer(false);
     if (storesValueSeparateFromAttribute()) {
-        if (inputType() == FILE)
+        if (inputType() == FILE) {
             m_fileList->clear();
-        else {
+            setNeedsValidityCheck();
+        } else {
             m_data.setValue(sanitizeValue(value));
+            // setNeedsValidityCheck() needs to be called after updating the value,
+            // before style recalc.
+            setNeedsValidityCheck();
             if (isTextField()) {
                 updatePlaceholderVisibility(false);
                 if (inDocument())
@@ -1591,8 +1599,10 @@ void HTMLInputElement::setValue(const String& value, bool sendChangeEvent)
         if (renderer())
             renderer()->updateFromElement();
         setNeedsStyleRecalc();
-    } else
+    } else {
         setAttribute(valueAttr, sanitizeValue(value));
+        setNeedsValidityCheck();
+    }
 
     if (isTextField()) {
         unsigned max = m_data.value().length();
@@ -1609,7 +1619,6 @@ void HTMLInputElement::setValue(const String& value, bool sendChangeEvent)
         dispatchFormControlChangeEvent();
 
     InputElement::notifyFormStateChanged(this);
-    setNeedsValidityCheck();
 }
 
 double HTMLInputElement::parseToDouble(const String& src, double defaultValue) const
@@ -2635,11 +2644,10 @@ void HTMLInputElement::addSubresourceAttributeURLs(ListHashSet<KURL>& urls) cons
     addSubresourceURL(urls, src());
 }
 
-bool HTMLInputElement::willValidate() const
+bool HTMLInputElement::recalcWillValidate() const
 {
-    // FIXME: This shall check for new WF2 input types too
-    return HTMLFormControlElementWithState::willValidate() && inputType() != HIDDEN &&
-           inputType() != BUTTON && inputType() != RESET;
+    return HTMLFormControlElementWithState::recalcWillValidate()
+        && inputType() != HIDDEN && inputType() != BUTTON && inputType() != RESET;
 }
 
 String HTMLInputElement::serializeForNumberType(double number)

@@ -47,11 +47,13 @@
 #include "CString.h"
 #include <ContextMenu.h>
 #include <Console.h> 
+#include <FileChooser.h>
 #include <FloatRect.h>
 #include <Frame.h>
 #include <FrameLoadRequest.h>
 #include <FrameView.h>
 #include <HTMLNames.h>
+#include <Icon.h>
 #include <IntRect.h>
 #include <NotImplemented.h>
 #include <Page.h>
@@ -612,10 +614,9 @@ void WebChromeClient::runOpenPanel(Frame*, PassRefPtr<FileChooser> prpFileChoose
 
 }
 
-void WebChromeClient::iconForFiles(const Vector<String>&, PassRefPtr<FileChooser>)
+void WebChromeClient::chooseIconForFiles(const Vector<WebCore::String>& filenames, PassRefPtr<WebCore::FileChooser> chooser)
 {
-    // FIXME: Move the code of Icon::createIconForFiles() here.
-    notImplemented();
+    chooser->iconLoaded(Icon::createIconForFiles(filenames));
 }
 
 bool WebChromeClient::setCursor(WebCore::PlatformCursorHandle cursor)

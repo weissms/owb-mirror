@@ -1382,7 +1382,8 @@ bool FrameLoader::loadPlugin(RenderEmbeddedObject* renderer, const KURL& url, co
         if (widget) {
             renderer->setWidget(widget);
             m_containsPlugIns = true;
-        }
+        } else
+            renderer->setShowsMissingPluginIndicator(true);
     }
 
     return widget != 0;

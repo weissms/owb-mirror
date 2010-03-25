@@ -75,6 +75,9 @@ namespace WebCore {
         void initEvent(const AtomicString& type, bool canBubble, bool cancelable);
 
         const AtomicString& type() const { return m_type; }
+        
+        const AtomicString& aliasedType() const;
+        bool hasAliasedType() const;
 
         EventTarget* target() const { return m_target.get(); }
         void setTarget(PassRefPtr<EventTarget>);
@@ -100,6 +103,7 @@ namespace WebCore {
 
         Clipboard* clipboardData() const { return isClipboardEvent() ? clipboard() : 0; }
 
+        virtual bool isCustomEvent() const;
         virtual bool isUIEvent() const;
         virtual bool isMouseEvent() const;
         virtual bool isMutationEvent() const;

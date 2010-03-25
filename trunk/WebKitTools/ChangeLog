@@ -1,3 +1,798 @@
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move stepsequence to webkitpy.tool.commands.
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/stepsequence.py: Removed.
+        * Scripts/webkitpy/tool/commands/abstractsequencedcommand.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/stepsequence.py: Copied from Scripts/webkitpy/stepsequence.py.
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Create webkitpy.common.checkout as described in
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/changelogs.py: Removed.
+        * Scripts/webkitpy/changelogs_unittest.py: Removed.
+        * Scripts/webkitpy/commitinfo.py: Removed.
+        * Scripts/webkitpy/commitinfo_unittest.py: Removed.
+        * Scripts/webkitpy/common/checkout: Added.
+        * Scripts/webkitpy/common/checkout/__init__.py: Copied from Scripts/webkitpy/common/__init__.py.
+        * Scripts/webkitpy/common/checkout/changelog.py: Copied from Scripts/webkitpy/changelogs.py.
+        * Scripts/webkitpy/common/checkout/changelog_unittest.py: Copied from Scripts/webkitpy/changelogs_unittest.py.
+        * Scripts/webkitpy/common/checkout/commitinfo.py: Copied from Scripts/webkitpy/commitinfo.py.
+        * Scripts/webkitpy/common/checkout/commitinfo_unittest.py: Copied from Scripts/webkitpy/commitinfo_unittest.py.
+        * Scripts/webkitpy/common/checkout/diff_parser.py: Copied from Scripts/webkitpy/diff_parser.py.
+        * Scripts/webkitpy/common/checkout/diff_parser_unittest.py: Copied from Scripts/webkitpy/diff_parser_unittest.py.
+        * Scripts/webkitpy/common/checkout/scm.py: Copied from Scripts/webkitpy/scm.py.
+        * Scripts/webkitpy/common/checkout/scm_unittest.py: Copied from Scripts/webkitpy/scm_unittest.py.
+        * Scripts/webkitpy/common/net/credentials.py:
+        * Scripts/webkitpy/diff_parser.py: Removed.
+        * Scripts/webkitpy/diff_parser_unittest.py: Removed.
+        * Scripts/webkitpy/layout_tests/port/base.py:
+        * Scripts/webkitpy/scm.py: Removed.
+        * Scripts/webkitpy/scm_unittest.py: Removed.
+        * Scripts/webkitpy/stepsequence.py:
+        * Scripts/webkitpy/style_references.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/comments.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/preparechangelogforrevert.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreviewer.py:
+        * Scripts/webkitpy/tool/steps/validatereviewer.py:
+        * Scripts/webkitpy/unittests.py:
+        * Scripts/webkitpy/webkitcheckout.py:
+
+2010-03-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In webkitpy, moved init/versioning.py to python24/.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        This is part of the master bug to reorganize webkitpy.
+
+        * Scripts/test-webkitpy:
+        * Scripts/webkit-patch:
+        * Scripts/webkitpy/init/unittests.py:
+        * Scripts/webkitpy/init/versioning.py: Removed.
+        * Scripts/webkitpy/init/versioning_unittest.py: Removed.
+        * Scripts/webkitpy/python24: Added.
+        * Scripts/webkitpy/python24/__init__.py: Copied from WebKitTools/Scripts/webkitpy/tool/__init__.py.
+        * Scripts/webkitpy/python24/versioning.py: Copied from WebKitTools/Scripts/webkitpy/init/versioning.py.
+        * Scripts/webkitpy/python24/versioning_unittest.py: Copied from WebKitTools/Scripts/webkitpy/init/versioning_unittest.py.
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Create webkitpy.common.net as described in
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/bugzilla.py: Removed.
+        * Scripts/webkitpy/bugzilla_unittest.py: Removed.
+        * Scripts/webkitpy/buildbot.py: Removed.
+        * Scripts/webkitpy/buildbot_unittest.py: Removed.
+        * Scripts/webkitpy/commitinfo.py:
+        * Scripts/webkitpy/common/net: Added.
+        * Scripts/webkitpy/common/net/__init__.py: Added.
+        * Scripts/webkitpy/common/net/bugzilla.py: Copied from Scripts/webkitpy/bugzilla.py.
+        * Scripts/webkitpy/common/net/bugzilla_unittest.py: Copied from Scripts/webkitpy/bugzilla_unittest.py.
+        * Scripts/webkitpy/common/net/buildbot.py: Copied from Scripts/webkitpy/buildbot.py.
+        * Scripts/webkitpy/common/net/buildbot_unittest.py: Copied from Scripts/webkitpy/buildbot_unittest.py.
+        * Scripts/webkitpy/common/net/credentials.py: Copied from Scripts/webkitpy/credentials.py.
+        * Scripts/webkitpy/common/net/credentials_unittest.py: Copied from Scripts/webkitpy/credentials_unittest.py.
+        * Scripts/webkitpy/common/net/irc: Copied from Scripts/webkitpy/irc.
+        * Scripts/webkitpy/common/net/irc/ircbot.py:
+        * Scripts/webkitpy/common/net/irc/ircproxy.py:
+        * Scripts/webkitpy/common/net/irc/messagepump_unittest.py:
+        * Scripts/webkitpy/common/net/irc/threadedmessagequeue_unittest.py:
+        * Scripts/webkitpy/common/net/irc/unittests.py:
+        * Scripts/webkitpy/common/net/networktransaction.py: Copied from Scripts/webkitpy/networktransaction.py.
+        * Scripts/webkitpy/common/net/networktransaction_unittest.py: Copied from Scripts/webkitpy/networktransaction_unittest.py.
+        * Scripts/webkitpy/common/net/statusserver.py: Copied from Scripts/webkitpy/statusserver.py.
+        * Scripts/webkitpy/credentials.py: Removed.
+        * Scripts/webkitpy/credentials_unittest.py: Removed.
+        * Scripts/webkitpy/irc: Removed.
+        * Scripts/webkitpy/irc/__init__.py: Removed.
+        * Scripts/webkitpy/irc/ircbot.py: Removed.
+        * Scripts/webkitpy/irc/ircproxy.py: Removed.
+        * Scripts/webkitpy/irc/messagepump.py: Removed.
+        * Scripts/webkitpy/irc/messagepump_unittest.py: Removed.
+        * Scripts/webkitpy/irc/threadedmessagequeue.py: Removed.
+        * Scripts/webkitpy/irc/threadedmessagequeue_unittest.py: Removed.
+        * Scripts/webkitpy/irc/unittests.py: Removed.
+        * Scripts/webkitpy/networktransaction.py: Removed.
+        * Scripts/webkitpy/networktransaction_unittest.py: Removed.
+        * Scripts/webkitpy/scm_unittest.py:
+        * Scripts/webkitpy/statusserver.py: Removed.
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/commands/queries_unittest.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/commands/queuestest.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/postdiffforrevert.py:
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In webkitpy, renamed MockBugzillaTool to MockTool.
+
+        * Scripts/webkitpy/tool/commands/commandtest.py:
+        * Scripts/webkitpy/tool/commands/queries_unittest.py:
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/commands/queuestest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff_unittest.py:
+        * Scripts/webkitpy/tool/steps/steps_unittest.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittests.py:
+
+2010-03-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In Scripts/webkitpy, moved webkitport.py and committers.py into
+        common/config/ (also creating common/config/).
+
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        This is part of the master bug to reorganize webkitpy.
+
+        * Scripts/validate-committer-lists:
+        * Scripts/webkitpy/bugzilla.py:
+        * Scripts/webkitpy/bugzilla_unittest.py:
+        * Scripts/webkitpy/changelogs.py:
+        * Scripts/webkitpy/commitinfo.py:
+        * Scripts/webkitpy/commitinfo_unittest.py:
+        * Scripts/webkitpy/committers.py: Removed.
+        * Scripts/webkitpy/committers_unittest.py: Removed.
+        * Scripts/webkitpy/common: Added.
+        * Scripts/webkitpy/common/__init__.py: Copied from WebKitTools/Scripts/webkitpy/style/__init__.py.
+        * Scripts/webkitpy/common/config: Added.
+        * Scripts/webkitpy/common/config/__init__.py: Copied from WebKitTools/Scripts/webkitpy/style/__init__.py.
+        * Scripts/webkitpy/common/config/committers.py: Copied from WebKitTools/Scripts/webkitpy/committers.py.
+        * Scripts/webkitpy/common/config/committers_unittest.py: Copied from WebKitTools/Scripts/webkitpy/committers_unittest.py.
+        * Scripts/webkitpy/common/config/ports.py: Copied from WebKitTools/Scripts/webkitpy/webkitport.py.
+        * Scripts/webkitpy/common/config/ports_unittest.py: Copied from WebKitTools/Scripts/webkitpy/webkitport_unittest.py.
+        * Scripts/webkitpy/mock_bugzillatool.py:
+        * Scripts/webkitpy/tool/commands/early_warning_system.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/steps/abstractstep.py:
+        * Scripts/webkitpy/unittests.py:
+        * Scripts/webkitpy/webkitport.py: Removed.
+        * Scripts/webkitpy/webkitport_unittest.py: Removed.
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move mock_bugzillatool.py to tool/mocktool.py.
+
+        * Scripts/webkitpy/mock_bugzillatool.py: Removed.
+        * Scripts/webkitpy/tool/commands/commandtest.py:
+        * Scripts/webkitpy/tool/commands/queries_unittest.py:
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/commands/queuestest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py: Copied from Scripts/webkitpy/mock_bugzillatool.py.
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff_unittest.py:
+        * Scripts/webkitpy/tool/steps/steps_unittest.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittests.py:
+
+2010-03-24  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move comments.py and multicommandtool.py to their new
+        home.
+
+        * Scripts/webkitpy/comments.py: Removed.
+        * Scripts/webkitpy/multicommandtool.py: Removed.
+        * Scripts/webkitpy/multicommandtool_unittest.py: Removed.
+        * Scripts/webkitpy/tool/commands/abstractsequencedcommand.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/openbugs.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/comments.py: Copied from Scripts/webkitpy/comments.py.
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/multicommandtool.py: Copied from Scripts/webkitpy/multicommandtool.py.
+        * Scripts/webkitpy/tool/multicommandtool_unittest.py: Copied from Scripts/webkitpy/multicommandtool_unittest.py.
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff.py:
+        * Scripts/webkitpy/tool/steps/closepatch.py:
+        * Scripts/webkitpy/tool/steps/reopenbugafterrollout.py:
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-24  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Fixup one import statement I didn't find because the .pyc
+        masked the error.
+
+        * Scripts/webkitpy/stepsequence.py:
+
+2010-03-24  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move queueengine.py to its new home.
+
+        * Scripts/webkitpy/queueengine.py: Removed.
+        * Scripts/webkitpy/queueengine_unittest.py: Removed.
+        * Scripts/webkitpy/tool/bot/queueengine.py: Copied from Scripts/webkitpy/queueengine.py.
+        * Scripts/webkitpy/tool/bot/queueengine_unittest.py: Copied from Scripts/webkitpy/queueengine_unittest.py.
+        * Scripts/webkitpy/tool/commands/early_warning_system.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-24  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move patchcollection.py to its new home.
+
+        * Scripts/webkitpy/patchcollection.py: Removed.
+        * Scripts/webkitpy/patchcollection_unittest.py: Removed.
+        * Scripts/webkitpy/tool/bot: Added.
+        * Scripts/webkitpy/tool/bot/__init__.py: Added.
+        * Scripts/webkitpy/tool/bot/patchcollection.py: Copied from WebKitTools/Scripts/webkitpy/patchcollection.py.
+        * Scripts/webkitpy/tool/bot/patchcollection_unittest.py: Copied from WebKitTools/Scripts/webkitpy/patchcollection_unittest.py.
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-24  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In Scripts/webkitpy, moved steps_references.py and the steps
+        folder into webkitpy/patch.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/steps: Removed.
+        * Scripts/webkitpy/steps/__init__.py: Removed.
+        * Scripts/webkitpy/steps/abstractstep.py: Removed.
+        * Scripts/webkitpy/steps/applypatch.py: Removed.
+        * Scripts/webkitpy/steps/applypatchwithlocalcommit.py: Removed.
+        * Scripts/webkitpy/steps/build.py: Removed.
+        * Scripts/webkitpy/steps/checkstyle.py: Removed.
+        * Scripts/webkitpy/steps/cleanworkingdirectory.py: Removed.
+        * Scripts/webkitpy/steps/cleanworkingdirectorywithlocalcommits.py: Removed.
+        * Scripts/webkitpy/steps/closebug.py: Removed.
+        * Scripts/webkitpy/steps/closebugforlanddiff.py: Removed.
+        * Scripts/webkitpy/steps/closebugforlanddiff_unittest.py: Removed.
+        * Scripts/webkitpy/steps/closepatch.py: Removed.
+        * Scripts/webkitpy/steps/commit.py: Removed.
+        * Scripts/webkitpy/steps/confirmdiff.py: Removed.
+        * Scripts/webkitpy/steps/createbug.py: Removed.
+        * Scripts/webkitpy/steps/editchangelog.py: Removed.
+        * Scripts/webkitpy/steps/ensurebuildersaregreen.py: Removed.
+        * Scripts/webkitpy/steps/ensurelocalcommitifneeded.py: Removed.
+        * Scripts/webkitpy/steps/metastep.py: Removed.
+        * Scripts/webkitpy/steps/obsoletepatches.py: Removed.
+        * Scripts/webkitpy/steps/options.py: Removed.
+        * Scripts/webkitpy/steps/postdiff.py: Removed.
+        * Scripts/webkitpy/steps/postdiffforcommit.py: Removed.
+        * Scripts/webkitpy/steps/postdiffforrevert.py: Removed.
+        * Scripts/webkitpy/steps/preparechangelog.py: Removed.
+        * Scripts/webkitpy/steps/preparechangelogforrevert.py: Removed.
+        * Scripts/webkitpy/steps/promptforbugortitle.py: Removed.
+        * Scripts/webkitpy/steps/reopenbugafterrollout.py: Removed.
+        * Scripts/webkitpy/steps/revertrevision.py: Removed.
+        * Scripts/webkitpy/steps/runtests.py: Removed.
+        * Scripts/webkitpy/steps/steps_unittest.py: Removed.
+        * Scripts/webkitpy/steps/update.py: Removed.
+        * Scripts/webkitpy/steps/updatechangelogswithreview_unittests.py: Removed.
+        * Scripts/webkitpy/steps/updatechangelogswithreviewer.py: Removed.
+        * Scripts/webkitpy/steps/validatereviewer.py: Removed.
+        * Scripts/webkitpy/steps_references.py: Removed.
+        * Scripts/webkitpy/stepsequence.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/steps: Copied from WebKitTools/Scripts/webkitpy/steps.
+        * Scripts/webkitpy/tool/steps/__init__.py:
+        * Scripts/webkitpy/tool/steps/applypatch.py:
+        * Scripts/webkitpy/tool/steps/applypatchwithlocalcommit.py:
+        * Scripts/webkitpy/tool/steps/build.py:
+        * Scripts/webkitpy/tool/steps/checkstyle.py:
+        * Scripts/webkitpy/tool/steps/cleanworkingdirectory.py:
+        * Scripts/webkitpy/tool/steps/cleanworkingdirectorywithlocalcommits.py:
+        * Scripts/webkitpy/tool/steps/closebug.py:
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff.py:
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff_unittest.py:
+        * Scripts/webkitpy/tool/steps/closepatch.py:
+        * Scripts/webkitpy/tool/steps/commit.py:
+        * Scripts/webkitpy/tool/steps/confirmdiff.py:
+        * Scripts/webkitpy/tool/steps/createbug.py:
+        * Scripts/webkitpy/tool/steps/editchangelog.py:
+        * Scripts/webkitpy/tool/steps/ensurebuildersaregreen.py:
+        * Scripts/webkitpy/tool/steps/ensurelocalcommitifneeded.py:
+        * Scripts/webkitpy/tool/steps/metastep.py:
+        * Scripts/webkitpy/tool/steps/obsoletepatches.py:
+        * Scripts/webkitpy/tool/steps/postdiff.py:
+        * Scripts/webkitpy/tool/steps/postdiffforcommit.py:
+        * Scripts/webkitpy/tool/steps/postdiffforrevert.py:
+        * Scripts/webkitpy/tool/steps/preparechangelog.py:
+        * Scripts/webkitpy/tool/steps/preparechangelogforrevert.py:
+        * Scripts/webkitpy/tool/steps/promptforbugortitle.py:
+        * Scripts/webkitpy/tool/steps/reopenbugafterrollout.py:
+        * Scripts/webkitpy/tool/steps/revertrevision.py:
+        * Scripts/webkitpy/tool/steps/runtests.py:
+        * Scripts/webkitpy/tool/steps/steps_unittest.py:
+        * Scripts/webkitpy/tool/steps/update.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittests.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreviewer.py:
+        * Scripts/webkitpy/tool/steps/validatereviewer.py:
+        * Scripts/webkitpy/tool/steps_references.py: Copied from WebKitTools/Scripts/webkitpy/steps_references.py.
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-24  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, build fix only.
+
+        Abstract LayoutTestResults logic for easier reuse
+        https://bugs.webkit.org/show_bug.cgi?id=36579
+
+        * Scripts/webkitpy/buildbot_unittest.py: Add a missing import.
+
+2010-03-24  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Fix a stray comma to test landing an patch without review.
+
+        * Scripts/webkitpy/commitinfo.py:
+
+2010-03-24  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In Scripts/webkitpy, moved commands_references.py and the commands
+        folder into webkitpy/patch.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36483
+
+        This is part of master bug 36093 to organize webkitpy.
+
+        * Scripts/webkitpy/commands: Removed.
+        * Scripts/webkitpy/commands/__init__.py: Removed.
+        * Scripts/webkitpy/commands/abstractsequencedcommand.py: Removed.
+        * Scripts/webkitpy/commands/commandtest.py: Removed.
+        * Scripts/webkitpy/commands/download.py: Removed.
+        * Scripts/webkitpy/commands/download_unittest.py: Removed.
+        * Scripts/webkitpy/commands/early_warning_system.py: Removed.
+        * Scripts/webkitpy/commands/early_warning_system_unittest.py: Removed.
+        * Scripts/webkitpy/commands/openbugs.py: Removed.
+        * Scripts/webkitpy/commands/openbugs_unittest.py: Removed.
+        * Scripts/webkitpy/commands/queries.py: Removed.
+        * Scripts/webkitpy/commands/queries_unittest.py: Removed.
+        * Scripts/webkitpy/commands/queues.py: Removed.
+        * Scripts/webkitpy/commands/queues_unittest.py: Removed.
+        * Scripts/webkitpy/commands/queuestest.py: Removed.
+        * Scripts/webkitpy/commands/sheriffbot.py: Removed.
+        * Scripts/webkitpy/commands/sheriffbot_unittest.py: Removed.
+        * Scripts/webkitpy/commands/upload.py: Removed.
+        * Scripts/webkitpy/commands/upload_unittest.py: Removed.
+        * Scripts/webkitpy/commands_references.py: Removed.
+        * Scripts/webkitpy/tool/commands: Copied from WebKitTools/Scripts/webkitpy/commands.
+        * Scripts/webkitpy/tool/commands/commandtest.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/download_unittest.py:
+        * Scripts/webkitpy/tool/commands/early_warning_system.py:
+        * Scripts/webkitpy/tool/commands/early_warning_system_unittest.py:
+        * Scripts/webkitpy/tool/commands/openbugs_unittest.py:
+        * Scripts/webkitpy/tool/commands/queries_unittest.py:
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/commands/queuestest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/commands_references.py: Copied from WebKitTools/Scripts/webkitpy/commands_references.py.
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-24  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Rename webkitpy.patch to webkitpy.tool
+        https://bugs.webkit.org/show_bug.cgi?id=36580
+
+        This is in preparation for the great webkitpy naming cleanup.
+
+        * Scripts/webkit-patch:
+        * Scripts/webkitpy/patch: Removed.
+        * Scripts/webkitpy/patch/__init__.py: Removed.
+        * Scripts/webkitpy/patch/patcher.py: Removed.
+        * Scripts/webkitpy/tool: Copied from WebKitTools/Scripts/webkitpy/patch.
+        * Scripts/webkitpy/tool/main.py: Copied from WebKitTools/Scripts/webkitpy/patch/patcher.py.
+        * Scripts/webkitpy/tool/patcher.py: Removed.
+
+2010-03-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Abstract LayoutTestResults logic for easier reuse
+        https://bugs.webkit.org/show_bug.cgi?id=36579
+
+        * Scripts/webkitpy/buildbot.py:
+         - Split out logic into new LayoutTestResults class.
+        * Scripts/webkitpy/buildbot_unittest.py:
+         - Rename the testing class to match.
+        * Scripts/webkitpy/commands/queries.py:
+         - Use the new LayoutTestResults class.
+
+2010-03-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move Bugzilla.prompt_for_component to User.prompt_with_list for re-use
+        https://bugs.webkit.org/show_bug.cgi?id=36577
+
+        * Scripts/webkitpy/bugzilla.py:
+         - Move prompt_for_component to User
+        * Scripts/webkitpy/commands/queries.py:
+         - Add a missing argument_names declaration.
+        * Scripts/webkitpy/user.py:
+         - Add prompt_with_list
+         - Make staticmethods classmethods for easier mocking
+
+2010-03-24  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/36572> commit-log-editor: thinks mergeChangeLogs.pl is a ChangeLog file
+
+        Reviewed by Eric Seidel.
+
+        Fixes the following error when committing a file with
+        "ChangeLog" in the name that isn't a ChangeLog (like
+        mergeChangeLogs.pl from r56471 and r56472):
+
+            $ git commit .
+            Can't open WebKitTools/Scripts/webkitperl/VCSUtils_unittest/mergeChangeLog at commit-log-editor line 132.
+            error: There was a problem with the editor 'commit-log-editor'.
+            Please supply the message using either -m or -F option.
+
+        * Scripts/commit-log-editor: Added '$' to anchor "ChangeLog" to
+        the end of the file name when searching for ChangeLog files in a
+        commit.
+
+2010-03-24  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/36570> resolve-ChangeLogs: fall back to git-merge-file if ChangeLog can't be merged
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/resolve-ChangeLogs: Switched to exec git-merge-file if
+        the merge attempt fails.
+
+2010-03-24  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch or pre-commit hook should validate reviewer lines before committing
+        https://bugs.webkit.org/show_bug.cgi?id=26927
+
+        Validate that patches have valid reivewers listed in their ChangeLogs
+        before landing.  For patches without reviewers can be landed if their
+        ChangeLogs state that they are unreviewed.
+
+        * Scripts/webkitpy/changelogs.py:
+        * Scripts/webkitpy/commands/download.py:
+        * Scripts/webkitpy/commitinfo.py:
+        * Scripts/webkitpy/commitinfo_unittest.py:
+        * Scripts/webkitpy/mock_bugzillatool.py:
+        * Scripts/webkitpy/steps/__init__.py:
+        * Scripts/webkitpy/steps/validatereviewer.py: Added.
+
+2010-03-19  Holger Hans Peter Freyther  <zecke@selfish.org>
+
+        Reviewed by David Levin.
+
+        Undefined names reported by pyflakes in python scripts
+        https://bugs.webkit.org/show_bug.cgi?id=36403
+
+        Attempt to use names that exist or can exist in the lexical
+        scope instead of not being available at all.
+
+        * Scripts/webkitpy/changelogs.py: Use self._content.
+        * Scripts/webkitpy/layout_tests/port/base.py: Use os.stat
+        * Scripts/webkitpy/layout_tests/test_types/fuzzy_image_diff.py: Use self._port
+        * Scripts/webkitpy/style/processors/cpp_unittest.py: Use expected_message_re
+
+2010-03-24  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/36560> resolve-ChangeLogs: git-rebase fails when resolve-ChangeLogs can't merge
+
+        Reviewed by Eric Seidel.
+
+        When resolve-ChangeLogs fails to merge a patch while running as
+        a git merge driver, it deletes the original file, which causes
+        an internal failure and stops git mid-merge:
+
+            fatal: Failed to execute internal merge
+
+        The fix is to use the --force switch with patch so that it will
+        always attempt to apply the patch.  (The change in
+        mergeChangeLogs() for the previous commit also fixed this, but
+        adding --force also prevents any potential user interaction that
+        patch may want to display.)
+
+        * Scripts/VCSUtils.pm:
+        (mergeChangeLogs): Added --force switch to patch command.  Also
+        changed to use the exit status from the patch command to
+        determine the return value for this method.
+        * Scripts/webkitperl/VCSUtils_unittest/mergeChangeLogs.pl: Added
+        test to cover this bug.
+
+2010-03-24  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/36560> resolve-ChangeLogs: move mergeChanges() into VCSUtils package
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/VCSUtils.pm:
+        (mergeChangeLogs): Copied from mergeChanges() in
+        resolve-ChangeLogs and renamed.  Added method documentation.
+        Fixed bug found by new tests where the original file to be
+        patched was deleted when cleaning up after a traditinal rejected
+        patch failed to apply.
+        * Scripts/resolve-ChangeLogs: Switched to using
+        mergeChangeLogs().
+        (mergeChanges): Moved to VCSUtils.pm and renamed to
+        mergeChangeLogs().
+        * Scripts/webkitperl/VCSUtils_unittest/mergeChangeLogs.pl: Added.
+
+2010-03-24  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for qt's unassigned list to webkit-patch assign-to-committer
+        https://bugs.webkit.org/show_bug.cgi?id=36559
+
+        * Scripts/webkitpy/bugzilla.py:
+         - Move Bugzilla.unassigned_email into Bug and make it a set.
+        * Scripts/webkitpy/bugzilla_unittest.py:
+         - Test the new Bug.is_unassigned method
+        * Scripts/webkitpy/commands/upload.py:
+         - Use the new Bug.is_unassigned method instead of an explicit ==
+        * Scripts/webkitpy/mock_bugzillatool.py:
+         - Bugzilla.unassigned_email no longer needs mocking
+
+2010-03-24  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Rename QWebSettings::XSSAuditorEnabled to XSSAuditingEnabled
+        https://bugs.webkit.org/show_bug.cgi?id=36522
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setXSSAuditorEnabled): Use the new name.
+
+2010-03-24  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Added to check-webkit-style support for a --debug flag.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36100
+
+        The --debug flag adjusts the logging level to DEBUG and
+        includes the logger name and level in each log message.
+
+        * Scripts/check-webkit-style:
+          - Changed the code to check for the --debug flag and pass
+            the result to the configure_logging() method.
+        * Scripts/webkitpy/style/checker.py:
+          - Added an is_debug parameter to configure_logging().
+          - Refactored configure_logging() by adding calls to
+            the following two methods: _create_log_handlers() and
+            _create_debug_log_handlers().
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Added unit tests for configure_logging() with is_debug True
+            by splitting the ConfigureLoggingTest class into
+            ConfigureLoggingTest and ConfigureLoggingTestBase, and
+            adding ConfigureLoggingDebugTest.
+        * Scripts/webkitpy/style/optparser.py:
+          - Updated the usage string.
+          - Added an is_debug data attribute to the CommandOptionValues
+            class.
+          - Added support for the --debug flag to the ArgumentParser.parse()
+            method.
+          - Also added extra error information to the parse() method in
+            the case of an invalid flag.
+        * Scripts/webkitpy/style/optparser_unittest.py:
+          - Updated the unit tests as necessary.
+          - Also fixed an issue with the CommandOptionValuesTest.test_eq()
+            unit test.
+
+2010-03-23  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add TestNavigationController and TestWebWorker
+        https://bugs.webkit.org/show_bug.cgi?id=36489
+
+        Add TestNavigationController and TestWebWorker classes, which are
+        going to be used by DumpRenderTree Chromium port. These files are
+        based on:
+        - src/webkit/tools/test_shell/test_navigation_controller.{cc,h}
+        - src/webkit/tools/test_shell/test_web_worker.h
+        of Chromium rev.40492.
+
+        TestNavigationController has non-style changes.
+        - Change ContentState type: binary string -> WebHistoryItem
+        - Remove TestShell dependency by introducing NavigationHost interface.
+
+        * DumpRenderTree/chromium/TestNavigationController.cpp: Added.
+        * DumpRenderTree/chromium/TestNavigationController.h: Added.
+        * DumpRenderTree/chromium/TestWebWorker.h: Added.
+
+2010-03-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for revision -> build lookup in buildbot.py and layout test result parsing
+        https://bugs.webkit.org/show_bug.cgi?id=36474
+
+        * Scripts/webkitpy/bugzilla_unittest.py: Added a FIXME about sharing code.
+        * Scripts/webkitpy/buildbot.py: 
+         - Add support for looking up builds by revision number.
+         - Add support for fetching and parsing results.html files from buildbot.
+         - build_for_revision has an allow_failed_lookups option to work around the fact that
+           our buildbot's xmlrpc calls return failure on old revision numbers.
+         - Add parsing support for twisted directory listings.
+        * Scripts/webkitpy/buildbot_unittest.py:
+         - Unit test all the new code.
+        * Scripts/webkitpy/commands/queries.py:
+         - Add a new results-for command which prints all the results for a given revision (very slow due to slow revision lookup)
+
+2010-03-23  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Adam Roben.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36048
+
+        Detect if the Windows Platform SDK is missing when building with
+        Visual C++ Express Edition and inform the user to download it.
+
+        * Scripts/webkitdirs.pm:
+
+2010-03-23  Darin Adler  <darin@apple.com>
+
+        Tell Subversion about more directories that expect to have .pyc files.
+
+        * Scripts/webkitpy: Modified property svn:ignore.
+        * Scripts/webkitpy/irc: Added property svn:ignore.
+
+2010-03-23  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Adam Barth.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36149
+
+        Import the GNU readline interface to modify the behavior
+        of raw_input so as to provide line editing support. In
+        particular this will prevent "delete" characters from
+        appearing in the returned value for function raw_input.
+
+        * Scripts/webkitpy/user.py:
+
+2010-03-23  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Remove support for Qt v4.4
+        https://bugs.webkit.org/show_bug.cgi?id=36389
+
+        * DumpRenderTree/qt/main.cpp:
+        (main):
+        * QtLauncher/mainwindow.cpp:
+        (MainWindow::MainWindow):
+
+2010-03-22  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Make build_webkit_command() pass MAKEFLAGS environment variable to make.
+        https://bugs.webkit.org/show_bug.cgi?id=36440
+
+        * Scripts/webkitpy/webkitport.py:
+        * Scripts/webkitpy/webkitport_unittest.py:
+
+2010-03-22  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Change baseline_path() to point to the upstream locations for the
+        Chromium ports. Also change the reabselining scripts to use the
+        correct functions to get the baseline directories, and fix the
+        script's sys.path to pull in simplejson correctly.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36417
+
+        * Scripts/rebaseline-chromium-webkit-tests:
+          - fix sys.path to pick up simplejson properly
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+          - change baseline_path() to use webkit_baseline_path()
+          - error out correctly if we can't find the chromium base dir
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+          - call baseline_path(), not chromium_baseline_path()
+
+2010-03-22  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Refactored the cpu_count() code in executive.py.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36437
+
+        * Scripts/webkitpy/executive.py:
+          - Moved the import of the multiprocessing module to the top
+            of the file rather than importing from within a function.
+
+2010-03-22 Antonio Gomes <tonikitoo@webkit.org>
+
+        Unreviewed.
+
+        Rolling out r56183: http://trac.webkit.org/changeset/56183
+
+        https://bugs.webkit.org/show_bug.cgi?id=36244
+
+        Need to roll out because this patch will be re-worked by the author
+        and other reviewers agreed on it.
+
+2010-03-22  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Created a function for getting a module-specific logging.logger
+        based on the __file__ value of the module.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35821
+
+        This function allows us to get the module-specific logger for
+        a module without having to hard-code the fully-qualified name
+        of the module in the module itself.  The code can be the same
+        in every case: "_log = logutils.get_logger(__file__)".
+
+        * Scripts/webkitpy/init/logutils.py: Added.
+          - Added a module with a get_logger() function to return
+            a module-specific logger based on the module's __file__
+            variable.
+
+        * Scripts/webkitpy/init/logutils_unittest.py: Added.
+          - Added unit tests for logutils.py.
+
+        * Scripts/webkitpy/init/unittests.py:
+          - Added logutils_unittest to the list of imports.
+
+2010-03-22  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] REGRESSION (r56209): fast/media/print-restores-previous-mediatype.htm crashes
+        https://bugs.webkit.org/show_bug.cgi?id=36386
+
+        Fix the regression by implementing a null printer for Qt DRT.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::NullPrinter::NullPaintEngine::begin):
+        (WebCore::NullPrinter::NullPaintEngine::end):
+        (WebCore::NullPrinter::NullPaintEngine::type):
+        (WebCore::NullPrinter::NullPaintEngine::drawPixmap):
+        (WebCore::NullPrinter::NullPaintEngine::updateState):
+        (WebCore::NullPrinter::paintEngine):
+        (WebCore::DumpRenderTree::dryRunPrint):
+
 2010-03-22  Martin Robinson  <mrobinson@webkit.org>
 
         Reviewed by Xan Lopez.
@@ -333,7 +1128,7 @@
         * Scripts/webkitpy/committers.py:
         * Scripts/webkitpy/committers_unittest.py:
 
-2010-03-18  Anders Bakken  <Anders Bakken <agbakken@gmail.com>>
+2010-03-18  Anders Bakken  <agbakken@gmail.com>
 
         Reviewed by Simon Hausmann.
 
