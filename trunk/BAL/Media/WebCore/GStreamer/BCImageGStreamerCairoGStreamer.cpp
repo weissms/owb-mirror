@@ -19,8 +19,11 @@
 
 #include "config.h"
 
-#include "GOwnPtr.h"
 #include "ImageGStreamer.h"
+
+#if PLATFORM(GTK)
+#include "GOwnPtr.h"
+#endif
 
 using namespace std;
 
