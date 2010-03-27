@@ -20,7 +20,7 @@
 #ifndef ImageGStreamer_h
 #define ImageGStreamer_h
 
-#if ENABLE(VIDEO)
+#if ENABLE(VIDEO) || ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
 
 #include "BitmapImage.h"
 
