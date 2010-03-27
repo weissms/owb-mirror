@@ -27,7 +27,7 @@
 
 using namespace std;
 
-//using namespace WebCore;
+namespace WebCore {
 
 PassRefPtr<ImageGStreamer> ImageGStreamer::createImage(GstBuffer* buffer)
 {
@@ -72,4 +72,6 @@ ImageGStreamer::~ImageGStreamer()
         cairo_surface_destroy(m_surface);
 
     m_surface = 0;
+}
+
 }
