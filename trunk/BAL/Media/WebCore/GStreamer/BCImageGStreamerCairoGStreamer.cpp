@@ -27,7 +27,7 @@
 
 using namespace std;
 
-using namespace WebCore;
+//using namespace WebCore;
 
 PassRefPtr<ImageGStreamer> ImageGStreamer::createImage(GstBuffer* buffer)
 {
