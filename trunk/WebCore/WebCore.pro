@@ -98,7 +98,6 @@ win32-msvc2005|win32-msvc2008:{
     QMAKE_CXXFLAGS_RELEASE -= -GL
 }
 
-win32-*: DEFINES += _HAS_TR1=0
 wince* {
 #    DEFINES += ENABLE_SVG=0 ENABLE_XPATH=0 ENABLE_XBL=0 \
 #               ENABLE_SVG_ANIMATION=0 ENABLE_SVG_USE=0  \
@@ -133,6 +132,7 @@ maemo5|symbian|embedded {
 }
 
 include($$PWD/../JavaScriptCore/JavaScriptCore.pri)
+addJavaScriptCoreLib(../JavaScriptCore)
 
 
 # HTML5 Media Support
@@ -1711,6 +1711,7 @@ HEADERS += \
     rendering/RenderSVGModelObject.h \
     rendering/RenderSVGResource.h \
     rendering/RenderSVGResourceClipper.h \
+    rendering/RenderSVGResourceMarker.h \
     rendering/RenderSVGResourceMasker.h \
     rendering/RenderSVGRoot.h \
     rendering/RenderSVGShadowTreeRootContainer.h \
@@ -1801,7 +1802,6 @@ HEADERS += \
     svg/graphics/SVGPaintServerSolid.h \
     svg/graphics/SVGResourceFilter.h \
     svg/graphics/SVGResource.h \
-    svg/graphics/SVGResourceMarker.h \
     svg/SVGAElement.h \
     svg/SVGAltGlyphElement.h \
     svg/SVGAngle.h \
@@ -2128,7 +2128,6 @@ SOURCES += \
     win32-* {
         LIBS += -lgdi32
         LIBS += -luser32
-        LIBS += -lwinmm
     }
     wince*: LIBS += -lmmtimer
 
@@ -2661,7 +2660,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/graphics/SVGPaintServerSolid.cpp \
         svg/graphics/SVGResource.cpp \
         svg/graphics/SVGResourceFilter.cpp \
-        svg/graphics/SVGResourceMarker.cpp \
         rendering/RenderForeignObject.cpp \
         rendering/RenderPath.cpp \
         rendering/RenderSVGBlock.cpp \
@@ -2673,6 +2671,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/RenderSVGInlineText.cpp \
         rendering/RenderSVGModelObject.cpp \
         rendering/RenderSVGResourceClipper.cpp \
+        rendering/RenderSVGResourceMarker.cpp \
         rendering/RenderSVGResourceMasker.cpp \
         rendering/RenderSVGRoot.cpp \
         rendering/RenderSVGShadowTreeRootContainer.cpp \

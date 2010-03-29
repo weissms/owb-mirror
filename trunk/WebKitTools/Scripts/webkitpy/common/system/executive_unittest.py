@@ -1,4 +1,5 @@
-# Copyright (C) 2010 Google Inc. All rights reserved.
+# Copyright (C) 2009 Google Inc. All rights reserved.
+# Copyright (C) 2009 Daniel Bates (dbates@intudata.com). All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -27,26 +28,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
-from webkitpy.common.net.irc.threadedmessagequeue import ThreadedMessageQueue
 
-class ThreadedMessageQueueTest(unittest.TestCase):
+from webkitpy.common.system.executive import Executive, run_command
 
-    def test_basic(self):
-        queue = ThreadedMessageQueue()
-        queue.post("Hello")
-        queue.post("There")
-        (messages, is_running) = queue.take_all()
-        self.assertEqual(messages, ["Hello", "There"])
-        self.assertTrue(is_running)
-        (messages, is_running) = queue.take_all()
-        self.assertEqual(messages, [])
-        self.assertTrue(is_running)
-        queue.post("More")
-        queue.stop()
-        queue.post("Messages")
-        (messages, is_running) = queue.take_all()
-        self.assertEqual(messages, ["More", "Messages"])
-        self.assertFalse(is_running)
-        (messages, is_running) = queue.take_all()
-        self.assertEqual(messages, [])
-        self.assertFalse(is_running)
+class ExecutiveTest(unittest.TestCase):
+
+    def test_run_command_with_bad_command(self):
+        def run_bad_command():
+            run_command(["foo_bar_command_blah"], error_handler=Executive.ignore_error, return_exit_code=True)
+        self.failUnlessRaises(OSError, run_bad_command)
+
+if __name__ == '__main__':
+    unittest.main()

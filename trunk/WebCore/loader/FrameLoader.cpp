@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010 Apple Inc. All rights reserved.
  * Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
  * Copyright (C) 2008, 2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  * Copyright (C) 2008 Alp Toker <alp@atoker.com>
@@ -62,6 +62,9 @@
 #include "HTMLAppletElement.h"
 #include "HTMLFormElement.h"
 #include "HTMLFrameElement.h"
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+#include "HTMLMediaElement.h"
+#endif
 #include "HTMLNames.h"
 #include "HTMLObjectElement.h"
 #include "HTTPParsers.h"
@@ -81,6 +84,9 @@
 #include "PluginDocument.h"
 #include "ProgressTracker.h"
 #include "RenderEmbeddedObject.h"
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+#include "RenderVideo.h"
+#endif
 #include "RenderView.h"
 #include "ResourceHandle.h"
 #include "ResourceRequest.h"
@@ -270,7 +276,11 @@ Frame* FrameLoader::createWindow(FrameLoader* frameLoaderForFrameLookup, const F
             return frame;
         }
     }
-    
+
+    // Sandboxed frames cannot open new auxiliary browsing contexts.
+    if (isDocumentSandboxed(SandboxNavigation))
+        return 0;
+
     // FIXME: Setting the referrer should be the caller's responsibility.
     FrameLoadRequest requestWithReferrer = request;
     requestWithReferrer.resourceRequest().setHTTPReferrer(m_outgoingReferrer);
@@ -1280,7 +1290,11 @@ bool FrameLoader::requestObject(RenderEmbeddedObject* renderer, const String& ur
     bool useFallback;
     if (shouldUsePlugin(completedURL, mimeType, renderer->hasFallbackContent(), useFallback)) {
         Settings* settings = m_frame->settings();
-        if (!allowPlugins(AboutToInstantiatePlugin)
+        if ((!allowPlugins(AboutToInstantiatePlugin)
+             // Application plugins are plugins implemented by the user agent, for example Qt plugins,
+             // as opposed to third-party code such as flash. The user agent decides whether or not they are
+             // permitted, rather than WebKit.
+             && !MIMETypeRegistry::isApplicationPluginMIMEType(mimeType))
             || (!settings->isJavaEnabled() && MIMETypeRegistry::isJavaAppletMIMEType(mimeType)))
             return false;
         if (isDocumentSandboxed(SandboxPlugins))
@@ -1349,14 +1363,8 @@ static HTMLPlugInElement* toPlugInElement(Node* node)
     if (!node)
         return 0;
 
-#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
-    ASSERT(node->hasTagName(objectTag) || node->hasTagName(embedTag) 
-        || node->hasTagName(videoTag) || node->hasTagName(audioTag)
-        || node->hasTagName(appletTag));
-#else
     ASSERT(node->hasTagName(objectTag) || node->hasTagName(embedTag) 
         || node->hasTagName(appletTag));
-#endif
 
     return static_cast<HTMLPlugInElement*>(node);
 }
@@ -1382,12 +1390,58 @@ bool FrameLoader::loadPlugin(RenderEmbeddedObject* renderer, const KURL& url, co
         if (widget) {
             renderer->setWidget(widget);
             m_containsPlugIns = true;
+
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+            renderer->node()->setNeedsStyleRecalc(SyntheticStyleChange);
+#endif
         } else
             renderer->setShowsMissingPluginIndicator(true);
     }
 
     return widget != 0;
 }
+
+#if ENABLE(PLUGIN_PROXY_FOR_VIDEO)
+PassRefPtr<Widget> FrameLoader::loadMediaPlayerProxyPlugin(Node* node, const KURL& url, 
+    const Vector<String>& paramNames, const Vector<String>& paramValues)
+{
+    ASSERT(node->hasTagName(videoTag) || node->hasTagName(audioTag));
+
+    if (!m_frame->script()->xssAuditor()->canLoadObject(url.string()))
+        return 0;
+
+    KURL completedURL;
+    if (!url.isEmpty())
+        completedURL = completeURL(url);
+
+    if (!SecurityOrigin::canLoad(completedURL, String(), frame()->document())) {
+        FrameLoader::reportLocalLoadFailed(m_frame, completedURL.string());
+        return 0;
+    }
+
+    HTMLMediaElement* mediaElement = static_cast<HTMLMediaElement*>(node);
+    RenderPart* renderer = toRenderPart(node->renderer());
+    IntSize size;
+
+    if (renderer)
+        size = IntSize(renderer->contentWidth(), renderer->contentHeight());
+    else if (mediaElement->isVideo())
+        size = RenderVideo::defaultSize();
+
+    checkIfRunInsecureContent(m_frame->document()->securityOrigin(), completedURL);
+
+    RefPtr<Widget> widget = m_client->createMediaPlayerProxyPlugin(size, mediaElement, completedURL,
+                                         paramNames, paramValues, "application/x-media-element-proxy-plugin");
+
+    if (widget && renderer) {
+        renderer->setWidget(widget);
+        m_containsPlugIns = true;
+        renderer->node()->setNeedsStyleRecalc(SyntheticStyleChange);
+    }
+
+    return widget ? widget.release() : 0;
+}
+#endif // ENABLE(PLUGIN_PROXY_FOR_VIDEO)
 
 String FrameLoader::outgoingReferrer() const
 {
@@ -2266,15 +2320,15 @@ bool FrameLoader::shouldAllowNavigation(Frame* targetFrame) const
     if (m_frame == targetFrame)
         return true;
 
-    // A sandboxed frame can only navigate itself and its descendants.
-    if (isDocumentSandboxed(SandboxNavigation) && !targetFrame->tree()->isDescendantOf(m_frame))
-        return false;
-
     // Let a frame navigate the top-level window that contains it.  This is
     // important to allow because it lets a site "frame-bust" (escape from a
     // frame created by another web site).
-    if (targetFrame == m_frame->tree()->top())
+    if (!isDocumentSandboxed(SandboxTopNavigation) && targetFrame == m_frame->tree()->top())
         return true;
+
+    // A sandboxed frame can only navigate itself and its descendants.
+    if (isDocumentSandboxed(SandboxNavigation) && !targetFrame->tree()->isDescendantOf(m_frame))
+        return false;
 
     // Let a frame navigate its opener if the opener is a top-level window.
     if (!targetFrame->tree()->parent() && m_frame->loader()->opener() == targetFrame)

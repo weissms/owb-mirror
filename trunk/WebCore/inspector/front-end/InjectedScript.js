@@ -35,19 +35,23 @@ InjectedScript.idToWrappedObject = {};
 InjectedScript.objectGroups = {};
 InjectedScript.wrapObject = function(object, objectGroupName)
 {
-    var objectId;
-    if (typeof object === "object" || typeof object === "function" ||
-        (typeof object === "undefined" && object instanceof inspectedWindow.HTMLAllCollection)) { // FIXME(33716)
-        var id = InjectedScript.lastBoundObjectId++;
-        objectId = "object#" + id;
-        InjectedScript.idToWrappedObject[objectId] = object;
+    try {
+        var objectId;
+        if (typeof object === "object" || typeof object === "function" || InjectedScript._isHTMLAllCollection(object)) {
+            var id = InjectedScript.lastBoundObjectId++;
+            objectId = "object#" + id;
+            InjectedScript.idToWrappedObject[objectId] = object;
 
-        var group = InjectedScript.objectGroups[objectGroupName];
-        if (!group) {
-            group = [];
-            InjectedScript.objectGroups[objectGroupName] = group;
+            var group = InjectedScript.objectGroups[objectGroupName];
+            if (!group) {
+                group = [];
+                InjectedScript.objectGroups[objectGroupName] = group;
+            }
+            group.push(objectId);
         }
-        group.push(objectId);
+        return InjectedScript.createProxyObject(object, objectId);
+    } catch (e) {
+        return InjectedScript.createProxyObject("[ Exception: " + e.toString() + " ]");
     }
     return InjectedScript.createProxyObject(object, objectId);
 };
@@ -230,7 +234,7 @@ InjectedScript.getCompletions = function(expression, includeInspectorCommandLine
             if (!callFrame)
                 return props;
             if (expression)
-                expressionResult = InjectedScript._evaluateOn(callFrame.evaluate, callFrame, expression);
+                expressionResult = InjectedScript._evaluateOn(callFrame.evaluate, callFrame, expression, true);
             else {
                 // Evaluate into properties in scope of the selected call frame.
                 var scopeChain = callFrame.scopeChain;
@@ -258,11 +262,11 @@ InjectedScript.evaluate = function(expression, objectGroup)
     return InjectedScript._evaluateAndWrap(InjectedScript._window().eval, InjectedScript._window(), expression, objectGroup);
 }
 
-InjectedScript._evaluateAndWrap = function(evalFunction, object, expression, objectGroup)
+InjectedScript._evaluateAndWrap = function(evalFunction, object, expression, objectGroup, dontUseCommandLineAPI)
 {
     var result = {};
     try {
-        result.value = InjectedScript.wrapObject(InjectedScript._evaluateOn(evalFunction, object, expression), objectGroup);
+        result.value = InjectedScript.wrapObject(InjectedScript._evaluateOn(evalFunction, object, expression, dontUseCommandLineAPI), objectGroup);
 
         // Handle error that might have happened while describing result.
         if (result.value.errorText) {
@@ -276,12 +280,14 @@ InjectedScript._evaluateAndWrap = function(evalFunction, object, expression, obj
     return result;
 }
 
-InjectedScript._evaluateOn = function(evalFunction, object, expression)
+InjectedScript._evaluateOn = function(evalFunction, object, expression, dontUseCommandLineAPI)
 {
     InjectedScript._ensureCommandLineAPIInstalled(evalFunction, object);
     // Surround the expression in with statements to inject our command line API so that
     // the window object properties still take more precedent than our API functions.
-    expression = "with (window.console._inspectorCommandLineAPI) { with (window) {\n" + expression + "\n} }";
+    if (!dontUseCommandLineAPI)
+        expression = "with (window.console._inspectorCommandLineAPI) { with (window) {\n" + expression + "\n} }";
+
     var value = evalFunction.call(object, expression);
 
     // When evaluating on call frame error is not thrown, but returned as a value.
@@ -579,7 +585,7 @@ InjectedScript.evaluateInCallFrame = function(callFrameId, code, objectGroup)
     var callFrame = InjectedScript._callFrameForId(callFrameId);
     if (!callFrame)
         return false;
-    return InjectedScript._evaluateAndWrap(callFrame.evaluate, callFrame, code, objectGroup);
+    return InjectedScript._evaluateAndWrap(callFrame.evaluate, callFrame, code, objectGroup, true);
 }
 
 InjectedScript._callFrameForId = function(id)
@@ -873,7 +879,13 @@ InjectedScript.executeSql = function(callId, databaseId, query)
 
 InjectedScript._isDefined = function(object)
 {
-    return object || object instanceof inspectedWindow.HTMLAllCollection;
+    return object || InjectedScript._isHTMLAllCollection(object);
+}
+
+InjectedScript._isHTMLAllCollection = function(object)
+{
+    // document.all is reported as undefined, but we still want to process it.
+    return (typeof object === "undefined") && inspectedWindow.HTMLAllCollection && object instanceof inspectedWindow.HTMLAllCollection;
 }
 
 InjectedScript._type = function(obj)
@@ -882,7 +894,7 @@ InjectedScript._type = function(obj)
         return "null";
 
     // FIXME(33716): typeof document.all is always 'undefined'.
-    if (obj instanceof inspectedWindow.HTMLAllCollection)
+    if (InjectedScript._isHTMLAllCollection(obj))
         return "array";
 
     var type = typeof obj;
@@ -907,7 +919,7 @@ InjectedScript._type = function(obj)
         return "regexp";
     if (obj instanceof win.NodeList)
         return "array";
-    if (obj instanceof win.HTMLCollection || obj instanceof win.HTMLAllCollection)
+    if (obj instanceof win.HTMLCollection)
         return "array";
     if (obj instanceof win.Error)
         return "error";

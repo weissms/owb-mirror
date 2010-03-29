@@ -1,4 +1,4 @@
-# Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2009 Google Inc. All rights reserved.
 # Copyright (c) 2009 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,8 @@ import sys
 
 from optparse import OptionParser, IndentedHelpFormatter, SUPPRESS_USAGE, make_option
 
-from webkitpy.grammar import pluralize
-from webkitpy.webkit_logging import log
+from webkitpy.tool.grammar import pluralize
+from webkitpy.common.system.deprecated_logging import log
 
 
 class Command(object):

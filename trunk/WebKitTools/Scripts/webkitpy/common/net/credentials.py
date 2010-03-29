@@ -35,9 +35,9 @@ import platform
 import re
 
 from webkitpy.common.checkout.scm import Git
-from webkitpy.executive import Executive, ScriptError
-from webkitpy.webkit_logging import log
-from webkitpy.user import User
+from webkitpy.common.system.executive import Executive, ScriptError
+from webkitpy.common.system.user import User
+from webkitpy.common.system.deprecated_logging import log
 
 
 class Credentials(object):

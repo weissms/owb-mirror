@@ -1,3 +1,126 @@
+2010-03-28  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Use WebKitClient to instantiate WebGraphicsContext3D
+        https://bugs.webkit.org/show_bug.cgi?id=36669
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3DInternal::initialize):
+
+2010-03-24  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Implement WebFormControlElement and WebSelectElement.  Add
+        a getFormControlElements method to WebFormElement.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36562
+
+        * WebKit.gyp:
+        * public/WebElement.h:
+        * public/WebFormControlElement.h: Added.
+        * public/WebFormElement.h:
+        * public/WebInputElement.h:
+        (WebKit::WebInputElement::WebInputElement):
+        (WebKit::WebInputElement::operator=):
+        (WebKit::WebInputElement::assign):
+        * public/WebSelectElement.h: Added.
+        * src/WebElement.cpp:
+        (WebKit::WebElement::isFormControlElement):
+        * src/WebFormControlElement.cpp: Added.
+        * src/WebFormElement.cpp:
+        (WebKit::WebFormElement::getFormControlElements):
+        * src/WebInputElement.cpp:
+        (WebKit::WebInputElement::WebInputElement):
+        * src/WebSelectElement.cpp: Added.
+
+2010-03-26  Andrey Kosyakov  <caseq@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Send worker resource content to inspector to enable display of web
+        workers in inspector's resource tab.
+        https://bugs.webkit.org/show_bug.cgi?id=36658
+
+        * src/SharedWorkerRepository.cpp:
+        (WebCore::SharedWorkerScriptLoader::notifyFinished):
+
+2010-03-25  Tony Chang  <tony@chromium.org>
+
+        Reviewed by David Levin.
+
+        [chromium] correctly handle move drag operations
+        https://bugs.webkit.org/show_bug.cgi?id=36484
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::dragTargetDragEnter):
+        (WebKit::WebViewImpl::dragTargetDragOver):
+        (WebKit::WebViewImpl::dragTargetDragEnterOrOver): Combine common code into a helper method
+            and properly mask against the drag effect.
+        (WebKit::WebViewImpl::createUniqueIdentifierForRequest):
+        * src/WebViewImpl.h:
+
+2010-03-25  Drew Wilson  <atwilson@chromium.org>
+
+        Reviewed by Nate Chapin.
+
+        [v8] Error in getScriptExecutionContext() when worker context is terminating
+        https://bugs.webkit.org/show_bug.cgi?id=36565
+
+        Test: Existing worker tests suffice.
+
+        * src/WebWorkerClientImpl.cpp:
+        (WebKit::WebWorkerClientImpl::createWorkerContextProxy):
+        Changed to use WorkerScriptController::controllerForContext() instead of WorkerScriptExecutionProxy::retrieve().
+
+2010-03-25  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Add an ASSERT macro to the Chromium WebKit API
+        https://bugs.webkit.org/show_bug.cgi?id=36545
+
+        * WebKit.gyp:  Add WebCommon.cpp
+        * public/WebCommon.h:  Add the Macro.
+        * public/WebPrivatePtr.h:
+        (WebKit::WebPrivatePtr::~WebPrivatePtr):  Verify the pointer is now 0.
+        * src/WebCommon.cpp: Added.
+        (WebKit::failedAssertion): Calls the WTF assert function and then crashes.
+
+2010-03-25  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Remove ASSERT(isMainThread()) which is violated for workers and not necessary at this point.
+        https://bugs.webkit.org/show_bug.cgi?id=36614
+
+        * src/DatabaseObserver.cpp:
+        (WebCore::DatabaseObserver::canEstablishDatabase):
+
+2010-03-25  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Forward DatabaseTracker::canEstablishDatabase to chromium layer.
+        https://bugs.webkit.org/show_bug.cgi?id=36595
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::allowDatabase):
+        * src/DatabaseObserver.cpp:
+        (WebCore::DatabaseObserver::canEstablishDatabase):
+        * src/WebWorkerBase.h:
+        (WebKit::WebWorkerBase::allowDatabase):
+
+2010-03-10  John Abd-El-Malek  <jam@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] Fix up WebMouseWheelEventBuilder to properly calculate the units
+        https://bugs.webkit.org/show_bug.cgi?id=35989
+
+        * src/WebInputEventConversion.cpp:
+
 2010-03-25  Vangelis Kokkevis  <vangelis@chromium.org>
 
         Reviewed by Dimitri Glazkov.

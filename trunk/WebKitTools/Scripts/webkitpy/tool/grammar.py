@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-#
-# Copyright (C) 2010 Chris Jerdonek (chris.jerdonek@gmail.com)
+# Copyright (c) 2009 Google Inc. All rights reserved.
+# Copyright (c) 2009 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -12,9 +11,9 @@
 # copyright notice, this list of conditions and the following disclaimer
 # in the documentation and/or other materials provided with the
 # distribution.
-#     * Neither the name of Apple Computer, Inc. ("Apple") nor the names of
-# its contributors may be used to endorse or promote products derived
-# from this software without specific prior written permission.
+#     * Neither the name of Google Inc. nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -28,17 +27,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Runs style package unit tests."""
+import re
 
-# This module is imported by the module that imports all webkitpy unit tests.
 
-import sys
-import unittest
+def plural(noun):
+    # This is a dumb plural() implementation that is just enough for our uses.
+    if re.search("h$", noun):
+        return noun + "es"
+    else:
+        return noun + "s"
 
-from checker_unittest import *
-from error_handlers_unittest import *
-from filter_unittest import *
-from optparser_unittest import *
-from processors.common_unittest import *
-from processors.cpp_unittest import *
-from processors.text_unittest import *
+
+def pluralize(noun, count):
+    if count != 1:
+        noun = plural(noun)
+    return "%d %s" % (count, noun)
+
+
+def join_with_separators(list_of_strings, separator=', ', last_separator=', and '):
+    if not list_of_strings:
+        return ""
+    if len(list_of_strings) == 1:
+        return list_of_strings[0]
+    return "%s%s%s" % (separator.join(list_of_strings[:-1]), last_separator, list_of_strings[-1])

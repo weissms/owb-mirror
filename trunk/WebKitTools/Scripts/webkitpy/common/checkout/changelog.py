@@ -33,7 +33,7 @@ import os.path
 import re
 import textwrap
 
-from webkitpy.webkit_logging import log
+from webkitpy.common.system.deprecated_logging import log
 from webkitpy.common.config.committers import CommitterList
 
 def view_source_url(revision_number):
@@ -41,10 +41,6 @@ def view_source_url(revision_number):
     # better home for it yet.
     # Maybe eventually a webkit_config.py?
     return "http://trac.webkit.org/changeset/%s" % revision_number
-
-# Used by SCM.modified_changelogs()
-def is_path_to_changelog(path):
-    return os.path.basename(path) == "ChangeLog"
 
 
 class ChangeLogEntry(object):

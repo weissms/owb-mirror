@@ -38,6 +38,7 @@ class Frame;
 class GraphicsContext;
 class RenderObject;
 class RenderView;
+class Settings;
 class VisiblePosition;
 
 class SelectionController : public Noncopyable {
@@ -78,6 +79,9 @@ public:
     bool modify(EAlteration, int verticalDistance, bool userTriggered = false);
     TextGranularity granularity() const { return m_granularity; }
 
+    void setStart(const VisiblePosition &, bool userTriggered = false);
+    void setEnd(const VisiblePosition &, bool userTriggered = false);
+    
     void setBase(const VisiblePosition&, bool userTriggered = false);
     void setBase(const Position&, EAffinity, bool userTriggered = false);
     void setExtent(const VisiblePosition&, bool userTriggered = false);
@@ -97,7 +101,7 @@ public:
     IntRect absoluteCaretBounds();
     void setNeedsLayout(bool flag = true);
 
-    void setLastChangeWasHorizontalExtension(bool b) { m_lastChangeWasHorizontalExtension = b; }
+    void setIsDirectional(bool);
     void willBeModified(EAlteration, EDirection);
     
     bool isNone() const { return m_selection.isNone(); }
@@ -148,6 +152,8 @@ private:
     VisiblePosition startForPlatform() const;
     VisiblePosition endForPlatform() const;
 
+    bool modify(EAlteration, EDirection, TextGranularity, bool userTriggered, Settings*);
+
     VisiblePosition modifyExtendingRight(TextGranularity);
     VisiblePosition modifyExtendingForward(TextGranularity);
     VisiblePosition modifyMovingRight(TextGranularity);
@@ -189,7 +195,7 @@ private:
     
     bool m_needsLayout; // true if m_caretRect and m_absCaretBounds need to be calculated
     bool m_absCaretBoundsDirty;
-    bool m_lastChangeWasHorizontalExtension;
+    bool m_isDirectional;
     bool m_isDragCaretController;
     bool m_isCaretBlinkingSuspended;
     bool m_focused;

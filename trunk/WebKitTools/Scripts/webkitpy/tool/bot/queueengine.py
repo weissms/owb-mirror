@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2009 Google Inc. All rights reserved.
 # Copyright (c) 2009 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,8 +34,8 @@ import traceback
 from datetime import datetime, timedelta
 
 from webkitpy.common.net.statusserver import StatusServer
-from webkitpy.executive import ScriptError
-from webkitpy.webkit_logging import log, OutputTee
+from webkitpy.common.system.executive import ScriptError
+from webkitpy.common.system.deprecated_logging import log, OutputTee
 
 class QueueEngineDelegate:
     def queue_log_path(self):
@@ -66,9 +65,10 @@ class QueueEngineDelegate:
 
 
 class QueueEngine:
-    def __init__(self, name, delegate):
+    def __init__(self, name, delegate, wakeup_event):
         self._name = name
         self._delegate = delegate
+        self._wakeup_event = wakeup_event
         self._output_tee = OutputTee()
 
     log_date_format = "%Y-%m-%d %H:%M:%S"
@@ -133,12 +133,11 @@ class QueueEngine:
             self._output_tee.remove_log(self._work_log)
             self._work_log = None
 
-    @classmethod
-    def _sleep_message(cls, message):
-        wake_time = datetime.now() + timedelta(seconds=cls.seconds_to_sleep)
-        return "%s Sleeping until %s (%s)." % (message, wake_time.strftime(cls.log_date_format), cls.sleep_duration_text)
+    def _sleep_message(self, message):
+        wake_time = datetime.now() + timedelta(seconds=self.seconds_to_sleep)
+        return "%s Sleeping until %s (%s)." % (message, wake_time.strftime(self.log_date_format), self.sleep_duration_text)
 
-    @classmethod
-    def _sleep(cls, message):
-        log(cls._sleep_message(message))
-        time.sleep(cls.seconds_to_sleep)
+    def _sleep(self, message):
+        log(self._sleep_message(message))
+        if self._wakeup_event.wait(self.seconds_to_sleep):
+            self._wakeup_event.clear()

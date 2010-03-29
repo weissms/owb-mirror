@@ -96,6 +96,7 @@ WebCore/platform/graphics/MediaPlayerPrivate.h BAL/Media/WebCore/WK/BCMediaPlaye
 WebCore/platform/graphics/WidthIterator.cpp BAL/Fonts/WebCore/WK/BCWidthIteratorWK.cpp
 WebCore/platform/graphics/cairo/GraphicsContextCairo.cpp BAL/Graphics/WebCore/Cairo/BCGraphicsContextCairo.cpp
 WebCore/platform/graphics/gtk/ImageGtk.cpp BAL/Graphics/WebCore/Gtk/BCImageGtk.cpp
+WebCore/platform/graphics/gstreamer/ImageGStreamer.h BAL/Media/WebCore/GStreamer/BCImageGStreamer.h
 WebCore/platform/graphics/gstreamer/ImageGStreamerCairo.cpp	BAL/Media/WebCore/GStreamer/BCImageGStreamerCairoGStreamer.cpp
 WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.cpp
 WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h BAL/Media/WebCore/GStreamer/BCMediaPlayerPrivateGStreamer.h

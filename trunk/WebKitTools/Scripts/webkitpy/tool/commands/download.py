@@ -1,4 +1,4 @@
-# Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2009 Google Inc. All rights reserved.
 # Copyright (c) 2009 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,13 @@ import webkitpy.tool.steps as steps
 
 from webkitpy.common.checkout.changelog import ChangeLog, view_source_url
 from webkitpy.common.net.bugzilla import parse_bug_id
+from webkitpy.common.system.executive import ScriptError
 from webkitpy.tool.commands.abstractsequencedcommand import AbstractSequencedCommand
 from webkitpy.tool.commands.stepsequence import StepSequence
 from webkitpy.tool.comments import bug_comment_from_commit_text
+from webkitpy.tool.grammar import pluralize
 from webkitpy.tool.multicommandtool import AbstractDeclarativeCommand
-from webkitpy.executive import ScriptError
-from webkitpy.grammar import pluralize
-from webkitpy.webkit_logging import error, log
+from webkitpy.common.system.deprecated_logging import error, log
 
 
 class Build(AbstractSequencedCommand):

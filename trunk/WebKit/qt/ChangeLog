@@ -1,3 +1,121 @@
+2010-03-28  Olivier Goffart  <ogoffart@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Compile with QT_USE_FAST_OPERATOR_PLUS
+
+        * WebCoreSupport/InspectorClientQt.cpp:
+        (WebCore::InspectorClientQt::populateSetting):
+        (WebCore::InspectorClientQt::storeSetting):
+
+2010-03-26  David Boddie  <dboddie@trolltech.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Doc: Simplified Commercial Editions for Qt 4.7.
+
+        * docs/qtwebkit.qdoc:
+
+2010-03-26  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Symbian build fix.
+
+        [Qt] Updated the def file with new exports used by QtLauncher.
+
+        * symbian/eabi/QtWebKitu.def:
+
+2010-03-25  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] QtLauncher crashes on Mac OS and Linux when exiting with QGraphicsView mode enabled
+        https://bugs.webkit.org/show_bug.cgi?id=35251
+
+        Followed the way QWebView registers for the signal QWebPage::destroyed(), to prevent
+        QGraphicsWebView from referencing QWebPage after it was deleted.        
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewPrivate::_q_pageDestroyed):
+        (QGraphicsWebView::setPage):
+        * Api/qgraphicswebview.h:
+
+2010-03-25  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] QWebFrame::pageChanged() signal is not documented
+        https://bugs.webkit.org/show_bug.cgi?id=36609
+
+        * Api/qwebframe.cpp:
+
+2010-03-25  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Implement ChromeClient::windowResizerRect()
+
+        https://bugs.webkit.org/show_bug.cgi?id=21300
+
+        We assume the resize corner to be in the lower right corner of
+        the window and having the width and height of the scrollbars.
+
+        The helper function geometryRelativeToOwnerWidget() in the page
+        client is used to clip the resize rect to the actual size of the
+        viewport, not the size of the QGraphicsView.
+
+        * Api/qgraphicswebview.cpp:
+        * Api/qwebpage.cpp:
+        * WebCoreSupport/ChromeClientQt.cpp:
+
+2010-03-25  Shu Chang  <chang.shu@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Added documentation for delete button.
+        https://bugs.webkit.org/show_bug.cgi?id=31560
+
+        * Api/qwebsettings.cpp:
+
+2010-03-25  Tasuku Suzuki  <tasuku.suzuki@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Qt]Fix compile error with QT_NO_DESKTOPSERVICES
+        https://bugs.webkit.org/show_bug.cgi?id=36533
+
+        * Api/qwebsettings.cpp:
+        (QWebSettings::enablePersistentStorage):
+
+2010-03-25  Tasuku Suzuki  <tasuku.suzuki@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Qt]Fix compile error with QT_NO_DEBUG_STREAM
+        https://bugs.webkit.org/show_bug.cgi?id=36533
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewPrivate::graphicsItemVisibleRect):
+
+2010-03-25  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Make QWebPage not depend on view() but use the client->ownerWidget()
+        instead. Also, handle the case where there is not page client.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::createContextMenu):
+        (QWebPagePrivate::keyPressEvent):
+        (QWebPage::javaScriptAlert):
+        (QWebPage::javaScriptConfirm):
+        (QWebPage::javaScriptPrompt):
+        (QWebPage::shouldInterruptJavaScript):
+        (QWebPage::createWindow):
+        (QWebPage::action):
+        (QWebPage::extension):
+        (QWebPage::chooseFile):
+        (QWebPage::userAgentForUrl):
+
 2010-03-25  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
 
         Reviewed by Kenneth Rohde Christiansen.

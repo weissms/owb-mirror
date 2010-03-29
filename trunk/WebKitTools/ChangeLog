@@ -1,3 +1,1109 @@
+2010-03-28  Gustavo Noronha Silva  <gns@gnome.org>
+
+        No review, rolling out r56679.
+        http://trac.webkit.org/changeset/56679
+        https://bugs.webkit.org/show_bug.cgi?id=36454
+
+        Lots of tests broken.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (createWebView):
+
+2010-03-28  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Fixed typo in deprecated_logging_unittest.py, which is masking
+        sys.stderr while running test-webkitpy.
+
+        See also-- https://bugs.webkit.org/show_bug.cgi?id=36725#c3
+
+        * Scripts/webkitpy/common/system/deprecated_logging_unittest.py:
+
+2010-03-28  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Renamed check-webkit-style's --debug flag to --verbose to be more
+        in line with other WebKit scripts.  Also renamed the current
+        --verbose flag to --min-confidence to allow the --debug rename.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36521
+
+        We also renamed the internal "verbose" variables to "confidence" or
+        "min_confidence," as appropriate, to avoid confusion with the
+        --verbose flag, and because the new names are more accurate.
+
+        * Scripts/check-webkit-style:
+          - Renamed is_debug to is_verbose.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Renamed _DEFAULT_VERBOSITY to _DEFAULT_CONFIDENCE.
+          - Renamed "verbosity" parameters to "min_confidence" throughout.
+          - Renamed configure_logging()'s is_debug parameter to is_verbose.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated the unit tests as necessary.
+
+        * Scripts/webkitpy/style/error_handlers.py:
+          - Updated the call to StyleCheckerConfiguration.write_style_error().
+
+        * Scripts/webkitpy/style/error_handlers_unittest.py:
+          - Updated the unit tests as necessary.
+
+        * Scripts/webkitpy/style/optparser.py:
+          - Updated the usage string with the new flag names.
+          - Renamed the verbosity parameter to min_confidence throughout.
+          - Renamed the is_debug parameter to is_verbose throughout.
+
+        * Scripts/webkitpy/style/optparser_unittest.py:
+          - Updated the unit tests as necessary.
+
+        * Scripts/webkitpy/style/processors/cpp.py:
+          - Renamed the verbosity parameter to min_confidence throughout.
+
+        * Scripts/webkitpy/style/processors/cpp_unittest.py:
+          - Updated the unit tests as necessary.
+
+2010-03-28  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Added back a line that accidentally got deleted in r56690.
+
+        * Scripts/check-webkit-style:
+
+2010-03-28  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Add to check-webkit-style support for checking directories.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35234
+
+        * Scripts/check-webkit-style:
+          - Replaced the call to check_file() with a call to check_paths().
+
+        * Scripts/webkitpy/style/checker.py:
+          - In the StyleChecker class:
+            - Added a check_paths() method that accepts a list of paths
+              to files and directories.
+            - Added a _check_directory() method that checks the files
+              in a directory.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Added a StyleCheckerCheckPathsTest to unit-test the new
+            check_paths() method.
+
+        * Scripts/webkitpy/style/optparser.py:
+          - Updated the usage string.
+
+2010-03-28  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Changed check-webkit-style to convert paths to paths relative to
+        the checkout root when invoking check-webkit-style with path
+        arguments.  Also added warning messages where appropriate.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35498
+
+        Converting paths to paths relative to the checkout root ensures
+        that style checking will behave as expected (since path-specific
+        rules assume input paths are relative to a source root).
+
+        * Scripts/check-webkit-style:
+          - Added debug logging of whether the current directory was found
+            to be in a WebKit checkout.
+          - Added the found_checkout parameter to the call to parser.parse().
+          - Renamed the files variable to paths.
+          - Added a call to change_directory() prior to checking style.
+
+        * Scripts/webkitpy/style/checker.py:
+          - For StyleChecker.check_file():
+            - Updated the docstring.
+            - Added two log messages.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated a call to parser.parse() with the found_checkout parameter.
+
+        * Scripts/webkitpy/style/main.py: Added.
+          - Added a new file so the code in this patch could be unit-tested,
+            as opposed to adding new code to check-webkit-style.
+          - Added the method _rel_path() as a substitute for os.path.relpath(),
+            which is available only in Python 2.6.
+          - Added the method change_directory(), which contains most of the
+            new functionality in this patch.
+
+        * Scripts/webkitpy/style/main_unittest.py: Added.
+          - Added RelPathTest to test main._rel_path().
+          - Added ChangeDirectoryTest to test main.change_directory().
+
+        * Scripts/webkitpy/style/optparser.py:
+          - Updated check-webkit-style's usage string.
+          - For the ArgumentParser.parse() method:
+            - Added a found_checkout parameter.
+            - Renamed filenames to paths.
+            - Added logic so that an error is raised if no paths are passed
+              if found_checkout is False.
+
+        * Scripts/webkitpy/style/optparser_unittest.py:
+          - Updated the ArgumentParser.parse() unit tests to include
+            coverage for the new found_checkout parameter.
+
+        * Scripts/webkitpy/style/unittests.py:
+          - Added an import statement for main_unittest.
+
+        * Scripts/webkitpy/style_references.py:
+          - Renamed SimpleScm to WebKitCheckout.
+          - Added a detect_checkout() function to allow returning None
+            instead of a WebKitCheckout instance if no checkout is found.
+          - Renamed checkout_root to root_path.
+
+2010-03-27  Sergio Villar Senin  <svillar@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        Print didHandleOnloadEventsForFrame in the callback of
+        onload-event signal comming from frame loader
+
+        [GTK] Improve reporting of frame loader callbacks in DRT
+        https://bugs.webkit.org/show_bug.cgi?id=36454
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewOnloadEvent):
+        (createWebView): added connection to signal::onload-event and
+        signal callback
+
+2010-03-27  Sergio Villar Senin  <svillar@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        Print didCommitLoadForFrame in the callback of signal::load-committed
+
+        [GTK] Improve reporting of frame loader callbacks in DRT
+        https://bugs.webkit.org/show_bug.cgi?id=36454
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewLoadCommitted):
+        (createWebView): added connection to sinal::load-committed and
+        signal callback
+
+2010-03-27  Sergio Villar Senin  <svillar@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        Print didStartProvisionalLoadForFrame in the callback of
+        notify::load-status property change notification
+
+        [GTK] Improve reporting of frame loader callbacks in DRT
+        https://bugs.webkit.org/show_bug.cgi?id=36454
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webInspectorCloseWindow):
+        (webInspectorInspectWebView):
+        (createWebView): added connection to notify::load-status and
+        signal callback
+
+2010-03-27  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In webkitpy/, deleted the /unittests.py files since test-webkitpy
+        now auto-detects all *_unittest.py files.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36712
+
+        * Scripts/webkitpy/common/net/irc/unittests.py: Removed.
+        * Scripts/webkitpy/common/system/unittests.py: Removed.
+        * Scripts/webkitpy/common/thread/unittests.py: Removed.
+        * Scripts/webkitpy/common/unittests.py: Removed.
+        * Scripts/webkitpy/python24/unittests.py: Removed.
+        * Scripts/webkitpy/style/unittests.py: Removed.
+        * Scripts/webkitpy/tool/unittests.py: Removed.
+        * Scripts/webkitpy/unittests.py: Removed.
+
+2010-03-27  Sergio Villar Senin  <svillar@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        Add a CR after printing didFinishDocumentLoadForFrame
+
+        [GTK] Improve reporting of frame loader callbacks in DRT
+        https://bugs.webkit.org/show_bug.cgi?id=36454
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewLoadFinished):
+
+2010-03-27  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Rubber-stamped by Adam Barth.
+
+        Fixed the name of a unit test file in webkitpy.
+
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittest.py: Copied from WebKitTools/Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittests.py.
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittests.py: Removed.
+
+2010-03-26  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        The test-webkitpy script now automatically detects all unit-test
+        files in webkitpy/.  This lets us eliminate the need to have and
+        maintain all of the unittests.py files.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36591
+
+        * Scripts/test-webkitpy:
+          - Replaced the "from webkitpy.unittests import *" with a call
+            to webkitpy.test.main.Tester().run_tests().
+
+        * Scripts/webkitpy/test/__init__.py: Copied from WebKitTools/QueueStatusServer/filters/__init__.py.
+          - Required file for the new webkitpy/test/ directory.
+
+        * Scripts/webkitpy/test/main.py: Added.
+          - Added a Tester class that contains the following methods:
+            - _find_unittest_files() to detect all the unit-test files.
+            - _modules_from_paths() to convert the paths to the unit-test
+              files to fully-qualified module names.
+            - run_tests() which calls the above two methods and then passes
+              the module names to Python's unittest module.
+
+2010-03-27  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        [Qt/Win] Add support to unix and windows NS plugin for executing scripts on setWindow.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36701
+
+        * DumpRenderTree/unix/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (webkit_test_plugin_new_instance): Add onSetWindow.
+        (webkit_test_plugin_destroy_instance): Add onSetWindow.
+        (webkit_test_plugin_set_window): Add onSetWindow.
+        * DumpRenderTree/win/TestNetscapePlugin/main.cpp:
+        (NPP_New): Add onSetWindow.
+        (NPP_Destroy): Add onSetWindow.
+        (NPP_SetWindow): Add onSetWindow.
+
+2010-03-26  Robert Hogan  <robert@roberthogan.net>
+
+        Reviewed by Simon Hausmann.
+
+        Allow plugins implemented by the application, such as mimetype 'x-qt-plugin',
+         when pluginsEnabled is false.
+
+        Add support for LayoutTestController.WebKitPluginsEnabled
+
+        https://bugs.webkit.org/show_bug.cgi?id=32196
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (copyWebSettingKey):
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::overridePreference):
+
+2010-03-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add some basic IRC commands to sheriffbot
+        https://bugs.webkit.org/show_bug.cgi?id=36684
+
+        Adds support for sheriffbot to respond to a "hi" command and a
+        "last-green-revision" command.  It's lame that we're rebuilding
+        MultiCommandTool, but as discussed in person we'll intergrate the two
+        once we see what the requirements are.
+
+        * Scripts/webkitpy/tool/bot/irc_command.py: Added.
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/bot/queueengine_unittest.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot_unittest.py: Added.
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/queuestest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/unittests.py:
+
+2010-03-26  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  More errors in the IRC module.  I have no idea how to test
+        ircbot.py, which is too bad.  Hopefully we've abstracted it away enough
+        that we don't have to touch it very much after this patch.
+
+        * Scripts/webkitpy/common/net/irc/ircbot.py:
+
+2010-03-26  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Add a missing "_".
+
+        * Scripts/webkitpy/common/net/irc/ircproxy.py:
+        * Scripts/webkitpy/common/net/irc/ircproxy_unittest.py: Added.
+        * Scripts/webkitpy/common/net/irc/unittests.py:
+
+2010-03-26  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Fix a the commit queue after my recent change.
+
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+
+2010-03-26  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed fix.
+
+        Fix the return value for port/base.diff_image (changed from 1/0 to
+        True/False in bug 34826.
+
+        * Scripts/webkitpy/layout_tests/port/base.py:
+
+2010-03-26  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Change the Mac port of new-run-webkit-tests to look for a
+        test_expectations.txt file in addition to the Skipped files, so we
+        can track pixel failures.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36619
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+
+2010-03-26  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Implement pixel tests (image diff) properly on the Mac port.
+
+        This change introduces a new "ServerPocess" class that can be used
+        to manage processes that the run-webkit-tests harness forks off and
+        expects to stay up for longer than a single request/response session.
+        Both DumpRenderTree and ImageDiff use this style of communication,
+        although the current code forks off a new ImageDiff for each diff
+        (We need to restructure other parts of the code to be able to do this
+        safely in a multi-threaded environment).
+
+        Also, now that the ServerProcess abstraction exists, we can probably
+        clean up and simplify some of the thread management logic in
+        test_shell_thread as well.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34826
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/layout_tests/port/server_process.py:
+        * Scripts/webkitpy/layout_tests/test_types/image_diff.py:
+
+2010-03-26  Sergio Villar Senin  <svillar@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        Print didFinishLoadForFrame outcome in DRT
+
+        [GTK] Improve reporting of frame loader callbacks in DRT
+        https://bugs.webkit.org/show_bug.cgi?id=36454
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (webViewLoadCommitted):
+
+2010-03-26  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed test fix.
+        My change conflicted with one of Adam's causing test-webkitpy to fail.
+
+        Move commit_message_for_this_commit from scm to checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36629
+
+        * Scripts/webkitpy/common/checkout/api_unittest.py:
+         - modified_changelogs is now on Checkout instead of scm.
+
+2010-03-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Refactor IRCBot controller logic to allow for commands
+        https://bugs.webkit.org/show_bug.cgi?id=36676
+
+        We need to move the controller logic into the tool package so it can
+        know about commands.  The changes to queueengine could go in a
+        different patch, but we're going to need it anyway.
+
+        * Scripts/webkitpy/common/config/irc.py: Added.
+        * Scripts/webkitpy/common/net/irc/ircbot.py:
+        * Scripts/webkitpy/common/net/irc/ircproxy.py:
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot.py: Added.
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+
+2010-03-26  Adam Barth  <abarth@webkit.org>
+
+        Rubber stamped by Eric Seidel.
+
+        Move the threading code into its own module.  (It has nothing to do with IRC.)
+
+        * Scripts/webkitpy/common/net/irc/ircbot.py:
+        * Scripts/webkitpy/common/net/irc/ircproxy.py:
+        * Scripts/webkitpy/common/net/irc/messagepump.py: Removed.
+        * Scripts/webkitpy/common/net/irc/messagepump_unittest.py: Removed.
+        * Scripts/webkitpy/common/net/irc/threadedmessagequeue.py: Removed.
+        * Scripts/webkitpy/common/net/irc/threadedmessagequeue_unittest.py: Removed.
+        * Scripts/webkitpy/common/net/irc/unittests.py:
+        * Scripts/webkitpy/common/thread: Added.
+        * Scripts/webkitpy/common/thread/__init__.py: Added.
+        * Scripts/webkitpy/common/thread/messagepump.py: Copied from Scripts/webkitpy/common/net/irc/messagepump.py.
+        * Scripts/webkitpy/common/thread/messagepump_unittest.py: Copied from Scripts/webkitpy/common/net/irc/messagepump_unittest.py.
+        * Scripts/webkitpy/common/thread/threadedmessagequeue.py: Copied from Scripts/webkitpy/common/net/irc/threadedmessagequeue.py.
+        * Scripts/webkitpy/common/thread/threadedmessagequeue_unittest.py: Copied from Scripts/webkitpy/common/net/irc/threadedmessagequeue_unittest.py.
+        * Scripts/webkitpy/common/thread/unittests.py: Added.
+        * Scripts/webkitpy/common/unittests.py:
+
+2010-03-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Move commit_message_for_this_commit from scm to checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36629
+
+        Finally add some basic unit testing for Checkout.commit_message_for_this_commit
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/api_unittest.py: Added.
+        * Scripts/webkitpy/common/unittests.py:
+
+2010-03-26  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        [Qt] User Agent Switcher on QtLauncher
+        https://bugs.webkit.org/show_bug.cgi?id=36451
+
+        Patch by Diego Gonzalez <diego.gonzalez@openbossa.org> on 2010-03-26
+        Reviewed by Simon Hausmann.
+
+        Make possible to change the QtLauncher user agent via
+        a predefined list.
+
+        * QtLauncher/QtLauncher.pro:
+        * QtLauncher/QtLauncher.qrc: Added.
+        * QtLauncher/main.cpp:
+        (LauncherWindow::showUserAgentDialog):
+        (LauncherWindow::createChrome):
+        * QtLauncher/useragentlist.txt: Added.
+        * QtLauncher/webpage.cpp:
+        (WebPage::userAgentForUrl):
+        * QtLauncher/webpage.h:
+        (WebPage::setUserAgent):
+
+2010-03-26  Victor Wang  <victorw@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Host layout test flakiness dashboard in TestResultServer appengine.
+
+        Flakiness dashboard is a tool to monitor layout test status and
+        help layout test regression diagnostics.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36195
+
+        * TestResultServer/handlers/dashboardhandler.py: Added.
+         - New handler to handle dashboard request
+        * TestResultServer/handlers/menu.py:
+         - Add new dashboard links
+        * TestResultServer/handlers/testfilehandler.py:
+         - Request routes refactory
+        * TestResultServer/index.yaml:
+        * TestResultServer/main.py:
+         - Add new dashboard request routes and refactor test result file rountes.
+        * TestResultServer/model/dashboardfile.py: Added.
+         - Model to access datastore for dashboard files
+        * TestResultServer/model/testfile.py:
+        * TestResultServer/stylesheets/dashboardfile.css: Added.
+        * TestResultServer/templates/dashboardfilelist.html: Added.
+        * TestResultServer/templates/showfilelist.html:
+
+2010-03-26  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove some evil statics from CommitInfo
+        https://bugs.webkit.org/show_bug.cgi?id=36637
+
+        These methods should really be on checkout.  You can tell because they
+        know about ChangeLogs and take an SCM as an argument.  :)
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/changelog.py:
+        * Scripts/webkitpy/common/checkout/commitinfo.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+
+2010-03-23  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Add an option to QtLauncher to enable/disable a QGLWidget as Viewport
+        of the QGraphicsView when the launcher is running on graphicsview mode.
+
+        [Qt] QtLauncher needs an option to Enable/Disable a QGLWidget as Viewport
+        https://bugs.webkit.org/show_bug.cgi?id=36270
+
+        * QtLauncher/QtLauncher.pro:
+        * QtLauncher/main.cpp:
+        (LauncherWindow::toggleQGLWidgetViewport):
+        (LauncherWindow::createChrome):
+
+2010-03-26  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        [Chromium-Win] websocket_server.py failed to start
+        https://bugs.webkit.org/show_bug.cgi?id=36586
+        
+        subproess.Popen() on Python 2.4/Windows with stdout,stdout, but no stdin will fail, because it uses return value of GetStdHandle(STD_INPUT_HANDLE), but DuplicateHandle requires integer, not the handle.
+        We don't need stdin, so use devnull as stdin.
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py: open os.devnull for stdin
+
+2010-03-26  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add TestNavigationController and TestWebWorker
+        https://bugs.webkit.org/show_bug.cgi?id=36520
+
+        Add LayoutTestController class, which is going to be used by
+        DumpRenderTree Chromium port. These files are based on:
+        - src/webkit/tools/test_shell/layout_test_controller.cc
+        - src/webkit/tools/test_shell/layout_test_controller.h
+        of Chromium rev.40492.
+
+        * DumpRenderTree/chromium/LayoutTestController.cpp: Added.
+        * DumpRenderTree/chromium/LayoutTestController.h: Added.
+
+2010-03-25  Charlie Reis  <creis@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        onbeforeunload not called at window close + frame or iframe focused
+        https://bugs.webkit.org/show_bug.cgi?id=27481
+
+        Adds a callShouldCloseOnWebView method to LayoutTestController,
+        to allow automated testing for bug 27481.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (callShouldCloseOnWebViewCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::callShouldCloseOnWebView):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::callShouldCloseOnWebView):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::callShouldCloseOnWebView):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::callShouldCloseOnWebView):
+
+2010-03-25  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add webkit-patch lkgr for finding last known good revision
+        https://bugs.webkit.org/show_bug.cgi?id=36626
+
+        This is rather slow for now because the command
+        has to compute this information from the buildbot.
+        A better long-term solution would be to have a server
+        somewhere store a pre-computed LKGR and then any
+        script (like webkit-patch) could just fetch it.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move modified_changelogs (and friends) from scm to checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36636
+
+        These functions know about ChangeLogs, which is forbidden knowledge in
+        scm.py.
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/changelog.py:
+        * Scripts/webkitpy/common/checkout/scm.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/abstractstep.py:
+        * Scripts/webkitpy/tool/steps/preparechangelogforrevert.py:
+        * Scripts/webkitpy/tool/steps/revertrevision.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreviewer.py:
+        * Scripts/webkitpy/tool/steps/validatereviewer.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move apply_patch from scm to checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36635
+
+        SCM shouldn't have any knowledge of WebKit scripts.
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/scm.py:
+        * Scripts/webkitpy/common/checkout/scm_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/applypatch.py:
+
+2010-03-25  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed build fix to un-break webkit-patch land.
+        Test-case coming in follow-up commit.
+
+        Move commit_message_for_this_commit from scm to checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36629
+
+        * Scripts/webkitpy/common/checkout/api.py: import scm.CommitMessage
+
+2010-03-25  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/7728903> Support color bitmap fonts
+
+        * DumpRenderTree/DumpRenderTree.xcodeproj/project.pbxproj: Added ColorBits.ttf
+        and ColorBits-A.png.
+        * DumpRenderTree/fonts/ColorBits-A.png: Copied from WebCore/inspector/front-end/Images/successGreenDot.png.
+        * DumpRenderTree/fonts/ColorBits.ttf: Added.
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (activateFonts): Activate ColorBits.ttf.
+
+2010-03-25  Mark Rowe  <mrowe@apple.com>
+
+        Remove a printf that was causing commit-log-editor to spew the name of the editor
+        to the terminal many times during a commit.
+
+        * Scripts/commit-log-editor:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Move commit_message_for_this_commit from scm to checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36629
+
+        This function requires knowledge of ChangeLogs, but scm shouldn't know
+        about ChangeLogs.
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/scm.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/applypatchwithlocalcommit.py:
+        * Scripts/webkitpy/tool/steps/commit.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        REGRESSION: webkit-patch land can't land "rubber-stamped" patches
+        https://bugs.webkit.org/show_bug.cgi?id=36582
+
+        Allow a "-" in rubber stamped.
+
+        * Scripts/webkitpy/tool/steps/validatereviewer.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Fix some copyright lines to remove extraneous comma and
+        python directive.
+
+        * Scripts/webkitpy/tool/bot/patchcollection.py:
+        * Scripts/webkitpy/tool/bot/patchcollection_unittest.py:
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/bot/queueengine_unittest.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/earlywarningsystem.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/comments.py:
+        * Scripts/webkitpy/tool/grammar.py:
+        * Scripts/webkitpy/tool/multicommandtool.py:
+        * Scripts/webkitpy/tool/multicommandtool_unittest.py:
+
+2010-03-25  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler, Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36631
+        Allow the test plugin to run scripts in response to NPP_SetWindow calls
+        
+        Hook up the ability for the TestNetscapePlugIn to run JavaScript in
+        response to NPP_SetWindow.
+        
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (pluginAllocate):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.h:
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (NPP_Destroy):
+        (NPP_SetWindow):
+
+2010-03-25  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed, build fix.
+
+        [Qt] Fix QtLauncher guards.
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::showFPS):
+        (LauncherWindow::updateFPS):
+
+2010-03-25  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Allow running tests with enabled developer extras and closed Web Inspector. Tests that have inspector-enabled/ in their path/url will have developer extras enabled.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36610
+
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (shouldEnableDeveloperExtras):
+        (runTest):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        (LayoutTestController::setDeveloperExtrasEnabled):
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::closeWebInspector):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (shouldEnableDeveloperExtras):
+        (runTest):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        (LayoutTestController::setDeveloperExtrasEnabled):
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::closeWebInspector):
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::shouldEnableDeveloperExtras):
+        (WebCore::DumpRenderTree::open):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::closeWebInspector):
+        (LayoutTestController::setDeveloperExtrasEnabled):
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (shouldEnableDeveloperExtras):
+        (runTest):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setJavaScriptProfilingEnabled):
+        (LayoutTestController::setDeveloperExtrasEnabled):
+        (LayoutTestController::showWebInspector):
+        (LayoutTestController::closeWebInspector):
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Rubber stamped by Eric Seidel.
+
+        Tweaks to sheriffbot to improve latency by keeping the working copy up
+        to date even when there's no build break.  Also, officially move
+        sheriffbot to #webkit.
+
+        (Also teach ValidateReviewer to understand rubber stamps.)
+
+        * Scripts/webkitpy/common/net/irc/ircbot.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/steps/validatereviewer.py:
+
+2010-03-22  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        Not displaying FPS info on the terminal. On S60 and Maemo the
+        Window title will be used and Status bar will used on desktop.
+
+        [Qt] QtLauncher's FPS info should not be displayed on the terminal
+        https://bugs.webkit.org/show_bug.cgi?id=36244
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::initializeView):
+        (LauncherWindow::showFPS):
+        (LauncherWindow::updateFPS):
+        * QtLauncher/webview.cpp:
+        (WebViewGraphicsBased::setFrameRateMeasurementEnabled):
+        (WebViewGraphicsBased::updateFrameRate):
+        * QtLauncher/webview.h:
+        (WebViewGraphicsBased::frameRateMeasurementEnabled):
+
+2010-03-25  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Kenneth Christiansen.
+
+        Added missing frame flattening activation on
+        fast/frames/flattening/frameset-flattening-grid.html;
+        removed unnecessary CONSOLE MESSAGE from the expected file;
+        reset the setFrameSetFlatteningEnabled for each test.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::resetSettings):
+
+2010-03-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Moved deprecated_logging unit test import statement from
+        webkitpy/unittests.py to webkitpy/common/system/unittests.py.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        This is part of the master bug to reorganize webkitpy.
+
+        * Scripts/webkitpy/common/system/unittests.py:
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Moved webkit_logging.py to common/system/deprecated_logging.py
+        inside webkitpy.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        This is part of the master bug to reorganize webkitpy.
+
+        * Scripts/validate-committer-lists:
+        * Scripts/webkitpy/common/checkout/changelog.py:
+        * Scripts/webkitpy/common/checkout/scm.py:
+        * Scripts/webkitpy/common/net/bugzilla.py:
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/common/net/credentials.py:
+        * Scripts/webkitpy/common/net/irc/ircproxy.py:
+        * Scripts/webkitpy/common/net/networktransaction.py:
+        * Scripts/webkitpy/common/net/statusserver.py:
+        * Scripts/webkitpy/common/system/deprecated_logging.py: Copied from WebKitTools/Scripts/webkitpy/webkit_logging.py.
+        * Scripts/webkitpy/common/system/deprecated_logging_unittest.py: Copied from WebKitTools/Scripts/webkitpy/webkit_logging_unittest.py.
+        * Scripts/webkitpy/common/system/executive.py:
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/earlywarningsystem_unittest.py:
+        * Scripts/webkitpy/tool/commands/openbugs.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/commands/stepsequence.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/multicommandtool.py:
+        * Scripts/webkitpy/tool/steps/abstractstep.py:
+        * Scripts/webkitpy/tool/steps/applypatch.py:
+        * Scripts/webkitpy/tool/steps/build.py:
+        * Scripts/webkitpy/tool/steps/checkstyle.py:
+        * Scripts/webkitpy/tool/steps/closebug.py:
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff.py:
+        * Scripts/webkitpy/tool/steps/confirmdiff.py:
+        * Scripts/webkitpy/tool/steps/ensurebuildersaregreen.py:
+        * Scripts/webkitpy/tool/steps/ensurelocalcommitifneeded.py:
+        * Scripts/webkitpy/tool/steps/obsoletepatches.py:
+        * Scripts/webkitpy/tool/steps/preparechangelog.py:
+        * Scripts/webkitpy/tool/steps/reopenbugafterrollout.py:
+        * Scripts/webkitpy/tool/steps/runtests.py:
+        * Scripts/webkitpy/tool/steps/update.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreviewer.py:
+        * Scripts/webkitpy/tool/steps/validatereviewer.py:
+        * Scripts/webkitpy/unittests.py:
+        * Scripts/webkitpy/webkit_logging.py: Removed.
+        * Scripts/webkitpy/webkit_logging_unittest.py: Removed.
+
+2010-03-25  Julien Chaffraix  <jchaffraix@webkit.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        commit-log-editor can call itself in an infinite loop
+        https://bugs.webkit.org/show_bug.cgi?id=35291
+
+        if $editor ends up being commit-log-editor, the script will exec itself
+        in an infinite loop.
+
+        To avoid this, we now check that the $editor variable is not
+        commit-log-editor to avoid this case.
+
+        * Scripts/commit-log-editor: Added an isCommitLogEditor method and
+        reworked the $editor setting to add this check.
+
+2010-03-25  Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Add a Toggle Frame Flattening option to QtLauncher.
+        It will be enabled by default on Maemo5 and S60 platforms.
+
+        [Qt] Add enable/disable Frame Flattening option to QtLauncher
+        https://bugs.webkit.org/show_bug.cgi?id=36558
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::applyPrefs):
+        (LauncherWindow::toggleFrameFlattening):
+        (LauncherWindow::createChrome):
+
+2010-03-25  Zoltan Horvath  <zoltan@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        svn-create-patch prints a warning for large patches
+        https://bugs.webkit.org/show_bug.cgi?id=32582
+
+        svn-create-patch prints a warning message for larger patches than 20k.
+
+        * Scripts/svn-create-patch:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Renamed early_warning_system.py to earlywarningsystem.py.
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/tool/commands/early_warning_system.py: Removed.
+        * Scripts/webkitpy/tool/commands/early_warning_system_unittest.py: Removed.
+        * Scripts/webkitpy/tool/commands/earlywarningsystem.py: Copied from Scripts/webkitpy/tool/commands/early_warning_system.py.
+        * Scripts/webkitpy/tool/commands/earlywarningsystem_unittest.py: Copied from Scripts/webkitpy/tool/commands/early_warning_system_unittest.py.
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/unittests.py:
+
+2010-03-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In webkitpy, pushed the unit test import statements in
+        webkitpy/unittests.py into appropriate unittests.py files in the
+        new root-level packages beneath webkitpy.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        This is part of the master bug to reorganize webkitpy.
+
+        * Scripts/webkitpy/common/system/unittests.py:
+        * Scripts/webkitpy/common/unittests.py: Added.
+        * Scripts/webkitpy/python24/unittests.py: Added.
+        * Scripts/webkitpy/tool/unittests.py: Added.
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move WebKitCheckout into the webkitpy.common.checkout
+        package.
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/common/checkout/api.py: Copied from Scripts/webkitpy/webkitcheckout.py.
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/webkitcheckout.py: Removed.
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move OutputCapture to webkitpy.common.system.
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/common/net/bugzilla_unittest.py:
+        * Scripts/webkitpy/common/net/credentials_unittest.py:
+        * Scripts/webkitpy/common/system/outputcapture.py: Copied from Scripts/webkitpy/outputcapture.py.
+        * Scripts/webkitpy/outputcapture.py: Removed.
+        * Scripts/webkitpy/tool/commands/commandtest.py:
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/commands/queuestest.py:
+        * Scripts/webkitpy/tool/multicommandtool_unittest.py:
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff_unittest.py:
+        * Scripts/webkitpy/tool/steps/steps_unittest.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittests.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move user.py to webkitpy.common.system.
+
+        * Scripts/webkitpy/common/checkout/scm.py:
+        * Scripts/webkitpy/common/net/bugzilla.py:
+        * Scripts/webkitpy/common/net/credentials.py:
+        * Scripts/webkitpy/common/system/user.py: Copied from Scripts/webkitpy/user.py.
+        * Scripts/webkitpy/common/system/user_unittest.py: Copied from Scripts/webkitpy/user_unittest.py.
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/unittests.py:
+        * Scripts/webkitpy/user.py: Removed.
+        * Scripts/webkitpy/user_unittest.py: Removed.
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move executive.py to webkitpy.common.system.
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/common/checkout/scm.py:
+        * Scripts/webkitpy/common/checkout/scm_unittest.py:
+        * Scripts/webkitpy/common/config/ports.py:
+        * Scripts/webkitpy/common/config/ports_unittest.py:
+        * Scripts/webkitpy/common/net/credentials.py:
+        * Scripts/webkitpy/common/net/credentials_unittest.py:
+        * Scripts/webkitpy/common/system/executive.py: Copied from Scripts/webkitpy/executive.py.
+        * Scripts/webkitpy/common/system/executive_unittest.py: Copied from Scripts/webkitpy/executive_unittest.py.
+        * Scripts/webkitpy/executive.py: Removed.
+        * Scripts/webkitpy/executive_unittest.py: Removed.
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/bot/queueengine_unittest.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/early_warning_system.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/stepsequence.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/steps/checkstyle.py:
+        * Scripts/webkitpy/tool/steps/preparechangelog.py:
+        * Scripts/webkitpy/unittests.py:
+        * Scripts/webkitpy/webkit_logging_unittest.py:
+
+2010-03-25  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Move grammary.py into webkitpy.tool.
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        * Scripts/webkitpy/grammar.py: Removed.
+        * Scripts/webkitpy/grammar_unittest.py: Removed.
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/grammar.py: Copied from Scripts/webkitpy/grammar.py.
+        * Scripts/webkitpy/tool/grammar_unittest.py: Copied from Scripts/webkitpy/grammar_unittest.py.
+        * Scripts/webkitpy/tool/multicommandtool.py:
+        * Scripts/webkitpy/tool/steps/obsoletepatches.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreviewer.py:
+        * Scripts/webkitpy/unittests.py:
+
+2010-03-25  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        In webkitpy, moved init/ to common/system/.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36093
+
+        This is part of the master bug to reorganize webkitpy.
+
+        * Scripts/webkitpy/common/system: Copied from WebKitTools/Scripts/webkitpy/init.
+        * Scripts/webkitpy/common/system/logutils.py:
+        * Scripts/webkitpy/common/system/logutils_unittest.py:
+        * Scripts/webkitpy/init: Removed.
+        * Scripts/webkitpy/init/__init__.py: Removed.
+        * Scripts/webkitpy/init/logtesting.py: Removed.
+        * Scripts/webkitpy/init/logutils.py: Removed.
+        * Scripts/webkitpy/init/logutils_unittest.py: Removed.
+        * Scripts/webkitpy/init/unittests.py: Removed.
+        * Scripts/webkitpy/python24/versioning_unittest.py:
+        * Scripts/webkitpy/style_references.py:
+        * Scripts/webkitpy/unittests.py:
+
 2010-03-25  Adam Barth  <abarth@webkit.org>
 
         Unreviewed.  Move stepsequence to webkitpy.tool.commands.

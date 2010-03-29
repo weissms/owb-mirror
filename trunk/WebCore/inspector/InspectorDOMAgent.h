@@ -46,6 +46,7 @@
 namespace WebCore {
     class ContainerNode;
     class CSSRule;
+    class CSSRuleList;
     class CSSStyleDeclaration;
     class CSSStyleRule;
     class CSSStyleSheet;
@@ -95,6 +96,8 @@ namespace WebCore {
         void getChildNodes(long callId, long nodeId);
         void setAttribute(long callId, long elementId, const String& name, const String& value);
         void removeAttribute(long callId, long elementId, const String& name);
+        void removeNode(long callId, long nodeId);
+        void changeTagName(long callId, long nodeId, const AtomicString& tagName, bool expanded);
         void setTextNodeValue(long callId, long nodeId, const String& value);
         void getEventListenersForNode(long callId, long nodeId);
 
@@ -123,7 +126,10 @@ namespace WebCore {
         long pushNodePathToFrontend(Node* node);
         void pushChildNodesToFrontend(long nodeId);
 
-   private:
+    private:
+        typedef std::pair<String, String> PropertyValueAndPriority;
+        typedef HashMap<String, PropertyValueAndPriority> DisabledStyleDeclaration;
+
         void startListening(Document* document);
         void stopListening(Document* document);
 
@@ -136,8 +142,10 @@ namespace WebCore {
 
         bool pushDocumentToFrontend();
 
-        ScriptArray getMatchedCSSRules(Element* element, bool authorOnly);
-        ScriptObject getAttributeStyles(Element* element);
+        ScriptObject buildObjectForAttributeStyles(Element* element);
+        ScriptArray buildArrayForCSSRules(CSSRuleList*);
+        ScriptArray buildArrayForPseudoElements(Element* element, bool authorOnly);
+
         ScriptObject buildObjectForNode(Node* node, int depth, NodeToIdMap* nodesMap);
         ScriptArray buildArrayForElementAttributes(Element* element);
         ScriptArray buildArrayForContainerChildren(Node* container, int depth, NodeToIdMap* nodesMap);
@@ -159,6 +167,7 @@ namespace WebCore {
         long bindRule(CSSStyleRule*);
         ScriptObject buildObjectForStyle(CSSStyleDeclaration*, bool bind);
         void populateObjectWithStyleProperties(CSSStyleDeclaration*, ScriptObject& result);
+        ScriptArray buildArrayForDisabledStyleProperties(DisabledStyleDeclaration&);
         ScriptObject buildObjectForRule(CSSStyleRule*);
         ScriptObject buildObjectForStyleSheet(CSSStyleSheet*);
         Vector<String> longhandProperties(CSSStyleDeclaration*, const String& shorthandProperty);
@@ -186,7 +195,8 @@ namespace WebCore {
         typedef HashMap<long, RefPtr<CSSStyleRule> > IdToRuleMap;
         RuleToIdMap m_ruleToId;
         IdToRuleMap m_idToRule;
-        IdToStyleMap m_idToDisabledStyle;
+        typedef HashMap<long, DisabledStyleDeclaration>  IdToDisabledStyleMap;
+        IdToDisabledStyleMap m_idToDisabledStyle;
         RefPtr<CSSStyleSheet> m_inspectorStyleSheet;
 
         long m_lastStyleId;

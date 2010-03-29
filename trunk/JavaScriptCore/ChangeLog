@@ -1,3 +1,125 @@
+2010-03-28  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Remove the definition of WTF_CHANGES guards from the build system
+        https://bugs.webkit.org/show_bug.cgi?id=31670
+  
+        * JavaScriptCore.pro: Remove the definition of WTF_CHANGES
+        as it is already defined in config.h
+
+2010-03-28  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add API for reporting additional memory cost of JavaScript objects
+        https://bugs.webkit.org/show_bug.cgi?id=36650
+
+        * qt/api/qscriptengine.cpp:
+        (QScriptEngine::reportAdditionalMemoryCost):
+        * qt/api/qscriptengine.h:
+        * qt/api/qscriptengine_p.h:
+        (QScriptEnginePrivate::reportAdditionalMemoryCost):
+        * qt/tests/qscriptengine/tst_qscriptengine.cpp:
+        (tst_QScriptEngine::reportAdditionalMemoryCost):
+
+2010-03-28  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        QScriptEngine API was enriched by globalObject() method
+        which give an access to the global object.
+
+        [Qt] QScriptEngine doesn't give an access to global object
+        https://bugs.webkit.org/show_bug.cgi?id=36603
+
+        * qt/api/qscriptengine.cpp:
+        (QScriptEngine::globalObject):
+        * qt/api/qscriptengine.h:
+        * qt/api/qscriptengine_p.cpp:
+        (QScriptEnginePrivate::globalObject):
+        * qt/api/qscriptengine_p.h:
+        * qt/tests/qscriptengine/tst_qscriptengine.cpp:
+        (tst_QScriptEngine::globalObject):
+
+2010-03-26  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Build JavaScriptCore as a static library.
+        https://bugs.webkit.org/show_bug.cgi?id=36590
+
+        This patch takes what was left of the unused JavaScriptCore.pro
+        and moved the compilation logic from JavaScriptCore.pri to
+        JavaScriptCore.pro.
+
+        * JavaScriptCore.pri:
+        * JavaScriptCore.pro:
+        * jsc.pro:
+        * qt/api/QtScript.pro:
+
+2010-03-25  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        * profiler/ProfileGenerator.cpp:
+        (JSC::ProfileGenerator::willExecute):
+        (JSC::ProfileGenerator::didExecute):
+
+2010-03-25  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 36611 - Cleanup JSC::CString
+        Rename CString::c_str() -> CString::data(), CString::size() -> CString::length(),
+        remove UString::getCString() (all uses are wrong, should use UString::UTF8String()).
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::printUnaryOp):
+        (JSC::CodeBlock::printBinaryOp):
+        (JSC::CodeBlock::printConditionalJump):
+        (JSC::CodeBlock::printGetByIdOp):
+        (JSC::CodeBlock::printPutByIdOp):
+        (JSC::printGlobalResolveInfo):
+        (JSC::printStructureStubInfo):
+        (JSC::CodeBlock::printStructure):
+        (JSC::CodeBlock::printStructures):
+        (JSC::CodeBlock::dump):
+        * jsc.cpp:
+        (functionPrint):
+        (functionDebug):
+        (runInteractive):
+        (fillBufferWithContentsOfFile):
+        * profiler/CallIdentifier.h:
+        (JSC::CallIdentifier::c_str):
+        * profiler/Profile.cpp:
+        (JSC::Profile::debugPrintDataSampleStyle):
+        * profiler/ProfileNode.cpp:
+        (JSC::ProfileNode::debugPrintData):
+        (JSC::ProfileNode::debugPrintDataSampleStyle):
+        * runtime/DateConversion.cpp:
+        (JSC::parseDate):
+        * runtime/JSGlobalObjectFunctions.cpp:
+        (JSC::encode):
+        (JSC::globalFuncJSCPrint):
+        * runtime/UString.cpp:
+        (JSC::operator==):
+        (JSC::UString::toDouble):
+        * runtime/UString.h:
+        (JSC::CString::length):
+        (JSC::CString::data):
+
+2010-03-25  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by nobody, build fix.
+
+        [Qt] Build fix on MSVC. Reverts r55633 for stdint.h
+
+        This file gets included in generated moc files which don't
+        include the prefix header.
+
+        * os-win32/stdint.h:
+
 2010-03-25  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by NOBODY (windows build fix).
@@ -2880,6 +3002,23 @@
         * runtime/SmallStrings.cpp:
         (JSC::SmallStrings::markChildren): Since isAnyStringMarked being false
         is a condition of entering the loop, we can just use '=' instead of '|='.
+
+2010-02-12  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Additional refptr/passrefptr workarounds for WINSCW compiler
+        https://bugs.webkit.org/show_bug.cgi?id=28054
+
+        * wtf/PassRefPtr.h:
+        (WTF::refIfNotNull):
+        (WTF::PassRefPtr::PassRefPtr):
+        (WTF::PassRefPtr::~PassRefPtr):
+        (WTF::PassRefPtr::clear):
+        (WTF::::operator):
+        * wtf/RefPtr.h:
+        (WTF::RefPtr::RefPtr):
+        (WTF::::operator):
 
 2010-02-12  Janne Koskinen  <janne.p.koskinen@digia.com>
 

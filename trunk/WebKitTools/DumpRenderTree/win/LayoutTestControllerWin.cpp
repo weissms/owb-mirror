@@ -110,6 +110,21 @@ void LayoutTestController::clearBackForwardList()
     backForwardList->goToItem(item.get());
 }
 
+bool LayoutTestController::callShouldCloseOnWebView()
+{
+    COMPtr<IWebView> webView;
+    if (FAILED(frame->webView(&webView)))
+        return false;
+
+    COMPtr<IWebViewPrivate> viewPrivate;
+    if (FAILED(webView->QueryInterface(&viewPrivate)))
+        return false;
+
+    BOOL result;
+    viewPrivate->shouldClose(&result);
+    return result;
+}
+
 JSStringRef LayoutTestController::copyDecodedHostName(JSStringRef name)
 {
     // FIXME: Implement!
@@ -693,19 +708,11 @@ void LayoutTestController::setJavaScriptProfilingEnabled(bool flag)
     if (FAILED(webView->QueryInterface(&viewPrivate)))
         return;
 
-    COMPtr<IWebPreferences> preferences;
-    if (FAILED(webView->preferences(&preferences)))
-        return;
-
-    COMPtr<IWebPreferencesPrivate> prefsPrivate(Query, preferences);
-    if (!prefsPrivate)
-        return;
-
     COMPtr<IWebInspector> inspector;
     if (FAILED(viewPrivate->inspector(&inspector)))
         return;
 
-    prefsPrivate->setDeveloperExtrasEnabled(flag);
+    setDeveloperExtrasEnabled(flag);
     inspector->setJavaScriptProfilingEnabled(flag);
 }
 
@@ -991,7 +998,7 @@ void LayoutTestController::addUserStyleSheet(JSStringRef source)
     webView->addUserStyleSheetToGroup(_bstr_t(L"org.webkit.DumpRenderTree").GetBSTR(), world.get(), bstrT(source).GetBSTR(), 0, 0, 0, 0, 0);
 }
 
-void LayoutTestController::showWebInspector()
+void LayoutTestController::setDeveloperExtrasEnabled(bool enabled)
 {
     COMPtr<IWebView> webView;
     if (FAILED(frame->webView(&webView)))
@@ -1005,7 +1012,14 @@ void LayoutTestController::showWebInspector()
     if (!prefsPrivate)
         return;
 
-    prefsPrivate->setDeveloperExtrasEnabled(true);
+    prefsPrivate->setDeveloperExtrasEnabled(enabled);
+}
+
+void LayoutTestController::showWebInspector()
+{
+    COMPtr<IWebView> webView;
+    if (FAILED(frame->webView(&webView)))
+        return;
 
     COMPtr<IWebViewPrivate> viewPrivate(Query, webView);
     if (!viewPrivate)
@@ -1031,16 +1045,6 @@ void LayoutTestController::closeWebInspector()
         return;
 
     inspector->close();
-
-    COMPtr<IWebPreferences> preferences;
-    if (FAILED(webView->preferences(&preferences)))
-        return;
-
-    COMPtr<IWebPreferencesPrivate> prefsPrivate(Query, preferences);
-    if (!prefsPrivate)
-        return;
-
-    prefsPrivate->setDeveloperExtrasEnabled(false);
 }
 
 void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef script)

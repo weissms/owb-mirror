@@ -39,13 +39,13 @@ import webkitpy.tool.steps as steps
 
 from webkitpy.common.config.committers import CommitterList
 from webkitpy.common.net.bugzilla import parse_bug_id
+from webkitpy.common.system.user import User
 from webkitpy.tool.commands_references import Mock
 from webkitpy.tool.commands.abstractsequencedcommand import AbstractSequencedCommand
+from webkitpy.tool.grammar import pluralize, join_with_separators
 from webkitpy.tool.comments import bug_comment_from_svn_revision
 from webkitpy.tool.multicommandtool import AbstractDeclarativeCommand
-from webkitpy.grammar import pluralize, join_with_separators
-from webkitpy.webkit_logging import error, log
-from webkitpy.user import User
+from webkitpy.common.system.deprecated_logging import error, log
 
 class CommitMessageForCurrentDiff(AbstractDeclarativeCommand):
     name = "commit-message"
@@ -53,7 +53,7 @@ class CommitMessageForCurrentDiff(AbstractDeclarativeCommand):
 
     def execute(self, options, args, tool):
         os.chdir(tool.scm().checkout_root)
-        print "%s" % tool.scm().commit_message_for_this_commit().message()
+        print "%s" % tool.checkout().commit_message_for_this_commit().message()
 
 class CleanPendingCommit(AbstractDeclarativeCommand):
     name = "clean-pending-commit"
@@ -415,7 +415,7 @@ class CreateBug(AbstractDeclarativeCommand):
         if options.prompt:
             (bug_title, comment_text) = self.prompt_for_bug_title_and_comment()
         else:
-            commit_message = tool.scm().commit_message_for_this_commit()
+            commit_message = tool.checkout().commit_message_for_this_commit()
             bug_title = commit_message.description(lstrip=True, strip_url=True)
             comment_text = commit_message.body(lstrip=True)
 

@@ -1725,13 +1725,18 @@ void CSSStyleSelector::cacheBorderAndBackground()
 
 PassRefPtr<CSSRuleList> CSSStyleSelector::styleRulesForElement(Element* e, bool authorOnly)
 {
+    return pseudoStyleRulesForElement(e, NOPSEUDO, authorOnly);
+}
+
+PassRefPtr<CSSRuleList> CSSStyleSelector::pseudoStyleRulesForElement(Element* e, PseudoId pseudoId, bool authorOnly)
+{
     if (!e || !e->document()->haveStylesheetsLoaded())
         return 0;
 
     m_checker.m_collectRulesOnly = true;
 
     initElementAndPseudoState(e);
-    initForStyleResolve(e);
+    initForStyleResolve(e, 0, pseudoId);
 
     if (!authorOnly) {
         int firstUARule = -1, lastUARule = -1;
@@ -1754,12 +1759,6 @@ PassRefPtr<CSSRuleList> CSSStyleSelector::styleRulesForElement(Element* e, bool 
     m_checker.m_collectRulesOnly = false;
     
     return m_ruleList.release();
-}
-
-PassRefPtr<CSSRuleList> CSSStyleSelector::pseudoStyleRulesForElement(Element*, const String&, bool)
-{
-    // FIXME: Implement this.
-    return 0;
 }
 
 bool CSSStyleSelector::checkSelector(CSSSelector* sel)
@@ -1865,7 +1864,7 @@ CSSStyleSelector::SelectorMatch CSSStyleSelector::SelectorChecker::checkSelector
             // a selector is invalid if something follows a pseudo-element
             // We make an exception for scrollbar pseudo elements and allow a set of pseudo classes (but nothing else)
             // to follow the pseudo elements.
-            if (elementStyle && dynamicPseudo != NOPSEUDO && dynamicPseudo != SELECTION &&
+            if ((elementStyle || m_collectRulesOnly) && dynamicPseudo != NOPSEUDO && dynamicPseudo != SELECTION &&
                 !((RenderScrollbar::scrollbarForStyleResolve() || dynamicPseudo == SCROLLBAR_CORNER || dynamicPseudo == RESIZER) && sel->m_match == CSSSelector::PseudoClass))
                 return SelectorFailsCompletely;
             return checkSelector(sel, e, selectorAttrs, dynamicPseudo, isAncestor, true, elementStyle, elementParentStyle);
@@ -2505,7 +2504,7 @@ bool CSSStyleSelector::SelectorChecker::checkOneSelector(CSSSelector* sel, Eleme
         return false;
     }
     if (sel->m_match == CSSSelector::PseudoElement) {
-        if (!elementStyle)
+        if (!elementStyle && !m_collectRulesOnly)
             return false;
 
         switch (sel->pseudoType()) {

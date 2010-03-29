@@ -40,6 +40,7 @@
 #include "SVGElementRareData.h"
 #include "SVGNames.h"
 #include "SVGRenderStyle.h"
+#include "SVGRenderSupport.h"
 #include "SVGResourceFilter.h"
 #include "SVGSVGElement.h"
 #include <wtf/Assertions.h>
@@ -223,23 +224,18 @@ void SVGStyledElement::invalidateResources()
     if (!object)
         return;
 
-    const SVGRenderStyle* svgStyle = object->style()->svgStyle();
     Document* document = this->document();
 
     if (document->parsing())
         return;
 
 #if ENABLE(FILTERS)
-    SVGResourceFilter* filter = getFilterById(document, svgStyle->filter(), object);
+    SVGResourceFilter* filter = getFilterById(document, object->style()->svgStyle()->filter(), object);
     if (filter)
         filter->invalidate();
 #endif
 
-    if (RenderSVGResourceMasker* masker = getRenderSVGResourceById<RenderSVGResourceMasker>(document, svgStyle->maskElement()))
-        masker->invalidateClient(object);
-
-    if (RenderSVGResourceClipper* clipper = getRenderSVGResourceById<RenderSVGResourceClipper>(document, svgStyle->clipPath()))
-        clipper->invalidateClient(object);
+    deregisterFromResources(object);
 }
 
 void SVGStyledElement::invalidateResourcesInAncestorChain() const

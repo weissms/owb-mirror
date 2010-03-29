@@ -979,7 +979,7 @@ body.platform-linux .monospace, body.platform-linux .source-code {
     position: absolute;
     top: 0;
     left: 0;
-    right: 225px;
+    right: 300px;
     bottom: 0;
 }
 
@@ -988,7 +988,7 @@ body.platform-linux .monospace, body.platform-linux .source-code {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 225px;
+    width: 300px;
     background-color: rgb(245, 245, 245);
     border-left: 1px solid rgb(64%, 64%, 64%);
     cursor: default;
@@ -1495,6 +1495,10 @@ body.inactive .placard.selected {
 .editing, .editing * {
     color: black !important;
     text-decoration: none !important;
+}
+
+.editing br {
+    display: none;
 }
 
 .elements-tree-editor {
@@ -3626,6 +3630,33 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
     background-position-y: 72px;
 }
 
+.timeline-details {
+    -webkit-user-select: text;
+}
+
+.timeline-details-row-title {
+    font-weight: bold;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.timeline-details-row-data {
+    white-space: nowrap;
+}
+
+.timeline-details-title {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.timeline-filter-status-bar-item .glyph {
+    -webkit-mask-image: url(Images/largerResourcesButtonGlyph.png);
+}
+
+.timeline-filter-status-bar-item.toggled-on .glyph {
+    background-color: rgb(66, 129, 235) !important;
+}
+
 /* Profiler Style */
 
 #profile-views {
@@ -3883,25 +3914,9 @@ ol.breakpoint-list {
     border-bottom: 1px solid rgb(189, 189, 189);
     color: rgb(110, 110, 110);
     text-shadow: white 0 1px 0;
-}
-
-.timeline-details {
-    -webkit-user-select: text;
-}
-
-.timeline-details-row-title {
-    font-weight: bold;
-    text-align: right;
     white-space: nowrap;
-}
-
-.timeline-details-row-data {
-    white-space: nowrap;
-}
-
-.timeline-details-title {
-    font-weight: bold;
-    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .workers-list {

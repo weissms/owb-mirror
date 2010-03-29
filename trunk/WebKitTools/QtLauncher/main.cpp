@@ -32,6 +32,11 @@
 
 #include <QtGui>
 #include <QtNetwork/QNetworkRequest>
+
+#if defined(QT_CONFIGURED_WITH_OPENGL)
+#include <QtOpenGL/QGLWidget>
+#endif
+
 #if !defined(QT_NO_PRINTER)
 #include <QPrintPreviewDialog>
 #endif
@@ -80,6 +85,17 @@ static QUrl gInspectorUrl;
 static bool gResizesToContents = false;
 static bool gUseTiledBackingStore = false;
 
+#if defined(Q_WS_MAEMO_5) || defined(Q_WS_S60)
+static bool gUseFrameFlattening = true;
+#else
+static bool gUseFrameFlattening = false;
+#endif
+
+#if defined(QT_CONFIGURED_WITH_OPENGL)
+static bool gUseQGLWidgetViewport = false;
+#endif
+
+
 class LauncherWindow : public MainWindow {
     Q_OBJECT
 
@@ -122,17 +138,25 @@ protected slots:
     void toggleAcceleratedCompositing(bool toggle);
     void toggleTiledBackingStore(bool toggle);
     void toggleResizesToContents(bool toggle);
-    
+
     void toggleWebGL(bool toggle);
     void initializeView(bool useGraphicsView = false);
     void toggleSpatialNavigation(bool b);
     void toggleFullScreenMode(bool enable);
     void showFPS(bool enable);
     void changeViewportUpdateMode(int mode);
+    void toggleFrameFlattening(bool toggle);
+
+#if defined(QT_CONFIGURED_WITH_OPENGL)
+    void toggleQGLWidgetViewport(bool enable);
+#endif
+
+    void showUserAgentDialog();
 
 public slots:
     void newWindow();
     void cloneWindow();
+    void updateFPS(int fps);
 
 signals:
     void enteredFullScreenMode(bool on);
@@ -249,6 +273,7 @@ void LauncherWindow::applyPrefs(LauncherWindow* source)
     applySetting(QWebSettings::AcceleratedCompositingEnabled, settings, other, gUseCompositing);
     applySetting(QWebSettings::TiledBackingStoreEnabled, settings, other, gUseTiledBackingStore);
     applySetting(QWebSettings::WebGLEnabled, settings, other, false);
+    applySetting(QWebSettings::FrameFlatteningEnabled, settings, other, gUseFrameFlattening);
 
     if (!isGraphicsBased())
         return;
@@ -479,7 +504,7 @@ void LauncherWindow::zoomOut()
     Q_ASSERT(i >= 0);
     if (i > 0)
         m_currentZoom = m_zoomLevels[i - 1];
-    
+
     applyZoom();
 }
 
@@ -610,6 +635,8 @@ void LauncherWindow::initializeView(bool useGraphicsView)
         if (m_flipYAnimated)
             connect(m_flipYAnimated, SIGNAL(triggered()), view, SLOT(animatedYFlip()));
 
+        connect(view, SIGNAL(currentFPSUpdated(int)), this, SLOT(updateFPS(int)));
+
         // The implementation of QAbstractScrollArea::eventFilter makes us need
         // to install the event filter on the viewport of a QGraphicsView.
         view->viewport()->installEventFilter(this);
@@ -648,6 +675,14 @@ void LauncherWindow::showFPS(bool enable)
     gShowFrameRate = enable;
     WebViewGraphicsBased* view = static_cast<WebViewGraphicsBased*>(m_view);
     view->setFrameRateMeasurementEnabled(enable);
+
+    if (!enable) {
+#if defined(Q_WS_MAEMO_5) && defined(Q_WS_S60)
+        setWindowTitle("");
+#else
+        statusBar()->clearMessage();
+#endif
+    }
 }
 
 void LauncherWindow::changeViewportUpdateMode(int mode)
@@ -661,6 +696,58 @@ void LauncherWindow::changeViewportUpdateMode(int mode)
     view->setViewportUpdateMode(gViewportUpdateMode);
 }
 
+void LauncherWindow::toggleFrameFlattening(bool toggle)
+{
+    gUseFrameFlattening = toggle;
+    page()->settings()->setAttribute(QWebSettings::FrameFlatteningEnabled, toggle);
+}
+
+#if defined(QT_CONFIGURED_WITH_OPENGL)
+void LauncherWindow::toggleQGLWidgetViewport(bool enable)
+{
+    if (!isGraphicsBased())
+        return;
+
+    gUseQGLWidgetViewport = enable;
+    WebViewGraphicsBased* view = static_cast<WebViewGraphicsBased*>(m_view);
+
+    view->setViewport(enable ? new QGLWidget() : 0);
+}
+#endif
+
+void LauncherWindow::showUserAgentDialog()
+{
+    QStringList items;
+    QFile file(":/useragentlist.txt");
+    if (file.open(QIODevice::ReadOnly)) {
+         while (!file.atEnd())
+            items << file.readLine().trimmed();
+        file.close();
+    }
+
+    QDialog* dialog = new QDialog(this);
+    dialog->setWindowTitle("Change User Agent");
+
+    QVBoxLayout* layout = new QVBoxLayout(dialog);
+    dialog->setLayout(layout);
+
+    QComboBox* combo = new QComboBox(dialog);
+    combo->setMaximumWidth(size().width() * 0.7);
+    combo->insertItems(0, items);
+    layout->addWidget(combo);
+
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+            | QDialogButtonBox::Cancel, Qt::Horizontal, dialog);
+    connect(buttonBox, SIGNAL(accepted()), dialog, SLOT(accept()));
+    connect(buttonBox, SIGNAL(rejected()), dialog, SLOT(reject()));
+    layout->addWidget(buttonBox);
+
+    if (dialog->exec() && !combo->currentText().isEmpty())
+        page()->setUserAgent(combo->currentText());
+
+    delete dialog;
+}
+
 void LauncherWindow::newWindow()
 {
     LauncherWindow* mw = new LauncherWindow(this, false);
@@ -671,6 +758,17 @@ void LauncherWindow::cloneWindow()
 {
     LauncherWindow* mw = new LauncherWindow(this, true);
     mw->show();
+}
+
+void LauncherWindow::updateFPS(int fps)
+{
+    QString fpsStatusText = QString("Current FPS: %1").arg(fps);
+
+#if defined(Q_WS_MAEMO_5) && defined(Q_WS_S60)
+    setWindowTitle(fpsStatusText);
+#else
+    statusBar()->showMessage(fpsStatusText);
+#endif
 }
 
 void LauncherWindow::createChrome()
@@ -762,13 +860,13 @@ void LauncherWindow::createChrome()
     toggleAcceleratedCompositing->setChecked(settings->testAttribute(QWebSettings::AcceleratedCompositingEnabled));
     toggleAcceleratedCompositing->setEnabled(isGraphicsBased());
     toggleAcceleratedCompositing->connect(toggleGraphicsView, SIGNAL(toggled(bool)), SLOT(setEnabled(bool)));
-    
+
     QAction* toggleResizesToContents = graphicsViewMenu->addAction("Toggle Resizes To Contents Mode", this, SLOT(toggleResizesToContents(bool)));
     toggleResizesToContents->setCheckable(true);
     toggleResizesToContents->setChecked(false);
     toggleResizesToContents->setEnabled(false);
     toggleResizesToContents->connect(toggleGraphicsView, SIGNAL(toggled(bool)), SLOT(setEnabled(bool)));
-    
+
     QAction* toggleTiledBackingStore = graphicsViewMenu->addAction("Toggle Tiled Backing Store", this, SLOT(toggleTiledBackingStore(bool)));
     toggleTiledBackingStore->setCheckable(true);
     toggleTiledBackingStore->setChecked(false);
@@ -778,6 +876,21 @@ void LauncherWindow::createChrome()
     QAction* spatialNavigationAction = toolsMenu->addAction("Toggle Spatial Navigation", this, SLOT(toggleSpatialNavigation(bool)));
     spatialNavigationAction->setCheckable(true);
     spatialNavigationAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
+
+    QAction* toggleFrameFlattening = toolsMenu->addAction("Toggle Frame Flattening", this, SLOT(toggleFrameFlattening(bool)));
+    toggleFrameFlattening->setCheckable(true);
+    toggleFrameFlattening->setChecked(settings->testAttribute(QWebSettings::FrameFlatteningEnabled));
+
+#if defined(QT_CONFIGURED_WITH_OPENGL)
+    QAction* toggleQGLWidgetViewport = graphicsViewMenu->addAction("Toggle use of QGLWidget Viewport", this, SLOT(toggleQGLWidgetViewport(bool)));
+    toggleQGLWidgetViewport->setCheckable(true);
+    toggleQGLWidgetViewport->setChecked(gUseQGLWidgetViewport);
+    toggleQGLWidgetViewport->setEnabled(isGraphicsBased());
+    toggleQGLWidgetViewport->connect(toggleGraphicsView, SIGNAL(toggled(bool)), SLOT(setEnabled(bool)));
+#endif
+
+    QAction* userAgentAction = toolsMenu->addAction("Change User Agent", this, SLOT(showUserAgentDialog()));
+    userAgentAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_U));
 
     graphicsViewMenu->addSeparator();
 

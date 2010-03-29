@@ -211,7 +211,9 @@ public:
     int m_changeMask;
 
     QSizeF m_size;
+#ifndef QT_NO_ANIMATION
     QList<QWeakPointer<QAbstractAnimation> > m_animations;
+#endif
     QTimer m_suspendTimer;
 
     struct State {
@@ -242,7 +244,9 @@ public:
         }
     } m_state;
 
+#ifndef QT_NO_ANIMATION
     friend class AnimationQtBase;
+#endif
 };
 
 GraphicsLayerQtImpl::GraphicsLayerQtImpl(GraphicsLayerQt* newLayer)
@@ -278,11 +282,13 @@ GraphicsLayerQtImpl::~GraphicsLayerQtImpl()
             item->setParentItem(0);
         }
     }
-    
+
+#ifndef QT_NO_ANIMATION
     // we do, however, own the animations...
     for (QList<QWeakPointer<QAbstractAnimation> >::iterator it = m_animations.begin(); it != m_animations.end(); ++it)
         if (QAbstractAnimation* anim = it->data())
             delete anim;
+#endif
 }
 
 void GraphicsLayerQtImpl::adjustCachingRecursively(bool animationIsRunning)
@@ -969,18 +975,18 @@ static inline double solveCubicBezierFunction(qreal p1x, qreal p1y, qreal p2x, q
 
 // we want the timing function to be as close as possible to what the web-developer intended, so we're using the same function used by WebCore when compositing is disabled
 // Using easing-curves would probably work for some of the cases, but wouldn't really buy us anything as we'd have to convert the bezier function back to an easing curve
-static inline qreal applyTimingFunction(const TimingFunction& timingFunction, qreal progress, int duration)
+static inline qreal applyTimingFunction(const TimingFunction& timingFunction, qreal progress, double duration)
 {
-        if (timingFunction.type() == LinearTimingFunction)
-            return progress;
-        if (timingFunction.type() == CubicBezierTimingFunction) {
-            return solveCubicBezierFunction(timingFunction.x1(),
-                                            timingFunction.y1(),
-                                            timingFunction.x2(),
-                                            timingFunction.y2(),
-                                            double(progress), double(duration) / 1000);
-        }
+    if (timingFunction.type() == LinearTimingFunction)
         return progress;
+    if (timingFunction.type() == CubicBezierTimingFunction) {
+        return solveCubicBezierFunction(timingFunction.x1(),
+                                        timingFunction.y1(),
+                                        timingFunction.x2(),
+                                        timingFunction.y2(),
+                                        double(progress), double(duration) / 1000);
+    }
+    return progress;
 }
 
 // helper functions to safely get a value out of WebCore's AnimationValue*
@@ -999,6 +1005,7 @@ static void webkitAnimationToQtAnimationValue(const AnimationValue* animationVal
     realValue = animationValue ? static_cast<const FloatAnimationValue*>(animationValue)->value() : 0;
 }
 
+#ifndef QT_NO_ANIMATION
 // we put a bit of the functionality in a base class to allow casting and to save some code size
 class AnimationQtBase : public QAbstractAnimation {
 public:
@@ -1052,6 +1059,8 @@ public:
             KeyframeValueQt<T> keyframeValue;
             if (animationValue->timingFunction())
                 keyframeValue.timingFunction = *animationValue->timingFunction();
+            else
+                keyframeValue.timingFunction = anim->timingFunction();
             webkitAnimationToQtAnimationValue(animationValue, keyframeValue.value);
             m_keyframeValues[animationValue->keyTime()] = keyframeValue;
         }
@@ -1100,7 +1109,7 @@ protected:
         // we can now process the progress and apply the frame
         progress = (!progress || progress == 1 || it.key() == it2.key())
                                          ? progress
-                                         : applyTimingFunction(timingFunc, (progress - it.key()) / (it2.key() - it.key()), duration() / 1000);
+                                         : applyTimingFunction(timingFunc, (progress - it.key()) / (it2.key() - it.key()), duration());
         applyFrame(fromValue, toValue, progress);
     }
 
@@ -1330,6 +1339,7 @@ void GraphicsLayerQt::resumeAnimations()
     }
 }
 
+#endif // QT_NO_ANIMATION
 }
 
 #include <GraphicsLayerQt.moc>

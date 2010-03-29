@@ -31,10 +31,10 @@
 #include "GraphicsContext.h"
 #include "PointerEventsHitRules.h"
 #include "RenderSVGContainer.h"
+#include "RenderSVGResourceMarker.h"
 #include "StrokeStyleApplier.h"
 #include "SVGPaintServer.h"
 #include "SVGRenderSupport.h"
-#include "SVGResourceMarker.h"
 #include "SVGStyledTransformableElement.h"
 #include "SVGTransformList.h"
 #include "SVGURIReference.h"
@@ -223,29 +223,32 @@ void RenderPath::paint(PaintInfo& paintInfo, int, int)
         return;
 
     PaintInfo childPaintInfo(paintInfo);
-    childPaintInfo.context->save();
-    applyTransformToPaintInfo(childPaintInfo, m_localTransform);
-    SVGResourceFilter* filter = 0;
+    bool drawsOutline = style()->outlineWidth() && (childPaintInfo.phase == PaintPhaseOutline || childPaintInfo.phase == PaintPhaseSelfOutline);
+    if (drawsOutline || childPaintInfo.phase == PaintPhaseForeground) {
+        childPaintInfo.context->save();
+        applyTransformToPaintInfo(childPaintInfo, m_localTransform);
+        SVGResourceFilter* filter = 0;
 
-    if (childPaintInfo.phase == PaintPhaseForeground) {
-        PaintInfo savedInfo(childPaintInfo);
+        if (childPaintInfo.phase == PaintPhaseForeground) {
+            PaintInfo savedInfo(childPaintInfo);
 
-        if (prepareToRenderSVGContent(this, childPaintInfo, boundingBox, filter)) {
-            if (style()->svgStyle()->shapeRendering() == SR_CRISPEDGES)
-                childPaintInfo.context->setShouldAntialias(false);
-            fillAndStrokePath(m_path, childPaintInfo.context, style(), this);
+            if (prepareToRenderSVGContent(this, childPaintInfo, boundingBox, filter)) {
+                if (style()->svgStyle()->shapeRendering() == SR_CRISPEDGES)
+                    childPaintInfo.context->setShouldAntialias(false);
+                fillAndStrokePath(m_path, childPaintInfo.context, style(), this);
 
-            if (static_cast<SVGStyledElement*>(node())->supportsMarkers())
-                m_markerLayoutInfo.drawMarkers(childPaintInfo);
+                if (static_cast<SVGStyledElement*>(node())->supportsMarkers())
+                    m_markerLayoutInfo.drawMarkers(childPaintInfo);
+            }
+            finishRenderSVGContent(this, childPaintInfo, filter, savedInfo.context);
         }
-        finishRenderSVGContent(this, childPaintInfo, filter, savedInfo.context);
-    }
 
-    if ((childPaintInfo.phase == PaintPhaseOutline || childPaintInfo.phase == PaintPhaseSelfOutline) && style()->outlineWidth())
-        paintOutline(childPaintInfo.context, static_cast<int>(boundingBox.x()), static_cast<int>(boundingBox.y()),
-            static_cast<int>(boundingBox.width()), static_cast<int>(boundingBox.height()), style());
-    
-    childPaintInfo.context->restore();
+        if (drawsOutline)
+            paintOutline(childPaintInfo.context, static_cast<int>(boundingBox.x()), static_cast<int>(boundingBox.y()),
+                static_cast<int>(boundingBox.width()), static_cast<int>(boundingBox.height()), style());
+        
+        childPaintInfo.context->restore();
+    }
 }
 
 // This method is called from inside paintOutline() since we call paintOutline()
@@ -297,24 +300,24 @@ void RenderPath::calculateMarkerBoundsIfNeeded() const
     AtomicString midMarkerId(svgStyle->midMarker());
     AtomicString endMarkerId(svgStyle->endMarker());
 
-    SVGResourceMarker* startMarker = getMarkerById(doc, startMarkerId, this);
-    SVGResourceMarker* midMarker = getMarkerById(doc, midMarkerId, this);
-    SVGResourceMarker* endMarker = getMarkerById(doc, endMarkerId, this);
+    RenderSVGResourceMarker* startMarker = getRenderSVGResourceById<RenderSVGResourceMarker>(doc, startMarkerId);
+    RenderSVGResourceMarker* midMarker = getRenderSVGResourceById<RenderSVGResourceMarker>(doc, midMarkerId);
+    RenderSVGResourceMarker* endMarker = getRenderSVGResourceById<RenderSVGResourceMarker>(doc, endMarkerId);
 
     if (!startMarker && !startMarkerId.isEmpty())
         svgElement->document()->accessSVGExtensions()->addPendingResource(startMarkerId, styledElement);
     else if (startMarker)
-        startMarker->addClient(styledElement);
+        startMarker->addClient(this);
 
     if (!midMarker && !midMarkerId.isEmpty())
         svgElement->document()->accessSVGExtensions()->addPendingResource(midMarkerId, styledElement);
     else if (midMarker)
-        midMarker->addClient(styledElement);
+        midMarker->addClient(this);
 
     if (!endMarker && !endMarkerId.isEmpty())
         svgElement->document()->accessSVGExtensions()->addPendingResource(endMarkerId, styledElement);
     else if (endMarker)
-        endMarker->addClient(styledElement);
+        endMarker->addClient(this);
 
     if (!startMarker && !midMarker && !endMarker)
         return;

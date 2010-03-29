@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2009 Google Inc. All rights reserved.
 # Copyright (c) 2009 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,9 +34,9 @@ from webkitpy.common.checkout.changelog import view_source_url
 from webkitpy.common.checkout.commitinfo import CommitInfo
 from webkitpy.common.config.committers import CommitterList
 from webkitpy.common.net.buildbot import BuildBot
-from webkitpy.grammar import pluralize
+from webkitpy.tool.grammar import pluralize
 from webkitpy.tool.multicommandtool import AbstractDeclarativeCommand
-from webkitpy.webkit_logging import log
+from webkitpy.common.system.deprecated_logging import log
 
 
 class BugsToCommit(AbstractDeclarativeCommand):
@@ -107,6 +106,14 @@ class PatchesToReview(AbstractDeclarativeCommand):
             print patch_id
 
 
+class LastGreenRevision(AbstractDeclarativeCommand):
+    name = "last-green-revision"
+    help_text = "Prints the last known good revision"
+
+    def execute(self, options, args, tool):
+        print self.tool.buildbot.last_green_revision()
+
+
 class WhatBroke(AbstractDeclarativeCommand):
     name = "what-broke"
     help_text = "Print failing buildbots (%s) and what revisions broke them" % BuildBot.default_host
@@ -139,7 +146,7 @@ class WhatBroke(AbstractDeclarativeCommand):
             first_failure_message = " FIRST FAILURE, possibly a flaky test"
         self._print_builder_line(builder.name(), name_width, "FAIL (blame-list: %s%s)" % (suspect_revisions, first_failure_message))
         for revision in suspect_revisions:
-            commit_info = CommitInfo.commit_info_for_revision(self.tool.scm(), revision)
+            commit_info = self.tool.checkout().commit_info_for_revision(revision)
             self._print_blame_information_for_commit(commit_info)
 
     def execute(self, options, args, tool):

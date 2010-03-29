@@ -89,6 +89,7 @@ if(ENABLE_SVG)
         rendering/RenderSVGInlineText.cpp
         rendering/RenderSVGModelObject.cpp
         rendering/RenderSVGResourceClipper.cpp
+        rendering/RenderSVGResourceMarker.cpp
         rendering/RenderSVGResourceMasker.cpp
         rendering/RenderSVGRoot.cpp
         rendering/RenderSVGShadowTreeRootContainer.cpp

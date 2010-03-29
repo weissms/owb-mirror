@@ -26,7 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from webkitpy.webkit_logging import log
+from webkitpy.common.system.deprecated_logging import log
 from webkitpy.common.config.ports import WebKitPort
 
 
@@ -50,7 +50,7 @@ class AbstractStep(object):
 
     _well_known_keys = {
         "diff" : lambda self: self._tool.scm().create_patch(),
-        "changelogs" : lambda self: self._tool.scm().modified_changelogs(),
+        "changelogs" : lambda self: self._tool.checkout().modified_changelogs(),
     }
 
     def cached_lookup(self, state, key, promise=None):

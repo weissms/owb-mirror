@@ -44,6 +44,7 @@ template <typename T>
 class WebPrivatePtr {
 public:
     WebPrivatePtr() : m_ptr(0) { }
+    ~WebPrivatePtr() { WEBKIT_ASSERT(!m_ptr); }
 
     bool isNull() const { return !m_ptr; }
 

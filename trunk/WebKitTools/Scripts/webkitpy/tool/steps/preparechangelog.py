@@ -28,10 +28,10 @@
 
 import os
 
-from webkitpy.executive import ScriptError
+from webkitpy.common.system.executive import ScriptError
 from webkitpy.tool.steps.abstractstep import AbstractStep
 from webkitpy.tool.steps.options import Options
-from webkitpy.webkit_logging import error
+from webkitpy.common.system.deprecated_logging import error
 
 
 class PrepareChangeLog(AbstractStep):

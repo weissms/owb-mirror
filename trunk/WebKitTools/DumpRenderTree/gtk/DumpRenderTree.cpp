@@ -117,6 +117,11 @@ static bool shouldOpenWebInspector(const char* pathOrURL)
     return strstr(pathOrURL, "inspector/");
 }
 
+static bool shouldEnableDeveloperExtras(const char* pathOrURL)
+{
+    return shouldOpenWebInspector(pathOrURL) || strstr(pathOrURL, "inspector-enabled/");
+}
+
 void dumpFrameScrollPosition(WebKitWebFrame* frame)
 {
 
@@ -336,6 +341,7 @@ static void resetDefaultsToConsistentValues()
                  "enable-page-cache", FALSE,
                  "auto-resize-window", TRUE,
                  "enable-java-applet", FALSE,
+                 "enable-plugins", TRUE,
                  NULL);
 
     webkit_web_frame_clear_main_frame_name(mainFrame);
@@ -479,8 +485,11 @@ static void runTest(const string& testPathOrURL)
     if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
         gLayoutTestController->setDumpFrameLoadCallbacks(true);
 
-    if (shouldOpenWebInspector(pathOrURL.c_str()))
-        gLayoutTestController->showWebInspector();
+    if (shouldEnableDeveloperExtras(pathOrURL.c_str())) {
+        gLayoutTestController->setDeveloperExtrasEnabled(true);
+        if (shouldOpenWebInspector(pathOrURL.c_str()))
+            gLayoutTestController->showWebInspector();
+    }
 
     WorkQueue::shared()->clear();
     WorkQueue::shared()->setFrozen(false);
@@ -513,7 +522,8 @@ static void runTest(const string& testPathOrURL)
 
     gtk_main();
 
-    if (shouldOpenWebInspector(pathOrURL.c_str()))
+    // If developer extras enabled Web Inspector may have been open by the test.
+    if (shouldEnableDeveloperExtras(pathOrURL.c_str()))
         gLayoutTestController->closeWebInspector();
 
     // Also check if we still have opened webViews and free them.
@@ -579,8 +589,24 @@ static char* getFrameNameSuitableForTestResult(WebKitWebView* view, WebKitWebFra
     return frameName;
 }
 
+static void webViewLoadCommitted(WebKitWebView* view, WebKitWebFrame* frame, void*)
+{
+    if (!done && gLayoutTestController->dumpFrameLoadCallbacks()) {
+        char* frameName = getFrameNameSuitableForTestResult(view, frame);
+        printf("%s - didCommitLoadForFrame\n", frameName);
+        g_free(frameName);
+    }
+}
+
+
 static void webViewLoadFinished(WebKitWebView* view, WebKitWebFrame* frame, void*)
 {
+    if (!done && gLayoutTestController->dumpFrameLoadCallbacks()) {
+        char* frameName = getFrameNameSuitableForTestResult(view, frame);
+        printf("%s - didFinishLoadForFrame\n", frameName);
+        g_free(frameName);
+    }
+
     if (frame != topLoadingFrame)
         return;
 
@@ -599,7 +625,7 @@ static void webViewDocumentLoadFinished(WebKitWebView* view, WebKitWebFrame* fra
 {
     if (!done && gLayoutTestController->dumpFrameLoadCallbacks()) {
         char* frameName = getFrameNameSuitableForTestResult(view, frame);
-        printf("%s - didFinishDocumentLoadForFrame", frameName);
+        printf("%s - didFinishDocumentLoadForFrame\n", frameName);
         g_free(frameName);
     } else if (!done) {
         guint pendingFrameUnloadEvents = webkit_web_frame_get_pending_unload_event_count(frame);
@@ -608,6 +634,15 @@ static void webViewDocumentLoadFinished(WebKitWebView* view, WebKitWebFrame* fra
             printf("%s - has %u onunload handler(s)\n", frameName, pendingFrameUnloadEvents);
             g_free(frameName);
         }
+    }
+}
+
+static void webViewOnloadEvent(WebKitWebView* view, WebKitWebFrame* frame, void*)
+{
+    if (!done && gLayoutTestController->dumpFrameLoadCallbacks()) {
+        char* frameName = getFrameNameSuitableForTestResult(view, frame);
+        printf("%s - didHandleOnloadEventsForFrame\n", frameName);
+        g_free(frameName);
     }
 }
 
@@ -818,6 +853,7 @@ static WebKitWebView* createWebView()
     g_object_connect(G_OBJECT(view),
                      "signal::load-started", webViewLoadStarted, 0,
                      "signal::load-finished", webViewLoadFinished, 0,
+                     "signal::load-committed", webViewLoadCommitted, 0,
                      "signal::window-object-cleared", webViewWindowObjectCleared, 0,
                      "signal::console-message", webViewConsoleMessage, 0,
                      "signal::script-alert", webViewScriptAlert, 0,
@@ -831,6 +867,7 @@ static WebKitWebView* createWebView()
                      "signal::database-quota-exceeded", databaseQuotaExceeded, 0,
                      "signal::document-load-finished", webViewDocumentLoadFinished, 0,
                      "signal::geolocation-policy-decision-requested", geolocationPolicyDecisionRequested, 0,
+                     "signal::onload-event", webViewOnloadEvent, 0,
                      NULL);
 
     WebKitWebInspector* inspector = webkit_web_view_get_inspector(view);

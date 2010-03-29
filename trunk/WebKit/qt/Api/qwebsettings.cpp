@@ -351,6 +351,7 @@ QWebSettings* QWebSettings::globalSettings()
     \value MissingPluginGraphic The replacement graphic shown when a plugin could not be loaded.
     \value DefaultFrameIconGraphic The default icon for QWebFrame::icon().
     \value TextAreaSizeGripCornerGraphic The graphic shown for the size grip of text areas.
+    \value DeleteButtonGraphic The graphic shown for the WebKit-Editing-Delete-Button in Deletion UI.
 */
 
 /*!
@@ -1042,8 +1043,9 @@ void QWebSettings::enablePersistentStorage(const QString& path)
     QString storagePath;
 
     if (path.isEmpty()) {
+#ifndef QT_NO_DESKTOPSERVICES
         storagePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
-
+#endif
         if (storagePath.isEmpty())
             storagePath = WebCore::pathByAppendingComponent(QDir::homePath(), QCoreApplication::applicationName());
     } else

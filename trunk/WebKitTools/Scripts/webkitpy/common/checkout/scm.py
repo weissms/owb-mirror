@@ -31,13 +31,10 @@
 
 import os
 import re
-import subprocess
 
-# Import WebKit-specific modules.
-from webkitpy.common.checkout.changelog import ChangeLog, is_path_to_changelog
-from webkitpy.executive import Executive, run_command, ScriptError
-from webkitpy.user import User
-from webkitpy.webkit_logging import error, log
+from webkitpy.common.system.executive import Executive, run_command, ScriptError
+from webkitpy.common.system.user import User
+from webkitpy.common.system.deprecated_logging import error, log
 
 def detect_scm_system(path):
     if SVN.in_working_directory(path):
@@ -121,19 +118,6 @@ class SCM:
             error("Working directory has local commits, pass --force-clean to continue.")
         self.discard_local_commits()
 
-    def apply_patch(self, patch, force=False):
-        # It's possible that the patch was not made from the root directory.
-        # We should detect and handle that case.
-        # FIXME: scm.py should not deal with fetching Attachment data.  Attachment should just have a .data() accessor.
-        curl_process = subprocess.Popen(['curl', '--location', '--silent', '--show-error', patch.url()], stdout=subprocess.PIPE)
-        args = [self.script_path('svn-apply')]
-        if patch.reviewer():
-            args += ['--reviewer', patch.reviewer().full_name]
-        if force:
-            args.append('--force')
-
-        run_command(args, input=curl_process.stdout)
-
     def run_status_and_extract_filenames(self, status_command, status_regexp):
         filenames = []
         for line in run_command(status_command).splitlines():
@@ -154,32 +138,6 @@ class SCM:
     def svn_revision_from_commit_text(self, commit_text):
         match = re.search(self.commit_success_regexp(), commit_text, re.MULTILINE)
         return match.group('svn_revision')
-
-    # ChangeLog-specific code doesn't really belong in scm.py, but this function is very useful.
-    def modified_changelogs(self):
-        return [path for path in self.changed_files() if is_path_to_changelog(path)]
-
-    # FIXME: Requires unit test
-    # FIXME: commit_message_for_this_commit and modified_changelogs don't
-    #        really belong here.  We should have a separate module for
-    #        handling ChangeLogs.
-    def commit_message_for_this_commit(self):
-        changelog_paths = self.modified_changelogs()
-        if not len(changelog_paths):
-            raise ScriptError(message="Found no modified ChangeLogs, cannot create a commit message.\n"
-                              "All changes require a ChangeLog.  See:\n"
-                              "http://webkit.org/coding/contributing.html")
-
-        changelog_messages = []
-        for changelog_path in changelog_paths:
-            log("Parsing ChangeLog: %s" % changelog_path)
-            changelog_entry = ChangeLog(changelog_path).latest_entry()
-            if not changelog_entry:
-                raise ScriptError(message="Failed to parse ChangeLog: " + os.path.abspath(changelog_path))
-            changelog_messages.append(changelog_entry.contents())
-
-        # FIXME: We should sort and label the ChangeLog messages like commit-log-editor does.
-        return CommitMessage("".join(changelog_messages).splitlines())
 
     @staticmethod
     def in_working_directory(path):
@@ -503,15 +461,6 @@ class Git(SCM):
         git_commit = self.git_commit_from_svn_revision(revision)
         # I think this will always fail due to ChangeLogs.
         run_command(['git', 'revert', '--no-commit', git_commit], error_handler=Executive.ignore_error)
-
-        # Fix any ChangeLogs if necessary.
-        changelog_paths = self.modified_changelogs()
-        if len(changelog_paths):
-            run_command([self.script_path('resolve-ChangeLogs')] + changelog_paths)
-
-        conflicts = self.conflicted_files()
-        if len(conflicts):
-            raise ScriptError(message="Failed to apply reverse diff for revision %s because of the following conflicts:\n%s" % (revision, "\n".join(conflicts)))
 
     def revert_files(self, file_paths):
         run_command(['git', 'checkout', 'HEAD'] + file_paths)

@@ -1,3 +1,48 @@
+2010-03-28  Darin Adler  <darin@apple.com>
+
+        * Misc/WebNSFileManagerExtras.m:
+        (-[NSFileManager _webkit_pathWithUniqueFilenameForPath:]):
+        Removed stray "!". How did that get in there?
+
+2010-03-27  Darin Adler  <darin@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        WebKit NSFileManager methods don't handle broken symlinks correctly.
+        Part of <rdar://problem/7574046>.
+
+        * Misc/WebNSFileManagerExtras.h: Removed unused defines and methods.
+        * Misc/WebNSFileManagerExtras.m: Removed unused methods.
+        (fileExists): Added. For use instead of fileExistsAtPath: for cases where we'd like
+        to treat a broken symlink as a file that does indeed exist.
+        (-[NSFileManager _webkit_pathWithUniqueFilenameForPath:]): Use fileExists.
+
+2010-03-25  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm: (WKPCRunSyncOpenPanel): Re-fetch host proxy in
+        a way that works in a function that doesn't have a pluginID argument for some reason.
+
+2010-03-25  Simon Fraser  <simon.fraser@apple.com>
+
+        Build fix: no review.
+        
+        Another c_str() -> data().
+        
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::enumerate):
+
+2010-03-25  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Correctness fix after r56493.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm: (WKPCRunSyncOpenPanel): We still need to update
+        our hostProxy reference, even though we didn't use to have instanceProxy. Nothing guarantees
+        that the host proxy won't go away while the open panel is up.
+
 2010-03-25  Mark Rowe  <mrowe@apple.com>
 
         Build fix after r56474.

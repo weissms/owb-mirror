@@ -27,13 +27,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import threading
 
 from webkitpy.common.config.committers import CommitterList, Reviewer
 from webkitpy.common.checkout.commitinfo import CommitInfo
 from webkitpy.common.checkout.scm import CommitMessage
 from webkitpy.common.net.bugzilla import Bug, Attachment
 from webkitpy.thirdparty.mock import Mock
-from webkitpy.webkit_logging import log
+from webkitpy.common.system.deprecated_logging import log
 
 
 def _id_to_object_dictionary(*objects):
@@ -310,6 +311,9 @@ class MockBuildBot(object):
             return "Builder2"
         return []
 
+    def last_green_revision(self):
+        return 9479
+
     def light_tree_on_fire(self):
         self._tree_is_on_fire = True
 
@@ -317,6 +321,7 @@ class MockBuildBot(object):
         return {
             "29837": [mock_builder]
         }
+
 
 class MockSCM(Mock):
 
@@ -358,13 +363,8 @@ class MockSCM(Mock):
     def svn_revision_from_commit_text(self, commit_text):
         return "49824"
 
-    def modified_changelogs(self):
-        # Ideally we'd return something more interesting here.  The problem is
-        # that LandDiff will try to actually read the patch from disk!
-        return []
 
-
-class MockWebKitCheckout(object):
+class MockCheckout(object):
 
     _committer_list = CommitterList()
 
@@ -378,6 +378,19 @@ class MockWebKitCheckout(object):
             "reviewer": self._committer_list.committer_by_name("Darin Adler"),
         })
 
+    def modified_changelogs(self):
+        # Ideally we'd return something more interesting here.  The problem is
+        # that LandDiff will try to actually read the patch from disk!
+        return []
+
+    def commit_message_for_this_commit(self):
+        return Mock()
+
+    def apply_patch(self, patch, force=False):
+        pass
+
+    def apply_reverse_diff(self, revision):
+        pass
 
 class MockUser(object):
 
@@ -429,14 +442,16 @@ class MockStatusServer(object):
 class MockTool():
 
     def __init__(self):
+        self.wakeup_event = threading.Event()
         self.bugs = MockBugzilla()
         self.buildbot = MockBuildBot()
         self.executive = Mock()
         self._irc = None
         self.user = MockUser()
         self._scm = MockSCM()
-        self._checkout = MockWebKitCheckout()
+        self._checkout = MockCheckout()
         self.status_server = MockStatusServer()
+        self.irc_password = "MOCK irc password"
 
     def scm(self):
         return self._scm
@@ -444,7 +459,7 @@ class MockTool():
     def checkout(self):
         return self._checkout
 
-    def ensure_irc_connected(self):
+    def ensure_irc_connected(self, delegate):
         if not self._irc:
             self._irc = MockIRC()
 

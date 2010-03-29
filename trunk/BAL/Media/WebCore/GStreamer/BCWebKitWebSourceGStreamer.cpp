@@ -258,6 +258,7 @@ static void webkit_web_src_init(WebKitWebSrc* src,
     // already if the queue is 20% empty, it's much more
     // likely that libsoup already provides new data before
     // the queue is really empty.
+    // This might need tweaking for ports not using libsoup.
     if (priv->haveAppSrc27)
         g_object_set(priv->appsrc, "min-percent", 20, NULL);
 
@@ -511,21 +512,14 @@ static gboolean webKitWebSrcSetUri(GstURIHandler* handler, const gchar* uri)
     if (!uri)
         return TRUE;
 
-#if USE(NETWORK_SOUP)
-    SoupURI* soupUri = soup_uri_new(uri);
+    KURL url(KURL(), uri);
 
-    if (!soupUri || !SOUP_URI_VALID_FOR_HTTP(soupUri)) {
+    if (!url.isValid() || !url.protocolInHTTPFamily()) {
         GST_ERROR_OBJECT(src, "Invalid URI '%s'", uri);
-        soup_uri_free(soupUri);
         return FALSE;
     }
 
-    priv->uri = soup_uri_to_string(soupUri, FALSE);
-    soup_uri_free(soupUri);
-#else
-    priv->uri = g_strdup(uri);
-#endif
-
+    priv->uri = g_strdup(url.string().utf8().data());
     return TRUE;
 }
 
@@ -550,6 +544,8 @@ static gboolean webKitWebSrcNeedDataMainCb(WebKitWebSrc* src)
     if (d->m_msg)
         soup_session_unpause_message(ResourceHandle::defaultSession(), d->m_msg);
 #endif
+    // Ports not using libsoup need to call the unpause/schedule API of their
+    // underlying network implementation here.
 
     priv->paused = FALSE;
     priv->needDataID = 0;
@@ -576,6 +572,8 @@ static gboolean webKitWebSrcEnoughDataMainCb(WebKitWebSrc* src)
     ResourceHandleInternal* d = priv->resourceHandle->getInternal();
     soup_session_pause_message(ResourceHandle::defaultSession(), d->m_msg);
 #endif
+    // Ports not using libsoup need to call the pause/unschedule API of their
+    // underlying network implementation here.
 
     priv->paused = TRUE;
     priv->enoughDataID = 0;

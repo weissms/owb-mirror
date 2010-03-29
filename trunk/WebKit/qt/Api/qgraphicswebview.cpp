@@ -112,6 +112,7 @@ public:
     virtual QPalette palette() const;
     virtual int screenNumber() const;
     virtual QWidget* ownerWidget() const;
+    virtual QRect geometryRelativeToOwnerWidget() const;
 
     virtual QObject* pluginParent() const;
 
@@ -140,6 +141,7 @@ public:
     void _q_scaleChanged();
 
     void _q_updateMicroFocus();
+    void _q_pageDestroyed();
 
     QGraphicsWebView* q;
     QWebPage* page;
@@ -264,6 +266,12 @@ void QGraphicsWebViewPrivate::_q_updateMicroFocus()
 #endif
 }
 
+void QGraphicsWebViewPrivate::_q_pageDestroyed()
+{
+    page = 0;
+    q->setPage(0);
+}
+
 void QGraphicsWebViewPrivate::scroll(int dx, int dy, const QRect& rectToScroll)
 {
     q->scroll(qreal(dx), qreal(dy), QRectF(rectToScroll));
@@ -351,6 +359,19 @@ QWidget* QGraphicsWebViewPrivate::ownerWidget() const
     return 0;
 }
 
+QRect QGraphicsWebViewPrivate::geometryRelativeToOwnerWidget() const
+{
+    if (!q->scene())
+        return QRect();
+
+    QList<QGraphicsView*> views = q->scene()->views();
+    if (views.isEmpty())
+        return QRect();
+
+    QGraphicsView* view = views.at(0);
+    return view->mapFromScene(q->boundingRect()).boundingRect();
+}
+
 QObject* QGraphicsWebViewPrivate::pluginParent() const
 {
     return q;
@@ -403,7 +424,9 @@ QRectF QGraphicsWebViewPrivate::graphicsItemVisibleRect() const
         return QRectF();
     QList<QGraphicsView*> views = q->scene()->views();
     if (views.size() > 1) {
+#ifndef QT_NO_DEBUG_STREAM
         qDebug() << "QGraphicsWebView is in more than one graphics views, unable to compute the visible rect";
+#endif
         return QRectF();
     }
     if (views.size() < 1)
@@ -765,6 +788,8 @@ void QGraphicsWebView::setPage(QWebPage* page)
             this, SIGNAL(linkClicked(QUrl)));
     connect(d->page, SIGNAL(microFocusChanged()),
             this, SLOT(_q_updateMicroFocus()));
+    connect(d->page, SIGNAL(destroyed()),
+            this, SLOT(_q_pageDestroyed()));
 }
 
 /*!

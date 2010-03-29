@@ -1,4 +1,4 @@
-# Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2009 Google Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -28,24 +28,29 @@
 
 import os
 
-from webkitpy.tool.commands.queues import AbstractQueue
-from webkitpy.webkit_logging import log
+from webkitpy.common.system.deprecated_logging import log
 from webkitpy.common.config.ports import WebKitPort
-
+from webkitpy.tool.bot.sheriffircbot import SheriffIRCBot
+from webkitpy.tool.commands.queues import AbstractQueue
 
 class SheriffBot(AbstractQueue):
     name = "sheriff-bot"
+
+    def update(self):
+        self.tool.executive.run_and_throw_if_fail(WebKitPort.update_webkit_command(), quiet=True)
 
     # AbstractQueue methods
 
     def begin_work_queue(self):
         AbstractQueue.begin_work_queue(self)
-        self.tool.ensure_irc_connected()
+        self._irc_bot = SheriffIRCBot(self.tool)
+        self.tool.ensure_irc_connected(self._irc_bot.irc_delegate())
 
     def work_item_log_path(self, failure_info):
         return os.path.join("%s-logs" % self.name, "%s.log" % failure_info["svn_revision"])
 
     def next_work_item(self):
+        self.update()
         for svn_revision, builders in self.tool.buildbot.revisions_causing_failures().items():
             if self.tool.status_server.svn_revision(svn_revision):
                 continue
@@ -63,7 +68,7 @@ class SheriffBot(AbstractQueue):
         svn_revision = failure_info["svn_revision"]
         builders = failure_info["builders"]
 
-        self.tool.executive.run_and_throw_if_fail(WebKitPort.update_webkit_command(), quiet=True)
+        self.update()
         commit_info = self.tool.checkout().commit_info_for_revision(svn_revision)
         responsible_parties = [
             commit_info.committer(),

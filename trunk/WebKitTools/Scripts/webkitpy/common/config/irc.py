@@ -1,16 +1,16 @@
-# Copyright (C) 2009 Google Inc. All rights reserved.
+# Copyright (c) 2009 Google Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
 #
-#    * Redistributions of source code must retain the above copyright
+#     * Redistributions of source code must retain the above copyright
 # notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above
+#     * Redistributions in binary form must reproduce the above
 # copyright notice, this list of conditions and the following disclaimer
 # in the documentation and/or other materials provided with the
 # distribution.
-#    * Neither the name of Google Inc. nor the names of its
+#     * Neither the name of Google Inc. nor the names of its
 # contributors may be used to endorse or promote products derived from
 # this software without specific prior written permission.
 #
@@ -26,21 +26,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import unittest
-
-from webkitpy.tool.mocktool import MockTool
-from webkitpy.tool.steps_references import Mock
-from webkitpy.tool.steps.updatechangelogswithreviewer import UpdateChangeLogsWithReviewer
-from webkitpy.outputcapture import OutputCapture
-
-class UpdateChangeLogsWithReviewerTest(unittest.TestCase):
-    def test_guess_reviewer_from_bug(self):
-        capture = OutputCapture()
-        step = UpdateChangeLogsWithReviewer(MockTool(), Mock())
-        expected_stderr = "0 reviewed patches on bug 75, cannot infer reviewer.\n"
-        capture.assert_outputs(self, step._guess_reviewer_from_bug, [75], expected_stderr=expected_stderr)
-
-    def test_empty_state(self):
-        capture = OutputCapture()
-        step = UpdateChangeLogsWithReviewer(MockTool(), Mock())
-        capture.assert_outputs(self, step.run, [{}])
+server="irc.freenode.net"
+port=6667
+channel="#webkit"

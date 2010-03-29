@@ -619,15 +619,6 @@ WebInspector.documentMouseOver = function(event)
         return;
     if (anchor.href && anchor.href.indexOf("/data:") != -1)
         return;
-    if (WebInspector.canShowSourceLine(anchor.href, anchor.lineNumber, anchor.preferredPanel) || WebInspector.ProfileType.URLRegExp.exec(anchor.href)) {
-        if (event.target.originalTitle)
-            event.target.title = event.target.originalTitle;
-        return;
-    }
-
-    if (!event.target.originalTitle)
-        event.target.originalTitle = event.target.title;
-    event.target.title = WebInspector.UIString("Cannot open this link. Make sure that resource tracking is enabled in the Resources panel.");
 }
 
 WebInspector.documentClick = function(event)
@@ -668,6 +659,8 @@ WebInspector.documentClick = function(event)
             }
             return;
         }
+
+        WebInspector.showResourcesPanel();
     }
 
     if (WebInspector.followLinkTimeout)
@@ -784,8 +777,10 @@ WebInspector.documentKeyDown = function(event)
             break;
 
         case "U+0052": // R key
-            if ((event.metaKey && isMac) || (event.ctrlKey && !isMac))
+            if ((event.metaKey && isMac) || (event.ctrlKey && !isMac)) {
                 InspectorBackend.reloadPage();
+                event.preventDefault();
+            }
             break;
         case "F5":
             if (!isMac)
@@ -1514,7 +1509,20 @@ WebInspector.displayNameForURL = function(url)
     var resource = this.resourceURLMap[url];
     if (resource)
         return resource.displayName;
-    return url.trimURL(WebInspector.mainResource ? WebInspector.mainResource.domain : "");
+
+    if (!WebInspector.mainResource)
+        return url.trimURL("");
+
+    var lastPathComponent = WebInspector.mainResource.lastPathComponent;
+    var index = WebInspector.mainResource.url.indexOf(lastPathComponent);
+    if (index !== -1 && index + lastPathComponent.length === WebInspector.mainResource.url.length) {
+        var baseURL = WebInspector.mainResource.url.substring(0, index);
+        if (url.indexOf(baseURL) === 0) {
+            return url.substring(index);
+        }
+    }
+
+    return url.trimURL(WebInspector.mainResource.domain);
 }
 
 WebInspector.resourceForURL = function(url)

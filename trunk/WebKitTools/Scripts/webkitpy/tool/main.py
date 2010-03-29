@@ -30,23 +30,24 @@
 # A tool for automating dealing with bugzilla, posting patches, committing patches, etc.
 
 import os
+import threading
 
+from webkitpy.common.checkout.api import Checkout
 from webkitpy.common.checkout.scm import detect_scm_system
 from webkitpy.common.net.bugzilla import Bugzilla
 from webkitpy.common.net.buildbot import BuildBot
 from webkitpy.common.net.irc.ircproxy import IRCProxy
+from webkitpy.common.system.executive import Executive
+from webkitpy.common.system.user import User
 from webkitpy.tool.commands.download import *
-from webkitpy.tool.commands.early_warning_system import *
+from webkitpy.tool.commands.earlywarningsystem import *
 from webkitpy.tool.commands.openbugs import OpenBugs
 from webkitpy.tool.commands.queries import *
 from webkitpy.tool.commands.queues import *
 from webkitpy.tool.commands.sheriffbot import *
 from webkitpy.tool.commands.upload import *
 from webkitpy.tool.multicommandtool import MultiCommandTool
-from webkitpy.executive import Executive
-from webkitpy.webkit_logging import log
-from webkitpy.webkitcheckout import WebKitCheckout
-from webkitpy.user import User
+from webkitpy.common.system.deprecated_logging import log
 
 
 class WebKitPatch(MultiCommandTool):
@@ -60,6 +61,7 @@ class WebKitPatch(MultiCommandTool):
         MultiCommandTool.__init__(self)
 
         self._path = path
+        self.wakeup_event = threading.Event()
         self.bugs = Bugzilla()
         self.buildbot = BuildBot()
         self.executive = Executive()
@@ -87,13 +89,12 @@ class WebKitPatch(MultiCommandTool):
 
     def checkout(self):
         if not self._checkout:
-            self._checkout = WebKitCheckout(self.scm())
+            self._checkout = Checkout(self.scm())
         return self._checkout
 
-    # FIXME: Add a parameter for nickname?
-    def ensure_irc_connected(self):
+    def ensure_irc_connected(self, irc_delegate):
         if not self._irc:
-            self._irc = IRCProxy(password=self._irc_password)
+            self._irc = IRCProxy(irc_delegate)
 
     def irc(self):
         # We don't automatically construct IRCProxy here because constructing
@@ -123,7 +124,7 @@ class WebKitPatch(MultiCommandTool):
         if options.status_host:
             self.status_server.set_host(options.status_host)
         if options.irc_password:
-            self._irc_password = options.irc_password
+            self.irc_password = options.irc_password
 
     def should_execute_command(self, command):
         if command.requires_local_commits and not self.scm().supports_local_commits():

@@ -29,10 +29,10 @@
 import os
 
 from webkitpy.common.checkout.changelog import ChangeLog
-from webkitpy.grammar import pluralize
+from webkitpy.tool.grammar import pluralize
 from webkitpy.tool.steps.abstractstep import AbstractStep
 from webkitpy.tool.steps.options import Options
-from webkitpy.webkit_logging import log, error
+from webkitpy.common.system.deprecated_logging import log, error
 
 class UpdateChangeLogsWithReviewer(AbstractStep):
     @classmethod
@@ -67,5 +67,5 @@ class UpdateChangeLogsWithReviewer(AbstractStep):
             return
 
         os.chdir(self._tool.scm().checkout_root)
-        for changelog_path in self._tool.scm().modified_changelogs():
+        for changelog_path in self._tool.checkout().modified_changelogs():
             ChangeLog(changelog_path).set_reviewer(reviewer)

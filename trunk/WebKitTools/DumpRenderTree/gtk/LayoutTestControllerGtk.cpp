@@ -66,12 +66,13 @@ static gchar* copyWebSettingKey(gchar* preferenceKey)
 
     if (!keyTable) {
         // If you add a pref here, make sure you reset the value in
-        // DumpRenderTree::resetWebViewToConsistentStateBeforeTesting.
+        // DumpRenderTree::resetDefaultsToConsistentValues.
         keyTable = g_hash_table_new(g_str_hash, g_str_equal);
         g_hash_table_insert(keyTable, g_strdup("WebKitJavaScriptEnabled"), g_strdup("enable-scripts"));
         g_hash_table_insert(keyTable, g_strdup("WebKitDefaultFontSize"), g_strdup("default-font-size"));
         g_hash_table_insert(keyTable, g_strdup("WebKitEnableCaretBrowsing"), g_strdup("enable-caret-browsing"));
         g_hash_table_insert(keyTable, g_strdup("WebKitUsesPageCachePreferenceKey"), g_strdup("enable-page-cache"));
+        g_hash_table_insert(keyTable, g_strdup("WebKitPluginsEnabled"), g_strdup("enable-plugins"));
     }
 
     return g_strdup(static_cast<gchar*>(g_hash_table_lookup(keyTable, preferenceKey)));
@@ -411,8 +412,7 @@ void LayoutTestController::setJavaScriptProfilingEnabled(bool flag)
     WebKitWebView* view = webkit_web_frame_get_web_view(mainFrame);
     ASSERT(view);
 
-    WebKitWebSettings* settings = webkit_web_view_get_settings(view);
-    g_object_set(G_OBJECT(settings), "enable-developer-extras", flag, NULL);
+    setDeveloperExtrasEnabled(flag);
 
     WebKitWebInspector* inspector = webkit_web_view_get_inspector(view);
     g_object_set(G_OBJECT(inspector), "javascript-profiling-enabled", flag, NULL);
@@ -577,24 +577,28 @@ void LayoutTestController::addUserStyleSheet(JSStringRef source)
     printf("LayoutTestController::addUserStyleSheet not implemented.\n");
 }
 
-void LayoutTestController::showWebInspector()
+void LayoutTestController::setDeveloperExtrasEnabled(bool enabled)
 {
     WebKitWebView* webView = webkit_web_frame_get_web_view(mainFrame);
     WebKitWebSettings* webSettings = webkit_web_view_get_settings(webView);
+
+    g_object_set(webSettings, "enable-developer-extras", enabled, NULL);
+}
+
+void LayoutTestController::showWebInspector()
+{
+    WebKitWebView* webView = webkit_web_frame_get_web_view(mainFrame);
     WebKitWebInspector* inspector = webkit_web_view_get_inspector(webView);
 
-    g_object_set(webSettings, "enable-developer-extras", TRUE, NULL);
     webkit_web_inspector_show(inspector);
 }
 
 void LayoutTestController::closeWebInspector()
 {
     WebKitWebView* webView = webkit_web_frame_get_web_view(mainFrame);
-    WebKitWebSettings* webSettings = webkit_web_view_get_settings(webView);
     WebKitWebInspector* inspector = webkit_web_view_get_inspector(webView);
 
     webkit_web_inspector_close(inspector);
-    g_object_set(webSettings, "enable-developer-extras", FALSE, NULL);
 }
 
 void LayoutTestController::evaluateInWebInspector(long callId, JSStringRef script)
@@ -615,6 +619,12 @@ void LayoutTestController::evaluateScriptInIsolatedWorld(unsigned worldID, JSObj
 void LayoutTestController::removeAllVisitedLinks()
 {
     // FIXME: Implement this.
+}
+
+bool LayoutTestController::callShouldCloseOnWebView()
+{
+    // FIXME: Implement for testing fix for https://bugs.webkit.org/show_bug.cgi?id=27481
+    return false;
 }
 
 void LayoutTestController::apiTestNewWindowDataLoadBaseURL(JSStringRef utf8Data, JSStringRef baseURL)

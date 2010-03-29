@@ -162,7 +162,8 @@ v8::Local<v8::Function> V8DOMWrapper::getConstructor(WrapperTypeInfo* type, DOMW
 #if ENABLE(WORKERS)
 v8::Local<v8::Function> V8DOMWrapper::getConstructor(WrapperTypeInfo* type, WorkerContext*)
 {
-    WorkerContextExecutionProxy* proxy = WorkerContextExecutionProxy::retrieve();
+    WorkerScriptController* controller = WorkerScriptController::controllerForContext();
+    WorkerContextExecutionProxy* proxy = controller ? controller->proxy() : 0;
     if (!proxy)
         return v8::Local<v8::Function>();
 
@@ -257,9 +258,11 @@ v8::Local<v8::Object> V8DOMWrapper::instantiateV8Object(V8Proxy* proxy, WrapperT
         instance = proxy->windowShell()->createWrapperFromCache(type);
     else {
         v8::Local<v8::Function> function;
+#if ENABLE(WORKERS)
         if (workerContext)
             function = getConstructor(type, workerContext);
         else
+#endif
             function = type->getTemplate()->GetFunction();
         instance = SafeAllocation::newInstance(function);
     }

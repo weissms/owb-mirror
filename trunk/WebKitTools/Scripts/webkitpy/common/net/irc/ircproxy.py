@@ -29,28 +29,28 @@
 import threading
 
 from webkitpy.common.net.irc.ircbot import IRCBot
-from webkitpy.common.net.irc.threadedmessagequeue import ThreadedMessageQueue
-from webkitpy.webkit_logging import log
+from webkitpy.common.thread.threadedmessagequeue import ThreadedMessageQueue
+from webkitpy.common.system.deprecated_logging import log
 
 
 class _IRCThread(threading.Thread):
-    def __init__(self, message_queue, bot_class, password):
+    def __init__(self, message_queue, irc_delegate, irc_bot):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self._message_queue = message_queue
-        self._bot_class = bot_class
-        self._password = password
+        self._irc_delegate = irc_delegate
+        self._irc_bot = irc_bot
 
     def run(self):
-        bot = self._bot_class(self._message_queue, password=self._password)
+        bot = self._irc_bot(self._message_queue, self._irc_delegate)
         bot.start()
 
 
 class IRCProxy(object):
-    def __init__(self, bot_class=IRCBot, password=None):
+    def __init__(self, irc_delegate, irc_bot=IRCBot):
         log("Connecting to IRC")
         self._message_queue = ThreadedMessageQueue()
-        self._child_thread = _IRCThread(self._message_queue, bot_class, password=password)
+        self._child_thread = _IRCThread(self._message_queue, irc_delegate, irc_bot)
         self._child_thread.start()
 
     def post(self, message):
@@ -60,4 +60,3 @@ class IRCProxy(object):
         log("Disconnecting from IRC...")
         self._message_queue.stop()
         self._child_thread.join()
-

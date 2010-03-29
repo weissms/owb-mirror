@@ -1,16 +1,16 @@
-# Copyright (c) 2010 Google Inc. All rights reserved.
+# Copyright (C) 2010 Research in Motion Ltd. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
 #
-#     * Redistributions of source code must retain the above copyright
+#    * Redistributions of source code must retain the above copyright
 # notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above
+#    * Redistributions in binary form must reproduce the above
 # copyright notice, this list of conditions and the following disclaimer
 # in the documentation and/or other materials provided with the
 # distribution.
-#     * Neither the name of Google Inc. nor the names of its
+#    * Neither the name of Research in Motion Ltd. nor the names of its
 # contributors may be used to endorse or promote products derived from
 # this software without specific prior written permission.
 #
@@ -26,9 +26,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Runs irc package unit tests."""
+import unittest
 
-# This module is imported by the module that imports all webkitpy unit tests.
+from webkitpy.common.system.user import User
 
-from webkitpy.common.net.irc.messagepump_unittest import *
-from webkitpy.common.net.irc.threadedmessagequeue_unittest import *
+class UserTest(unittest.TestCase):
+
+    example_user_response = "example user response"
+
+    def test_prompt_repeat(self):
+        self.repeatsRemaining = 2
+        def mock_raw_input(message):
+            self.repeatsRemaining -= 1
+            if not self.repeatsRemaining:
+                return UserTest.example_user_response
+            return None
+        self.assertEqual(User.prompt("input", repeat=self.repeatsRemaining, raw_input=mock_raw_input), UserTest.example_user_response)
+
+    def test_prompt_when_exceeded_repeats(self):
+        self.repeatsRemaining = 2
+        def mock_raw_input(message):
+            self.repeatsRemaining -= 1
+            return None
+        self.assertEqual(User.prompt("input", repeat=self.repeatsRemaining, raw_input=mock_raw_input), None)
+
+if __name__ == '__main__':
+    unittest.main()

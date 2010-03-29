@@ -268,4 +268,9 @@ String MIMETypeRegistry::getMIMETypeForExtension(const String &ext)
     return result.isEmpty() ? "unknown/unknown" : result;
 }
 
+bool MIMETypeRegistry::isApplicationPluginMIMEType(const String&)
+{
+    return false;
+}
+
 }

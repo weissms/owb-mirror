@@ -28,7 +28,7 @@
 
 from webkitpy.tool.steps.abstractstep import AbstractStep
 from webkitpy.tool.steps.options import Options
-from webkitpy.webkit_logging import log
+from webkitpy.common.system.deprecated_logging import log
 
 class ApplyPatch(AbstractStep):
     @classmethod
@@ -39,4 +39,4 @@ class ApplyPatch(AbstractStep):
 
     def run(self, state):
         log("Processing patch %s from bug %s." % (state["patch"].id(), state["patch"].bug_id()))
-        self._tool.scm().apply_patch(state["patch"], force=self._options.non_interactive)
+        self._tool.checkout().apply_patch(state["patch"], force=self._options.non_interactive)

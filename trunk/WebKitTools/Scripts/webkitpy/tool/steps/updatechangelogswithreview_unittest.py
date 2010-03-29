@@ -1,4 +1,4 @@
-# Copyright (C) 2010 Research in Motion Ltd. All rights reserved.
+# Copyright (C) 2009 Google Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -10,7 +10,7 @@
 # copyright notice, this list of conditions and the following disclaimer
 # in the documentation and/or other materials provided with the
 # distribution.
-#    * Neither the name of Research in Motion Ltd. nor the names of its
+#    * Neither the name of Google Inc. nor the names of its
 # contributors may be used to endorse or promote products derived from
 # this software without specific prior written permission.
 #
@@ -27,27 +27,20 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
-from webkitpy.user import User
 
-class UserTest(unittest.TestCase):
+from webkitpy.common.system.outputcapture import OutputCapture
+from webkitpy.tool.mocktool import MockTool
+from webkitpy.tool.steps_references import Mock
+from webkitpy.tool.steps.updatechangelogswithreviewer import UpdateChangeLogsWithReviewer
 
-    example_user_response = "example user response"
+class UpdateChangeLogsWithReviewerTest(unittest.TestCase):
+    def test_guess_reviewer_from_bug(self):
+        capture = OutputCapture()
+        step = UpdateChangeLogsWithReviewer(MockTool(), Mock())
+        expected_stderr = "0 reviewed patches on bug 75, cannot infer reviewer.\n"
+        capture.assert_outputs(self, step._guess_reviewer_from_bug, [75], expected_stderr=expected_stderr)
 
-    def test_prompt_repeat(self):
-        self.repeatsRemaining = 2
-        def mock_raw_input(message):
-            self.repeatsRemaining -= 1
-            if not self.repeatsRemaining:
-                return UserTest.example_user_response
-            return None
-        self.assertEqual(User.prompt("input", repeat=self.repeatsRemaining, raw_input=mock_raw_input), UserTest.example_user_response)
-
-    def test_prompt_when_exceeded_repeats(self):
-        self.repeatsRemaining = 2
-        def mock_raw_input(message):
-            self.repeatsRemaining -= 1
-            return None
-        self.assertEqual(User.prompt("input", repeat=self.repeatsRemaining, raw_input=mock_raw_input), None)
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_empty_state(self):
+        capture = OutputCapture()
+        step = UpdateChangeLogsWithReviewer(MockTool(), Mock())
+        capture.assert_outputs(self, step.run, [{}])

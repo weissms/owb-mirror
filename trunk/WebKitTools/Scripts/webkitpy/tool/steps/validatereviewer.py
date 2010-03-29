@@ -31,7 +31,7 @@ import re
 
 from webkitpy.common.checkout.changelog import ChangeLog
 from webkitpy.tool.steps.abstractstep import AbstractStep
-from webkitpy.webkit_logging import error
+from webkitpy.common.system.deprecated_logging import error
 
 
 class ValidateReviewer(AbstractStep):
@@ -39,10 +39,15 @@ class ValidateReviewer(AbstractStep):
         # FIXME: We should figure out how to handle the current working
         #        directory issue more globally.
         os.chdir(self._tool.scm().checkout_root)
-        for changelog_path in self._tool.scm().modified_changelogs():
+        for changelog_path in self._tool.checkout().modified_changelogs():
             changelog_entry = ChangeLog(changelog_path).latest_entry()
             if changelog_entry.reviewer():
                 continue
             if re.search("unreviewed", changelog_entry.contents(), re.IGNORECASE):
                 continue
-            error('%s neither lists a valid reviewer nor contains the string "Unreviewed" (case insensitive).' % changelog_path)
+            if re.search("rubber[ -]stamp", changelog_entry.contents(), re.IGNORECASE):
+                continue
+            reviewer_text = changelog_entry.reviewer_text()
+            if reviewer_text:
+                log("%s does not appear to be a valid reviewer according to committers.py.")
+            error('%s neither lists a valid reviewer nor contains the string "Unreviewed" or "Rubber stamp" (case insensitive).' % changelog_path)

@@ -300,12 +300,15 @@ void LayoutTestController::setMediaType(const QString& type)
 void LayoutTestController::closeWebInspector()
 {
     qt_drt_webinspector_close(m_drt->webPage());
-    m_drt->webPage()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, false);
+}
+
+void LayoutTestController::setDeveloperExtrasEnabled(bool enabled)
+{
+    m_drt->webPage()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, enabled);
 }
 
 void LayoutTestController::showWebInspector()
 {
-    m_drt->webPage()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     qt_drt_webinspector_show(m_drt->webPage());
 }
 
@@ -336,7 +339,7 @@ void LayoutTestController::setAppCacheMaximumSize(unsigned long long quota)
 
 void LayoutTestController::setJavaScriptProfilingEnabled(bool enable)
 {
-    m_topLoadingFrame->page()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+    setDeveloperExtrasEnabled(enable);
     qt_drt_setJavaScriptProfilingEnabled(m_topLoadingFrame, enable);
 }
 
@@ -475,6 +478,8 @@ void LayoutTestController::overridePreference(const QString& name, const QVarian
         QWebSettings::setMaximumPagesInCache(value.toInt());
     else if (name == "WebKitEnableCaretBrowsing")
         setCaretBrowsingEnabled(value.toBool());
+    else if (name == "WebKitPluginsEnabled")
+        settings->setAttribute(QWebSettings::PluginsEnabled, value.toBool());
     else
         printf("ERROR: LayoutTestController::overridePreference() does not support the '%s' preference\n",
             name.toLatin1().data());
@@ -522,6 +527,12 @@ int LayoutTestController::pageNumberForElementById(const QString& id, float widt
 int LayoutTestController::numberOfPages(float width, float height)
 {
     return qt_drt_numberOfPages(m_drt->webPage()->mainFrame(), width, height);
+}
+
+bool LayoutTestController::callShouldCloseOnWebView()
+{
+    // FIXME: Implement for testing fix for https://bugs.webkit.org/show_bug.cgi?id=27481
+    return false;
 }
 
 const unsigned LayoutTestController::maxViewWidth = 800;

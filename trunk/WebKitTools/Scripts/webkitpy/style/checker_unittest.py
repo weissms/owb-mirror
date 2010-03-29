@@ -35,6 +35,7 @@
 """Unit tests for style.py."""
 
 import logging
+import os
 import unittest
 
 import checker as style
@@ -64,12 +65,12 @@ class ConfigureLoggingTestBase(unittest.TestCase):
 
     Sub-classes should implement:
 
-      is_debug: The is_debug parameter value to pass to configure_logging().
+      is_verbose: The is_verbose value to pass to configure_logging().
 
     """
 
     def setUp(self):
-        is_debug = self.is_debug
+        is_verbose = self.is_verbose
 
         log_stream = TestLogStream(self)
 
@@ -84,7 +85,7 @@ class ConfigureLoggingTestBase(unittest.TestCase):
         logger.propagate = False
 
         self._handlers = configure_logging(stream=log_stream, logger=logger,
-                                           is_debug=is_debug)
+                                           is_verbose=is_verbose)
         self._log = logger
         self._log_stream = log_stream
 
@@ -108,7 +109,7 @@ class ConfigureLoggingTest(ConfigureLoggingTestBase):
 
     """Tests the configure_logging() function."""
 
-    is_debug = False
+    is_verbose = False
 
     def test_warning_message(self):
         self._log.warn("test message")
@@ -132,11 +133,11 @@ class ConfigureLoggingTest(ConfigureLoggingTestBase):
         self.assert_log_messages(["message1\n", "message2\n"])
 
 
-class ConfigureLoggingDebugTest(ConfigureLoggingTestBase):
+class ConfigureLoggingVerboseTest(ConfigureLoggingTestBase):
 
-    """Tests the configure_logging() function for debugging."""
+    """Tests the configure_logging() function with is_verbose True."""
 
-    is_debug = True
+    is_verbose = True
 
     def test_debug_message(self):
         self._log.debug("test message")
@@ -180,7 +181,9 @@ class GlobalVariablesTest(unittest.TestCase):
                                 default_options=default_options)
         # No need to test the return value here since we test parse()
         # on valid arguments elsewhere.
-        parser.parse([]) # arguments valid: no error or SystemExit
+        #
+        # The default options are valid: no error or SystemExit.
+        parser.parse(args=[], found_checkout=True)
 
     def test_path_rules_specifier(self):
         all_categories = self._all_categories()
@@ -315,7 +318,7 @@ class ProcessorDispatcherDispatchTest(unittest.TestCase):
         dispatcher = ProcessorDispatcher()
         processor = dispatcher.dispatch_processor(file_path,
                                                   self.mock_handle_style_error,
-                                                  verbosity=3)
+                                                  min_confidence=3)
         return processor
 
     def assert_processor_none(self, file_path):
@@ -363,7 +366,7 @@ class ProcessorDispatcherDispatchTest(unittest.TestCase):
         self.assertEquals(processor.file_extension, file_extension)
         self.assertEquals(processor.file_path, file_path)
         self.assertEquals(processor.handle_style_error, self.mock_handle_style_error)
-        self.assertEquals(processor.verbosity, 3)
+        self.assertEquals(processor.min_confidence, 3)
         # Check "-" for good measure.
         file_base = "-"
         file_extension = ""
@@ -436,9 +439,9 @@ class StyleCheckerConfigurationTest(unittest.TestCase):
         return StyleCheckerConfiguration(
                    filter_configuration=filter_configuration,
                    max_reports_per_category={"whitespace/newline": 1},
+                   min_confidence=3,
                    output_format=output_format,
-                   stderr_write=self._mock_stderr_write,
-                   verbosity=3)
+                   stderr_write=self._mock_stderr_write)
 
     def test_init(self):
         """Test the __init__() method."""
@@ -448,7 +451,7 @@ class StyleCheckerConfigurationTest(unittest.TestCase):
         self.assertEquals(configuration.max_reports_per_category,
                           {"whitespace/newline": 1})
         self.assertEquals(configuration.stderr_write, self._mock_stderr_write)
-        self.assertEquals(configuration.verbosity, 3)
+        self.assertEquals(configuration.min_confidence, 3)
 
     def test_is_reportable(self):
         """Test the is_reportable() method."""
@@ -465,7 +468,7 @@ class StyleCheckerConfigurationTest(unittest.TestCase):
     def _call_write_style_error(self, output_format):
         config = self._style_checker_configuration(output_format=output_format)
         config.write_style_error(category="whitespace/tab",
-                                 confidence=5,
+                                 confidence_in_error=5,
                                  file_path="foo.h",
                                  line_number=100,
                                  message="message")
@@ -498,9 +501,9 @@ class StyleCheckerTest(unittest.TestCase):
         configuration = StyleCheckerConfiguration(
                             filter_configuration=FilterConfiguration(),
                             max_reports_per_category={},
+                            min_confidence=3,
                             output_format="vs7",
-                            stderr_write=self._mock_stderr_write,
-                            verbosity=3)
+                            stderr_write=self._mock_stderr_write)
 
         style_checker = self._style_checker(configuration)
 
@@ -580,9 +583,9 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
         configuration = StyleCheckerConfiguration(
                             filter_configuration=FilterConfiguration(),
                             max_reports_per_category={"whitespace/newline": 1},
+                            min_confidence=3,
                             output_format="vs7",
-                            stderr_write=self.mock_stderr_write,
-                            verbosity=3)
+                            stderr_write=self.mock_stderr_write)
 
         style_checker = StyleChecker(configuration)
 
@@ -624,7 +627,7 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
 
         # We use a C++ file since by using a CppProcessor, we can check
         # that all of the possible information is getting passed to
-        # process_file (in particular, the verbosity).
+        # process_file (in particular, the min_confidence parameter).
         file_base = "foo"
         file_extension = "cpp"
         file_path = file_base + "." + file_extension
@@ -642,6 +645,54 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
                                self.mock_handle_style_error,
                                expected_processor,
                                "")
+
+
+class StyleCheckerCheckPathsTest(unittest.TestCase):
+
+    """Test the check_paths() method of the StyleChecker class."""
+
+    class MockOs(object):
+
+        class MockPath(object):
+
+            """A mock os.path."""
+
+            def isdir(self, path):
+                return path == "directory"
+
+        def __init__(self):
+            self.path = self.MockPath()
+
+        def walk(self, directory):
+            """A mock of os.walk."""
+            if directory == "directory":
+                dirs = [("dir_path1", [], ["file1", "file2"]),
+                        ("dir_path2", [], ["file3"])]
+                return dirs
+            return None
+
+    def setUp(self):
+        self._checked_files = []
+
+    def _mock_check_file(self, file):
+        self._checked_files.append(file)
+
+    def test_check_paths(self):
+        """Test StyleChecker.check_paths()."""
+        checker = StyleChecker(configuration=None)
+        mock_check_file = self._mock_check_file
+        mock_os = self.MockOs()
+
+        # Confirm that checked files is empty at the outset.
+        self.assertEquals(self._checked_files, [])
+        checker.check_paths(["path1", "directory"],
+                            mock_check_file=mock_check_file,
+                            mock_os=mock_os)
+        self.assertEquals(self._checked_files,
+                          ["path1",
+                           os.path.join("dir_path1", "file1"),
+                           os.path.join("dir_path1", "file2"),
+                           os.path.join("dir_path2", "file3")])
 
 
 if __name__ == '__main__':

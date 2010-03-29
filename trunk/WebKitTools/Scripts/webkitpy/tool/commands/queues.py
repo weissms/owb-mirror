@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# Copyright (c) 2009, Google Inc. All rights reserved.
+# Copyright (c) 2009 Google Inc. All rights reserved.
 # Copyright (c) 2009 Apple Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,12 +36,12 @@ from StringIO import StringIO
 
 from webkitpy.common.net.bugzilla import CommitterValidator
 from webkitpy.common.net.statusserver import StatusServer
-from webkitpy.executive import ScriptError
-from webkitpy.grammar import pluralize
-from webkitpy.webkit_logging import error, log
+from webkitpy.common.system.executive import ScriptError
+from webkitpy.common.system.deprecated_logging import error, log
 from webkitpy.tool.commands.stepsequence import StepSequenceErrorHandler
 from webkitpy.tool.bot.patchcollection import PersistentPatchCollection, PersistentPatchCollectionDelegate
 from webkitpy.tool.bot.queueengine import QueueEngine, QueueEngineDelegate
+from webkitpy.tool.grammar import pluralize
 from webkitpy.tool.multicommandtool import Command
 
 class AbstractQueue(Command, QueueEngineDelegate):
@@ -113,7 +112,7 @@ class AbstractQueue(Command, QueueEngineDelegate):
     def execute(self, options, args, tool, engine=QueueEngine):
         self.options = options
         self.tool = tool
-        return engine(self.name, self).run()
+        return engine(self.name, self, self.tool.wakeup_event).run()
 
     @classmethod
     def _update_status_for_script_error(cls, tool, state, script_error, is_error=False):

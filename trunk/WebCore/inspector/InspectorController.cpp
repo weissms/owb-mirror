@@ -24,7 +24,7 @@
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
@@ -58,7 +58,6 @@
 #include "InspectorBackend.h"
 #include "InspectorClient.h"
 #include "InspectorFrontendClient.h"
-#include "InspectorDOMAgent.h"
 #include "InspectorDOMStorageResource.h"
 #include "InspectorDatabaseResource.h"
 #include "InspectorFrontend.h"
@@ -450,6 +449,9 @@ void InspectorController::setFrontend(PassOwnPtr<InspectorFrontend> frontend)
     if (profilerEnabled == "true")
         enableProfiler();
 #endif
+
+    // Initialize Web Inspector title.
+    m_frontend->inspectedURLChanged(m_inspectedPage->mainFrame()->loader()->url().string());
 
     populateScriptObjects();
     
@@ -962,7 +964,7 @@ void InspectorController::resourceRetrievedByXMLHttpRequest(unsigned long identi
     if (!resource)
         return;
 
-    resource->setXMLHttpResponseText(sourceString);
+    resource->setOverrideContent(sourceString, InspectorResource::XHR);
 
     if (m_frontend)
         resource->updateScriptObject(m_frontend.get());
@@ -977,9 +979,7 @@ void InspectorController::scriptImported(unsigned long identifier, const String&
     if (!resource)
         return;
     
-    // FIXME: imported script and XHR response are currently viewed as the same
-    // thing by the Inspector. They should be made into distinct types.
-    resource->setXMLHttpResponseText(ScriptString(sourceString));
+    resource->setOverrideContent(ScriptString(sourceString), InspectorResource::Script);
 
     if (m_frontend)
         resource->updateScriptObject(m_frontend.get());
@@ -1135,7 +1135,7 @@ void InspectorController::selectDatabase(Database* database)
     }
 }
 
-Database* InspectorController::databaseForId(int databaseId)
+Database* InspectorController::databaseForId(long databaseId)
 {
     DatabaseResourcesMap::iterator it = m_databaseResources.find(databaseId);
     if (it == m_databaseResources.end())
@@ -1259,7 +1259,7 @@ void InspectorController::selectDOMStorage(Storage* storage)
     Frame* frame = storage->frame();
     ExceptionCode ec = 0;
     bool isLocalStorage = (frame->domWindow()->localStorage(ec) == storage && !ec);
-    int storageResourceId = 0;
+    long storageResourceId = 0;
     DOMStorageResourcesMap::iterator domStorageEnd = m_domStorageResources.end();
     for (DOMStorageResourcesMap::iterator it = m_domStorageResources.begin(); it != domStorageEnd; ++it) {
         if (it->second->isSameHostAndType(frame, isLocalStorage)) {
@@ -1271,7 +1271,7 @@ void InspectorController::selectDOMStorage(Storage* storage)
         m_frontend->selectDOMStorage(storageResourceId);
 }
 
-void InspectorController::getDOMStorageEntries(int callId, int storageId)
+void InspectorController::getDOMStorageEntries(long callId, long storageId)
 {
     if (!m_frontend)
         return;
@@ -1322,7 +1322,7 @@ void InspectorController::removeDOMStorageItem(long callId, long storageId, cons
     m_frontend->didRemoveDOMStorageItem(callId, success);
 }
 
-InspectorDOMStorageResource* InspectorController::getDOMStorageResourceForId(int storageId)
+InspectorDOMStorageResource* InspectorController::getDOMStorageResourceForId(long storageId)
 {
     DOMStorageResourcesMap::iterator it = m_domStorageResources.find(storageId);
     if (it == m_domStorageResources.end())
