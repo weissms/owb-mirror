@@ -4,7 +4,6 @@ CONFIG += depend_includepath
 
 symbian: {
     TARGET.EPOCALLOWDLLDATA=1
-    TARGET.EPOCHEAPSIZE = 0x20000 0x2000000 // Min 128kB, Max 32MB
     TARGET.CAPABILITY = All -Tcb
     isEmpty(QT_LIBINFIX) {
         TARGET.UID3 = 0x200267C2
@@ -12,6 +11,7 @@ symbian: {
         TARGET.UID3 = 0xE00267C2
     }
     webkitlibs.sources = QtWebKit$${QT_LIBINFIX}.dll
+    CONFIG(QTDIR_build): webkitlibs.sources = $$QMAKE_LIBDIR_QT/$$webkitlibs.sources
     webkitlibs.path = /sys/bin
     vendorinfo = \
         "; Localised Vendor name" \
@@ -30,10 +30,12 @@ symbian: {
     # Need to guarantee that these come before system includes of /epoc32/include
     MMP_RULES += "USERINCLUDE rendering"
     MMP_RULES += "USERINCLUDE platform/text"
-    # RO text (code) section in qtwebkit.dll exceeds allocated space for gcce udeb target.
-    # Move RW-section base address to start from 0xE00000 instead of the toolchain default 0x400000.
-    QMAKE_LFLAGS.ARMCC += --rw-base 0xE00000
-    MMP_RULES += ALWAYS_BUILD_AS_ARM
+    symbian-abld|symbian-sbsv2 {
+        # RO text (code) section in qtwebkit.dll exceeds allocated space for gcce udeb target.
+        # Move RW-section base address to start from 0xE00000 instead of the toolchain default 0x400000.
+        QMAKE_LFLAGS.ARMCC += --rw-base 0xE00000
+        MMP_RULES += ALWAYS_BUILD_AS_ARM
+    }
     CONFIG(release, debug|release): QMAKE_CXXFLAGS.ARMCC += -OTime -O3
 }
 
@@ -52,7 +54,7 @@ CONFIG(standalone_package) {
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
     DEFINES *= NDEBUG
 
-    symbian: CONFIG += def_files
+    symbian: TARGET += $${QT_LIBINFIX}
 } else {
     isEmpty(WC_GENERATED_SOURCES_DIR):WC_GENERATED_SOURCES_DIR = generated
     isEmpty(JSC_GENERATED_SOURCES_DIR):JSC_GENERATED_SOURCES_DIR = ../JavaScriptCore/generated
@@ -129,6 +131,10 @@ RESOURCES += \
 
 maemo5|symbian|embedded {
     DEFINES += ENABLE_FAST_MOBILE_SCROLLING=1
+}
+
+maemo5 {
+    DEFINES += ENABLE_NO_LISTBOX_RENDERING=1
 }
 
 include($$PWD/../JavaScriptCore/JavaScriptCore.pri)
@@ -2113,6 +2119,12 @@ SOURCES += \
     ../WebKit/qt/Api/qwebkitversion.cpp
 
 
+maemo5 {
+    HEADERS += ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.h
+    SOURCES += ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.cpp
+}
+
+
     win32-*|wince*: SOURCES += platform/win/SystemTimeWin.cpp \
                                platform/graphics/win/TransformationMatrixWin.cpp
 
@@ -2828,28 +2840,29 @@ contains(DEFINES, ENABLE_SYMBIAN_DIALOG_PROVIDERS) {
 }
 
 include($$PWD/../WebKit/qt/Api/headers.pri)
-include(../include/QtWebKit/classheaders.pri)
 HEADERS += $$WEBKIT_API_HEADERS
-WEBKIT_INSTALL_HEADERS = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
-
-!symbian {
-    headers.files = $$WEBKIT_INSTALL_HEADERS
-    headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
-    target.path = $$[QT_INSTALL_LIBS]
-
-    INSTALLS += target headers
-} else {
-    # INSTALLS is not implemented in qmake's s60 generators, copy headers manually
-    inst_headers.commands = $$QMAKE_COPY ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
-    inst_headers.input = WEBKIT_INSTALL_HEADERS
-    inst_headers.output = $$[QT_INSTALL_HEADERS]/QtWebKit/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}
-    QMAKE_EXTRA_COMPILERS += inst_headers
-
-    install.depends += compiler_inst_headers_make_all
-    QMAKE_EXTRA_TARGETS += install
-}
 
 !CONFIG(QTDIR_build) {
+    exists(../include/QtWebKit/classheaders.pri):include(../include/QtWebKit/classheaders.pri)
+    WEBKIT_INSTALL_HEADERS = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
+
+    !symbian {
+        headers.files = $$WEBKIT_INSTALL_HEADERS
+        headers.path = $$[QT_INSTALL_HEADERS]/QtWebKit
+        target.path = $$[QT_INSTALL_LIBS]
+
+        INSTALLS += target headers
+    } else {
+        # INSTALLS is not implemented in qmake's s60 generators, copy headers manually
+        inst_headers.commands = $$QMAKE_COPY ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
+        inst_headers.input = WEBKIT_INSTALL_HEADERS
+        inst_headers.output = $$[QT_INSTALL_HEADERS]/QtWebKit/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}
+        QMAKE_EXTRA_COMPILERS += inst_headers
+
+        install.depends += compiler_inst_headers_make_all
+        QMAKE_EXTRA_TARGETS += install
+    }
+
     win32-*|wince* {
         DLLDESTDIR = $$OUTPUT_DIR/bin
         TARGET = $$qtLibraryTarget($$TARGET)
@@ -2932,6 +2945,8 @@ SOURCES += \
 symbian {
     shared {
         contains(CONFIG, def_files) {
+            DEF_FILE=../WebKit/qt/symbian
+            ; defFilePath is for Qt4.6 compatibility
             defFilePath=../WebKit/qt/symbian
         } else {
             MMP_RULES += EXPORTUNFROZEN

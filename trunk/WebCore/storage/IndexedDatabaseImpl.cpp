@@ -28,39 +28,31 @@
 #include "config.h"
 #include "IndexedDatabaseImpl.h"
 
+#include "IDBDatabase.h"
+#include "IDBDatabaseError.h"
 #include <wtf/Threading.h>
 
 #if ENABLE(INDEXED_DATABASE)
 
 namespace WebCore {
 
-IndexedDatabaseImpl* IndexedDatabaseImpl::indexedDatabaseImpl = 0;
-
-PassRefPtr<IndexedDatabaseImpl> IndexedDatabaseImpl::get()
+PassRefPtr<IndexedDatabaseImpl> IndexedDatabaseImpl::create()
 {
-    if (!indexedDatabaseImpl)
-        indexedDatabaseImpl = new IndexedDatabaseImpl();
-    ASSERT(indexedDatabaseImpl);
-    return indexedDatabaseImpl;
+    return new IndexedDatabaseImpl();
 }
 
 IndexedDatabaseImpl::IndexedDatabaseImpl()
 {
-    // FIXME: Make this thread safe.
-    ASSERT(!indexedDatabaseImpl);
-    indexedDatabaseImpl = this;
 }
 
 IndexedDatabaseImpl::~IndexedDatabaseImpl()
 {
-    // FIXME: Make this thread safe.
-    ASSERT(indexedDatabaseImpl == this);
-    indexedDatabaseImpl = 0;
 }
 
-void IndexedDatabaseImpl::open(const String& name, const String& description, bool modifyDatabase, ExceptionCode&)
+void IndexedDatabaseImpl::open(const String& name, const String& description, bool modifyDatabase, ExceptionCode&, PassRefPtr<IDBDatabaseCallbacks>)
 {
     // FIXME: Write.
+    ASSERT_NOT_REACHED();
 }
 
 } // namespace WebCore

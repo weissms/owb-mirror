@@ -31,42 +31,14 @@
 #ifndef GeolocationServiceBridgeChromium_h
 #define GeolocationServiceBridgeChromium_h
 
-namespace WebCore {
-class GeolocationServiceBridge;
-class GeolocationServiceChromium;
-}
+#include "WebGeolocationService.h"
 
 namespace WebKit {
 
-class WebString;
-class WebURL;
-
-// Provides a WebKit API called by the embedder.
-class WebGeolocationServiceBridge {
-public:
-    virtual void setIsAllowed(bool allowed) = 0;
-    virtual void setLastPosition(double latitude, double longitude, bool providesAltitude, double altitude, double accuracy, bool providesAltitudeAccuracy, double altitudeAccuracy, bool providesHeading, double heading, bool providesSpeed, double speed, long long timestamp) = 0;
-    virtual void setLastError(int errorCode, const WebString& message) = 0;
+// DEPRECATED: remove this file, this is a temporary compatibility layer for
+// renaming WebGeolocationServiceInterface to WebGeolocationService.
+class WebGeolocationServiceInterface : public WebGeolocationService {
 };
-
-// Provides an embedder API called by WebKit.
-class WebGeolocationServiceInterface {
-public:
-    virtual void requestPermissionForFrame(int bridgeId, const WebURL& url) = 0;
-    virtual void startUpdating(int bridgeId, const WebURL& url, bool enableHighAccuracy) = 0;
-    virtual void stopUpdating(int bridgeId) = 0;
-    virtual void suspend(int bridgeId) = 0;
-    virtual void resume(int bridgeId) = 0;
-
-    // Attaches the GeolocationBridge to the embedder and returns its id, which
-    // should be used on subsequent calls for the methods above.
-    virtual int attachBridge(WebKit::WebGeolocationServiceBridge* geolocationServiceBridge) = 0;
-
-    // Dettaches the GeolocationService from the embedder.
-    virtual void dettachBridge(int bridgeId) = 0;
-};
-
-WebCore::GeolocationServiceBridge* createGeolocationServiceBridgeImpl(WebCore::GeolocationServiceChromium*);
 
 } // namespace WebKit
 

@@ -119,6 +119,15 @@
 
 using namespace WebCore;
 
+void QWEBKIT_EXPORT qt_wrt_setViewMode(QWebPage* page, const QString& mode)
+{
+    QWebPagePrivate::priv(page)->viewMode = mode;
+    WebCore::Frame* frame = QWebFramePrivate::core(page->mainFrame());
+    WebCore::FrameView* view = frame->view();
+    frame->document()->updateStyleSelector();
+    view->forceLayout();
+}
+
 void QWEBKIT_EXPORT qt_drt_overwritePluginDirectories()
 {
     PluginDatabase* db = PluginDatabase::installedPlugins(/* populate */ false);
@@ -146,9 +155,9 @@ void QWEBKIT_EXPORT qt_drt_run(bool b)
     QWebPagePrivate::drtRun = b;
 }
 
-void QWEBKIT_EXPORT qt_drt_setFrameSetFlatteningEnabled(QWebPage* page, bool enabled)
+void QWEBKIT_EXPORT qt_drt_setFrameFlatteningEnabled(QWebPage* page, bool enabled)
 {
-    QWebPagePrivate::core(page)->settings()->setFrameSetFlatteningEnabled(enabled);
+    QWebPagePrivate::core(page)->settings()->setFrameFlatteningEnabled(enabled);
 }
 
 void QWEBKIT_EXPORT qt_webpage_setGroupName(QWebPage* page, const QString& groupName)
@@ -499,6 +508,11 @@ WebCore::Page* QWebPagePrivate::core(QWebPage* page)
     return page->d->page;
 }
 
+QWebPagePrivate* QWebPagePrivate::priv(QWebPage* page)
+{
+    return page->d;
+}
+
 bool QWebPagePrivate::acceptNavigationRequest(QWebFrame *frame, const QNetworkRequest &request, QWebPage::NavigationType type)
 {
     if (insideOpenCall
@@ -783,6 +797,11 @@ void QWebPagePrivate::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     if (!frame->view())
         return;
 
+    RefPtr<WebCore::Node> oldNode;
+    if (page->focusController()->focusedFrame()
+        && page->focusController()->focusedFrame()->document())
+        oldNode = page->focusController()->focusedFrame()->document()->focusedNode();
+
     if (tripleClickTimer.isActive()
             && (ev->pos().toPoint() - tripleClick).manhattanLength()
                 < QApplication::startDragDistance()) {
@@ -796,6 +815,14 @@ void QWebPagePrivate::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     if (mev.button() != NoButton)
         accepted = frame->eventHandler()->handleMousePressEvent(mev);
     ev->setAccepted(accepted);
+
+    RefPtr<WebCore::Node> newNode;
+    if (page->focusController()->focusedFrame()
+        && page->focusController()->focusedFrame()->document())
+        newNode = page->focusController()->focusedFrame()->document()->focusedNode();
+
+    if (newNode && oldNode != newNode)
+        clickCausedFocus = true;
 }
 
 void QWebPagePrivate::mousePressEvent(QMouseEvent *ev)
@@ -3154,6 +3181,8 @@ QWebPluginFactory *QWebPage::pluginFactory() const
 
     "Mozilla/5.0 (%Platform%; %Security%; %Subplatform%; %Locale%) AppleWebKit/%WebKitVersion% (KHTML, like Gecko) %AppVersion Safari/%WebKitVersion%"
 
+    On mobile platforms such as Symbian S60 and Maemo, "Mobile Safari" is used instead of "Safari".
+
     In this string the following values are replaced at run-time:
     \list
     \o %Platform% and %Subplatform% are expanded to the windowing system and the operation system.
@@ -3385,9 +3414,11 @@ QString QWebPage::userAgentForUrl(const QUrl& url) const
         ua.append(QLatin1String(qVersion()));
     }
 
-    ua.append(QString(QLatin1String(" Safari/%1"))
-                      .arg(qWebKitVersion()));
-
+#if defined(Q_WS_S60) || defined(Q_WS_MAEMO_5)
+    ua.append(QString(QLatin1String(" Mobile Safari/%1")).arg(qWebKitVersion()));
+#else
+    ua.append(QString(QLatin1String(" Safari/%1")).arg(qWebKitVersion()));
+#endif
     return ua;
 }
 
@@ -3540,7 +3571,11 @@ quint64 QWebPage::bytesReceived() const
 /*!
     \fn void QWebPage::unsupportedContent(QNetworkReply *reply)
 
-    This signal is emitted when WebKit cannot handle a link the user navigated to.
+    This signal is emitted when WebKit cannot handle a link the user navigated to or a
+    web server's response includes a "Content-Disposition" header with the 'attachment' 
+    directive. If "Content-Disposition" is present in \a reply, the web server is indicating
+    that the client should prompt the user to save the content regardless of content-type. 
+    See RFC 2616 sections 19.5.1 for details about Content-Disposition.
 
     At signal emission time the meta-data of the QNetworkReply \a reply is available.
 

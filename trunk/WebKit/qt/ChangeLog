@@ -1,3 +1,118 @@
+2010-03-30  Joe Ligman  <joseph.ligman@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] QGraphicsScene mousePressEvent does not set the clickCausedFocus flag
+        https://bugs.webkit.org/show_bug.cgi?id=35259
+
+        The clickCausedFocus flag is not being set in method
+        mousePressEvent(QGraphicsSceneMouseEvent* ev). This flag is used 
+        in conjunction with QStyle::RSIP_OnMouseClickAndAlreadyFocused when
+        deciding to launch the software input panel.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::mousePressEvent):
+
+2010-03-30  Luiz Agostini  <luiz.agostini@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Maemo5 theme - QtMaemoWebPopup class
+        https://bugs.webkit.org/show_bug.cgi?id=36790
+
+        A new QtAbstractWebPopup descendant class to be used for maemo menu lists.
+        This is the first step. The next step will be the dialogs implementation that
+        will come in bug 36789 and finally to use QtMaemoWebPopup instead of QtFallbackWebPopup
+        that will come in bug 36368.
+
+        * WebCoreSupport/QtMaemoWebPopup.cpp: Added.
+        (WebCore::QtMaemoWebPopup::QtMaemoWebPopup):
+        (WebCore::QtMaemoWebPopup::~QtMaemoWebPopup):
+        (WebCore::QtMaemoWebPopup::createSingleSelectionPopup):
+        (WebCore::QtMaemoWebPopup::createMultipleSelectionPopup):
+        (WebCore::QtMaemoWebPopup::createPopup):
+        (WebCore::QtMaemoWebPopup::show):
+        (WebCore::QtMaemoWebPopup::hide):
+        (WebCore::QtMaemoWebPopup::popupClosed):
+        (WebCore::QtMaemoWebPopup::itemClicked):
+        * WebCoreSupport/QtMaemoWebPopup.h: Added.
+        (WebCore::Maemo5Popup::Maemo5Popup):
+
+2010-03-29  Dawit Alemayehu  <adawit@kde.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Added support for handling the HTTP "Content-Disposition" header.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36395
+
+        Whenever a server response contains a "Content-Disposition: attachment..." header, 
+        treat the request as a download and emit the unsupportedContent signal.
+
+        * Api/qwebpage.cpp:
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::download):
+        (WebCore::FrameLoaderClientQt::dispatchDecidePolicyForMIMEType):
+
+2010-03-22  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Add support for Widgets 1.0: View Mode Media Feature
+        https://bugs.webkit.org/show_bug.cgi?id=35446
+
+        Add an internal Qt API for changing the view mode media feature
+        (http://www.w3.org/TR/widgets-vmmf/).
+
+        * Api/qwebpage.cpp:
+        (qt_wrt_setViewMode):
+        (QWebPagePrivate::priv):
+        * Api/qwebpage_p.h:
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::isDocked):
+        (WebCore::ChromeClientQt::isFloating):
+        (WebCore::ChromeClientQt::isApplication):
+        (WebCore::ChromeClientQt::isFullscreen):
+        * WebCoreSupport/ChromeClientQt.h:
+
+2010-03-29  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        Use 'Mobile Safari' instead of 'Safari' on mobile Qt platforms.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::userAgentForUrl):
+
+2010-03-29  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] unit tests don't compile inside of Qt
+
+        https://bugs.webkit.org/show_bug.cgi?id=36756
+
+        * tests/tests.pri: Don't do the target substitution inside Qt and find the sources
+        through VPATH instead of relying on the location of the .pro file exclusively.
+
+2010-03-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        Change due to renaming of frame flattening setting.
+
+        * Api/qwebpage.cpp:
+        (qt_drt_setFrameFlatteningEnabled):
+        * Api/qwebsettings.cpp:
+        (QWebSettingsPrivate::apply):
+        * symbian/eabi/QtWebKitu.def:
+
+2010-03-28  Alexey Proskuryakov  <ap@apple.com>
+
+        Build fix. Include WindowsKeyboardCodes.h instead of KeyboardCodes.h.
+
+        * WebCoreSupport/EditorClientQt.cpp:
+
 2010-03-28  Olivier Goffart  <ogoffart@trolltech.com>
 
         Reviewed by Simon Hausmann.

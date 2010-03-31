@@ -1,3 +1,998 @@
+2010-03-30  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Add missing export.
+
+        * WebCore.base.exp:
+
+2010-03-30  Enrica Casucci  <enrica@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Incorrect insertion position after typing THAI CHARACTER SARA AM = 0E33.
+        <rdar://problem/7810749>
+        https://bugs.webkit.org/show_bug.cgi?id=36858
+
+        Test: fast/text/multiglyph-characters.html
+
+        Characters with multiple glyph were not supported correctly.
+        Computing the advance width was producing a division by zero.
+        
+        * platform/graphics/mac/ComplexTextController.cpp:
+        (WebCore::ComplexTextController::advance):
+
+2010-03-30  Chris Evans  <cevans@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Taint the canvas if an SVG-derived pattern is rendered into it.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36838
+
+        Test: fast/canvas/svg-taint.html
+
+        * html/canvas/CanvasRenderingContext2D.cpp:
+        (WebCore::CanvasRenderingContext2D::createPattern):
+          Take into account the image's hasSingleSecurityOrigin() property.
+
+2010-03-30  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36616
+        Dvorak-Qwerty keyboard layout gives unexpected results in javascript keydown
+
+        https://bugs.webkit.org/show_bug.cgi?id=36797
+        For non-Roman layouts, keydown Event.keyCode is always 0
+
+        * platform/cocoa/KeyEventCocoa.mm:
+        (WebCore::windowsKeyCodeForKeyCode): This is now the primary function for determining
+        Windows key code - there is no reason to round trip a virtual key code via character code to
+        get Windows virtual key code, and this can't work for non-Roman alphabets.
+        (WebCore::windowsKeyCodeForCharCode): Removed keys that are now handled in windowsKeyCodeForKeyCode(),
+        only keeping those for which we don't have known key codes (yet?).
+
+        * platform/mac/KeyEventMac.mm: (WebCore::windowsKeyCodeForKeyEvent): Added comments.
+
+2010-03-30  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Rename / tidy up Geolocation bridge
+        Uses Geoposition instead of individual params for setLastPosition.
+        https://bugs.webkit.org/show_bug.cgi?id=36535
+
+        * platform/chromium/GeolocationServiceChromium.cpp:
+        (WebCore::GeolocationServiceChromium::GeolocationServiceChromium):
+        (WebCore::GeolocationServiceChromium::setIsAllowed):
+        (WebCore::GeolocationServiceChromium::setLastPosition):
+        * platform/chromium/GeolocationServiceChromium.h:
+
+2010-03-30  Adam Langley  <agl@chromium.org>
+
+        Reviewed by David Levin.
+
+        [chromium] linux: prefer the "hinting" fontconfig preference.
+
+        fontconfig can give contradictory hinting information, setting
+        "hinting" to zero and "hintstyle" to non-zero. In this case we
+        should take the "hinting" preference.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36602
+
+        * platform/graphics/chromium/FontPlatformDataLinux.cpp:
+        (WebCore::FontPlatformData::setupPaint):
+
+2010-03-30  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Copying from the Content tab in Resources includes line numbers.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35104
+
+        * inspector/front-end/TextViewer.js:
+        (WebInspector.TextViewer):
+        (WebInspector.TextViewer.prototype._beforeCopy):
+        (WebInspector.TextViewer.prototype._copy):
+
+2010-03-30  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Do not send empty matching rules for pseudo elements to frontend.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36834
+
+        * inspector/InspectorDOMAgent.cpp:
+        (WebCore::InspectorDOMAgent::buildArrayForPseudoElements):
+        * inspector/front-end/StylesSidebarPane.js:
+        (WebInspector.StylesSidebarPane.prototype._update):
+
+2010-03-30  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Cannot animate "points" attribute for <svg:polygon>
+        https://bugs.webkit.org/show_bug.cgi?id=21371
+
+        Add animation support for 'points' on polygons in SVG. 
+
+        Test: svg/animations/animate-points.html
+
+        * svg/SVGAnimateElement.cpp:
+        (WebCore::SVGAnimateElement::determinePropertyType):
+        (WebCore::SVGAnimateElement::calculateAnimatedValue):
+        (WebCore::SVGAnimateElement::calculateFromAndToValues):
+        (WebCore::SVGAnimateElement::resetToBaseValue):
+        (WebCore::SVGAnimateElement::applyResultsToTarget):
+        * svg/SVGAnimateElement.h:
+        (WebCore::SVGAnimateElement::): added PropertyType PointsProperty
+        * svg/SVGPointList.cpp:
+        (WebCore::blendFunc):
+        (WebCore::SVGPointList::createAnimated): calculates animated PointList
+        * svg/SVGPointList.h:
+
+2010-03-30  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Audits: bad CSS selector results in exception inside evaluated code
+        https://bugs.webkit.org/show_bug.cgi?id=36821
+
+        * inspector/front-end/AuditRules.js:
+        (WebInspector.AuditRules.UnusedCssRule.prototype.doRun.evalCallback.routine):
+        (WebInspector.AuditRules.UnusedCssRule.prototype.doRun.evalCallback):
+
+2010-03-29  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Package build fixes for Symbian
+
+        * enable building standalone QtWebkit for Symbian using qtlibinfix configuration option
+
+        qtlibinfix adds possibility having multiple versions of Qt in Symbian devices.
+        Fix also allows unfrozen DLL exports during development.
+
+        * Removed heap size configuration. DLLs don't have a heap.
+
+        * Removed enforcement to def files for package builds. Instead inherit the setting from
+        Qt's qconfig.pri whether to use def files or not. It's still possible to override this
+        also at qmake time by passing CONFIG+=def_files.
+
+        * WebCore.pro:
+
+2010-03-30  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Title for show/hide short records button was adjusted.
+        Some unused code was removed.
+        https://bugs.webkit.org/show_bug.cgi?id=36823
+
+        * inspector/front-end/TimelinePanel.js:
+        (WebInspector.TimelinePanel.prototype._createStatusbarButtons):
+        (WebInspector.TimelinePanel.prototype._toggleFilterButtonClicked):
+        (WebInspector.TimelinePanel.prototype._innerAddRecordToTimeline):
+
+2010-03-30  Adam Roben  <aroben@apple.com>
+
+        Enable extra Direct3D debugging information in Debug builds
+
+        This makes it easier to track down memory leaks and misuses of the D3D
+        APIs in Debug builds.
+
+        Fixes <http://webkit.org/b/36820>
+
+        Reviewed by John Sullivan.
+
+        * platform/graphics/win/WKCACFLayerRenderer.cpp: Define D3D_DEBUG_INFO
+        in Debug builds before #including d3d9.h so that extra D3D debugging
+        information will be enabled.
+
+2010-03-30  Luiz Agostini  <luiz.agostini@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Maemo5 theme - QtMaemoWebPopup class
+        https://bugs.webkit.org/show_bug.cgi?id=36790
+
+        Moving maemo5 theme related code from WebCore.pri to WebCore.pro and adding
+        new maemo menu lists popup class source and header to the project.
+
+        The code was in .pri file because of a theme css that was conditionally included.
+        As the css file is been included unconditionally there is no need to this
+        code to be kept in webcore.pri.
+
+        * WebCore.pri:
+        * WebCore.pro:
+
+2010-03-30  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by David Kilzer.
+
+        Guard Geolocation files with ENABLE_GEOLOCATION
+        https://bugs.webkit.org/show_bug.cgi?id=25756
+
+        The intent is to guard the Geolocation implementation files 
+        and minimize the impact on on clients/call sites.
+
+        * DerivedSources.make:
+        * WebCore.Geolocation.exp: Added. Exported interfaces if GEOLOCATION
+        is enabled.
+        * WebCore.base.exp:
+        * bindings/js/JSCustomPositionCallback.cpp:
+        * bindings/js/JSCustomPositionErrorCallback.cpp:
+        * bindings/js/JSGeolocationCustom.cpp:
+        * page/Geolocation.cpp:
+        (WebCore::Geolocation::disconnectFrame): Stub implementation if
+        GEOLOCATION is turned off.
+        (WebCore::Geolocation::Geolocation): Ditto.
+        (WebCore::Geolocation::~Geolocation): Ditto.
+        (WebCore::Geolocation::setIsAllowed): Ditto.
+        * page/Geolocation.h: 
+        * page/Geolocation.idl:
+        * page/GeolocationPositionCache.cpp:
+        * page/Geoposition.idl:
+        * page/PositionError.idl:
+        * platform/GeolocationService.cpp:
+        * platform/mock/GeolocationServiceMock.cpp:
+
+2010-03-30  Andrey Kosyakov  <caseq@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Support EventTarget interface in fake workers (both for Worker object
+        and WorkerContext). Use MessagePort to implement message passing to
+        support passing ports in PostMessage.
+        https://bugs.webkit.org/show_bug.cgi?id=36763
+
+        * inspector/front-end/InjectedFakeWorker.js:
+        (InjectedFakeWorker.Worker.onmessageGetter):
+        (InjectedFakeWorker.Worker.onmessageSetter):
+        (InjectedFakeWorker.Worker):
+        (InjectedFakeWorker.FakeWorker):
+        (InjectedFakeWorker.FakeWorker.prototype.postMessage):
+        (InjectedFakeWorker.FakeWorker.prototype.terminate):
+        (InjectedFakeWorker.FakeWorker.prototype._onWorkerFrameLoaded):
+        (InjectedFakeWorker.FakeWorker.prototype._setupWorkerContext.onmessageGetter):
+        (InjectedFakeWorker.FakeWorker.prototype._setupWorkerContext.onmessageSetter):
+        (InjectedFakeWorker.FakeWorker.prototype._setupWorkerContext):
+        (InjectedFakeWorker.FakeWorker.prototype._addEventListener):
+        (InjectedFakeWorker.FakeWorker.prototype._removeEventListener):
+        (InjectedFakeWorker.FakeWorker.prototype._callbackWrapper):
+        (InjectedFakeWorker.FakeWorker.prototype._handleException):
+
+2010-03-30  Kristian Monsen  <kristianm@google.com>
+
+        Reviewed by David Levin.
+
+        [v8] Add if ENABLE guard for Worker specific code.
+        https://bugs.webkit.org/show_bug.cgi?id=36597
+
+        Build fix only, no new tests.
+
+        * bindings/v8/V8DOMWrapper.h:
+
+2010-03-29  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        More IndexedDB work
+        https://bugs.webkit.org/show_bug.cgi?id=36770
+
+        Add the "singleton" IndexedDatabase object to PageGroup
+        IndexedDatabase now has a create() method since PageGroup can own the instance (at least for now)
+        Rip out the IDBRequest stuff (now obsolete).
+        DOMWindow now can instantiate indexedDatabase objects on demand.
+
+        New layout tests starting with the next patch (which should make indexedDB.open() "work").
+
+        * WebCore.gypi:
+        * bindings/v8/custom/V8IDBRequestCustom.cpp: Removed.
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::indexedDB):
+        * page/DOMWindow.h:
+        * page/PageGroup.cpp:
+        (WebCore::PageGroup::indexedDatabase):
+        * page/PageGroup.h:
+        * storage/IDBDatabase.cpp:
+        * storage/IDBDatabaseRequest.h:
+        (WebCore::IDBDatabaseRequest::createObjectStore):
+        * storage/IDBDatabaseRequest.idl:
+        * storage/IDBRequest.cpp: Removed.
+        * storage/IDBRequest.h: Removed.
+        * storage/IDBRequest.idl: Removed.
+        * storage/IndexedDatabase.cpp:
+        (WebCore::IndexedDatabase::create):
+        * storage/IndexedDatabase.h:
+        * storage/IndexedDatabaseImpl.cpp:
+        (WebCore::IndexedDatabaseImpl::create):
+        (WebCore::IndexedDatabaseImpl::IndexedDatabaseImpl):
+        (WebCore::IndexedDatabaseImpl::~IndexedDatabaseImpl):
+        * storage/IndexedDatabaseImpl.h:
+        * storage/IndexedDatabaseRequest.cpp:
+        (WebCore::IndexedDatabaseRequest::IndexedDatabaseRequest):
+        * storage/IndexedDatabaseRequest.h:
+        (WebCore::IndexedDatabaseRequest::create):
+        * storage/IndexedDatabaseRequest.idl:
+        * storage/chromium/IndexedDatabase.cpp:
+        (WebCore::IndexedDatabase::create):
+
+2010-03-30  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        SVG Glyph transformations wrong on use of SVGFont
+        https://bugs.webkit.org/show_bug.cgi?id=36731
+
+        Kerning on SVGFonts should be applied to the userSpace of the current Char
+        and not to the userSpace of the viewport. This means scaling the kerning
+        to match the current userSpace.
+
+        Test: svg/custom/glyph-transformation-with-hkern.svg
+
+        * rendering/SVGRootInlineBox.cpp:
+        (WebCore::SVGRootInlineBox::buildLayoutInformationForTextBox):
+
+2010-03-30  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        SVG Animation doesn't respect 'currentColor'
+        https://bugs.webkit.org/show_bug.cgi?id=36695
+
+        Test: svg/custom/animation-currentColor.svg
+
+        SVG Animation can't handle currentColor at the moment. This patch catches the
+        color value of the target element and replaces 'currentColor' with it's color string.
+
+        * svg/SVGAnimationElement.cpp:
+        (WebCore::adjustForCurrentColor):
+        (WebCore::SVGAnimationElement::startedActiveInterval):
+
+2010-03-30  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Visible/captured records counter should be implemented in Timeline panel.
+        https://bugs.webkit.org/show_bug.cgi?id=36708
+
+        * English.lproj/localizedStrings.js:
+        * inspector/front-end/TimelinePanel.js:
+        (WebInspector.TimelinePanel.prototype.get statusBarItems):
+        (WebInspector.TimelinePanel.prototype._createStatusbarButtons):
+        (WebInspector.TimelinePanel.prototype._updateRecordsCounter):
+        (WebInspector.TimelinePanel.prototype._innerAddRecordToTimeline):
+        (WebInspector.TimelinePanel.prototype._createRootRecord):
+        (WebInspector.TimelinePanel.prototype._refresh):
+        (WebInspector.TimelinePanel.prototype._filterRecords):
+        * inspector/front-end/inspector.css:
+        (.timeline-records-counter):
+
+2010-03-30  Philippe Normand  <pnormand@igalia.com>
+
+        [GStreamer] define static variables with DEFINE_STATIC_LOCAL macro
+        https://bugs.webkit.org/show_bug.cgi?id=36653
+
+        Unreviewed, don't define the bool variable with
+        DEFINE_STATIC_LOCAL, it makes sense only for objects which have a
+        destructor. Thanks to Dan Bernstein for spotting this.
+
+        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::mimeTypeCache):
+
+2010-03-29  Gyuyoung Kim  <gyuyoung.kim@samsung.com>
+
+        Reviewed by Eric Seidel.
+
+        There is a build break due to the disabled() when wml feature is
+        enabled. This break comes from the Bug 35056 - Disabled menu options
+        are still submitted.(https://bugs.webkit.org/show_bug.cgi?id=35056)
+        The WMLOptionElement.h needs to define the disabled() as well.
+        And, there is an additional break due to Bug 36177 -  Multiselect Popup
+        - Listbox click simulation. (https://bugs.webkit.org/show_bug.cgi?id=36177)
+        virtual void listBoxSelectItem() should be added to WMLSelectElement.h as well.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36698
+
+        * wml/WMLOptionElement.h:
+        (WebCore::WMLOptionElement::disabled):
+        * wml/WMLSelectElement.h:
+        (WebCore::WMLSelectElement::listBoxSelectItem):
+
+2010-03-29  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by David Hyatt.
+
+        No vertical scrollbar after the CSS class change
+        https://bugs.webkit.org/show_bug.cgi?id=36461
+
+        Don't suppress scrollbar change for non-first layouts.
+        In the first layout, the scrollbar change will happen in later
+        adjustViewSize() call, but in other layouts, adjustViewSize() may
+        not be called when the size of contents doesn't change.
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::layout):
+
+2010-03-29  Chris Evans  <cevans@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Don't use unique domains for file:// separation: it breaks local
+        databases, and access to your own same-origin iframes. Instead, use
+        path-based access checks.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36692
+
+        Test: fast/xmlhttprequest/xmlhttprequest-no-file-access.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::initSecurityContext): renamed API.
+        * page/SecurityOrigin.h:
+        * page/SecurityOrigin.cpp:
+        (WebCore::SecurityOrigin::SecurityOrigin):
+          Initialize new flag. Take note of file:// path.
+          Copy new fields in copy constructor.
+        (WebCore::SecurityOrigin::canAccess):
+          Take into account path-based origin separation for file://
+        (WebCore::SecurityOrigin::enforceFilePathSeparation):
+          New method to enable file:// path origin separation.
+        (WebCore::SecurityOrigin::toString):
+          Return a null domain for an isolated file origin.
+        (WebCore::SecurityOrigin::isSameSchemeHostPort):
+          Take into account path-based origin separation for file://
+        (WebCore::SecurityOrigin::passesFileCheck):
+          Abstraction of common logic for file:// access checks.
+
+2010-03-29  Rafael Weinstein  <rafaelw@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Change NotificationPresenter::checkPermission() to take the source frames full KURL,
+        rather than its SecurityOrigin. This will aid chromium in having more fine grained
+        permissions to control notification spam.
+
+        * notifications/Notification.cpp:
+        (WebCore::Notification::Notification):
+        * notifications/NotificationCenter.cpp:
+        (WebCore::NotificationCenter::checkPermission):
+        * notifications/NotificationPresenter.h:
+
+2010-03-29  Luiz Agostini  <luiz.agostini@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Multiselect - Adding method itemIsSelected() to QtAbstractWebPopup
+        https://bugs.webkit.org/show_bug.cgi?id=36769
+
+        Adding method itemIsSelected() to QtAbstractWebPopup.
+
+        * platform/qt/QtAbstractWebPopup.h:
+        (WebCore::QtAbstractWebPopup::itemIsSelected):
+
+2010-03-29  Dawit Alemayehu  <adawit@kde.org>
+
+        Reviewed by Simon Hausmann.
+
+        Added a function, WebCore::shouldTreatAsAttachment, to HTTPParsers.*
+
+        https://bugs.webkit.org/show_bug.cgi?id=36395
+
+        This function, which was moved from WebKit/chromium/src/FrameClientImpl.cpp,
+        is used to check whether or not a request is supposed to be rendered or
+        simply downloaded based on the "Content-Disposition" header sent by the
+        web server. The intent of code refactoring is to avoid code duplication
+        so that this piece of code can be used by other implementations such as
+        QtWebKit.
+
+        * platform/network/HTTPParsers.cpp:
+        (WebCore::shouldTreatAsAttachment):
+        * platform/network/HTTPParsers.h:
+
+2010-03-29  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 36735 - Live regions don't send out notifications when the element changing is the live region
+        https://bugs.webkit.org/show_bug.cgi?id=36735
+
+        Test: platform/mac/accessibility/aria-liveregion-on-image.html
+
+        * accessibility/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::contentChanged):
+
+2010-03-29  Stephen White  <senorblanco@chromium.org>
+
+        Reviewed by Dave Hyatt.
+
+        In order to speed up multiple calls to CSSPrimitiveValue::cssText(),
+        this CL caches the String result.  When m_value is changed, the
+        cached string is cleared.  This gives a good speedup on benchmarks
+        which do a lot of CSS property gets, such as Peacekeeper.
+        The processing cost should be negligible, since the strings are 
+        refcounted.  The memory cost is an additional 4 bytes per
+        CSSPrimitiveValue, and the extended lifetime of the computed string
+        (potentially, the same as the lifetime of the CSSPrimitiveValue).
+
+        https://bugs.webkit.org/show_bug.cgi?id=36556
+
+        Covered by fast/css/cssText-cache.html, and more.
+
+        * css/CSSPrimitiveValue.cpp:
+        (WebCore::CSSPrimitiveValue::CSSPrimitiveValue):
+        (WebCore::CSSPrimitiveValue::cleanup):
+        (WebCore::CSSPrimitiveValue::cssText):
+        * css/CSSPrimitiveValue.h:
+
+2010-03-22  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Add support for Widgets 1.0: View Mode Media Feature
+        https://bugs.webkit.org/show_bug.cgi?id=35446
+
+        When enabling Web Widgets, add support for the view-mode media
+        feature (http://www.w3.org/TR/widgets-vmmf/).
+
+        Test: fast/media/media-feature-wgt-view-mode.html
+
+        * css/CSSValueKeywords.in:
+        * css/MediaFeatureNames.h:
+        * css/MediaQueryEvaluator.cpp:
+        (WebCore::view_modeMediaFeatureEval):
+        * page/ChromeClient.h:
+        (WebCore::ChromeClient::isDocked):
+        (WebCore::ChromeClient::isFloating):
+        (WebCore::ChromeClient::isApplication):
+        (WebCore::ChromeClient::isFullscreen):
+
+2010-03-29  Kenneth Russell  <kbr@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Eliminate use of GL_BGRA in GraphicsContext3DSkia.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=36737
+
+        No new tests; ran WebGL demos in Chromium on Windows to verify fix.
+
+        * platform/graphics/skia/GraphicsContext3DSkia.cpp:
+        (WebCore::GraphicsContext3D::getImageData):
+
+2010-03-29  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Cover the Audits panel with tests
+        https://bugs.webkit.org/show_bug.cgi?id=36613
+
+        Sort results, add a few drive-by fixes and refactorings to improve testability.
+
+        Test: inspector/audits-panel-functional.html
+
+        * English.lproj/localizedStrings.js:
+        * inspector/front-end/AuditResultView.js:
+        (WebInspector.AuditResultView):
+        (WebInspector.AuditCategoryResultPane.ruleSorter):
+        (WebInspector.AuditCategoryResultPane):
+        * inspector/front-end/AuditRules.js:
+        (WebInspector.AuditRules.GzipRule.prototype.doRun):
+        (WebInspector.AuditRules.CombineExternalResourcesRule.prototype.doRun):
+        (WebInspector.AuditRules.UnusedCssRule.prototype.doRun.evalCallback.selectorsCallback):
+        (WebInspector.AuditRules.ImageDimensionsRule.prototype.doRun):
+        (WebInspector.AuditRules.CssInHeadRule.prototype.doRun):
+        (WebInspector.AuditRules.CookieSizeRule.prototype.processCookies):
+        * inspector/front-end/AuditsPanel.js:
+        (WebInspector.AuditRuleResult.linkifyDisplayName):
+        (WebInspector.AuditRuleResult.resourceDomain):
+        (WebInspector.AuditRuleResult.prototype.addURL):
+        * inspector/front-end/inspector.js:
+        (WebInspector.displayNameForURL):
+
+2010-03-29  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by nobody, build fix.
+
+        [Qt] Fix build break introduced in r56724.
+
+        * WebCore.pro:
+
+2010-03-29  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector should highlight when clicking a node's closing tag
+        https://bugs.webkit.org/show_bug.cgi?id=16258
+
+        * inspector/front-end/ElementsTreeOutline.js:
+        (WebInspector.ElementsTreeOutline.prototype.set suppressRevealAndSelect):
+        (WebInspector.ElementsTreeOutline.prototype.revealAndSelectNode):
+        (WebInspector.ElementsTreeOutline.prototype._keyDown):
+        (WebInspector.ElementsTreeOutline.prototype._onmousemove):
+        (WebInspector.ElementsTreeElement):
+        (WebInspector.ElementsTreeElement.prototype.showChild):
+        (WebInspector.ElementsTreeElement.prototype.onpopulate):
+        (WebInspector.ElementsTreeElement.prototype.updateChildren):
+        (WebInspector.ElementsTreeElement.prototype.insertChildElement):
+        (WebInspector.ElementsTreeElement.prototype.moveChild):
+        (WebInspector.ElementsTreeElement.prototype._updateChildren):
+        (WebInspector.ElementsTreeElement.prototype.onexpand):
+        (WebInspector.ElementsTreeElement.prototype.oncollapse):
+        (WebInspector.ElementsTreeElement.prototype.onselect):
+        (WebInspector.ElementsTreeElement.prototype.ondblclick):
+        ():
+
+2010-03-29  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36315
+
+        Remove obsolete Geolocation::m_currentPosition
+        (follow up on https://bugs.webkit.org/show_bug.cgi?id=30676)
+
+        * page/Geolocation.cpp:
+        (WebCore::Geolocation::positionChanged):
+        (WebCore::Geolocation::makeSuccessCallbacks):
+        * page/Geolocation.h:
+        * platform/chromium/GeolocationServiceChromium.cpp:
+        (WebCore::GeolocationServiceChromium::GeolocationServiceChromium):
+
+2010-03-29  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Do not generate INSTALLS for webkit when building inside Qt.
+        Qt will do this for us.
+
+        * WebCore.pro:
+
+2010-03-29  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36703
+        Timer restart loop during page loading
+        
+        Fix regression introduced in http://trac.webkit.org/changeset/54526. 
+        Restarting the request timer unconditionally from the timer callback is a bad idea. 
+        Instead, start the timer when a non-cached request completes.
+
+        * loader/loader.cpp:
+        (WebCore::Loader::Host::nonCacheRequestComplete):
+        (WebCore::Loader::Host::servePendingRequests):
+
+2010-03-29  Thomas Zander  <t.zander@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Shadowbuilds of WebCore with Qt on Symbian fails.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36749
+
+        Doing a 'make sis' expects the dll in the libdir, so place it
+        there. This fixes out-of-source building to always put the dll
+        in the expected dir.
+
+        * WebCore.pro: Fix for shadow builds inside Qt.
+
+2010-03-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        Implement flattening for iframes.
+
+        Refactoring of frameset flattening code to reuse it for
+        iframe flattening.
+
+        Tests: fast/frames/flattening/iframe-flattening-simple.html
+
+        * WebCore.base.exp:
+        * page/FrameView.cpp:
+        (WebCore::FrameView::layout):
+        (WebCore::FrameView::scheduleRelayout):
+        * page/Settings.cpp:
+        (WebCore::Settings::Settings):
+        (WebCore::Settings::setFrameFlatteningEnabled):
+        * page/Settings.h:
+        (WebCore::Settings::frameFlatteningEnabled):
+        * rendering/RenderFrame.cpp:
+        * rendering/RenderFrame.h:
+        * rendering/RenderFrameSet.cpp:
+        (WebCore::RenderFrameSet::flattenFrameSet):
+        * rendering/RenderFrameSet.h:
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::layoutWithFlattening):
+        * rendering/RenderPart.h:
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::flattenFrame):
+        (WebCore::RenderPartObject::calcHeight):
+        (WebCore::RenderPartObject::calcWidth):
+        (WebCore::RenderPartObject::layout):
+        * rendering/RenderPartObject.h:
+
+2010-03-29  Andrei Popescu  <andreip@google.com>
+
+        Reviewed by Adam Barth.
+
+        Page Cache does not work on Android with V8
+        https://bugs.webkit.org/show_bug.cgi?id=36665
+
+        No new tests, existing tests should suffice, this is platform code.
+
+        This implementation simply saves the context and the global object
+        just before the frame is navigated to a new url. At restore time,
+        the global object is reattached to the context and the context
+        is attached to the window shell of the frame.
+
+        Note that isolated worlds are not taken into account in any way,
+        as Android does not use them.
+
+        * bindings/v8/ScriptCachedFrameData.cpp: Added.
+        (WebCore::ScriptCachedFrameData::ScriptCachedFrameData):
+        (WebCore::ScriptCachedFrameData::domWindow):
+        (WebCore::ScriptCachedFrameData::~ScriptCachedFrameData):
+        (WebCore::ScriptCachedFrameData::restore):
+        (WebCore::ScriptCachedFrameData::clear):
+        * bindings/v8/ScriptCachedFrameData.h:
+        * bindings/v8/V8DOMWindowShell.cpp:
+        (WebCore::V8DOMWindowShell::setContext):
+        * bindings/v8/V8DOMWindowShell.h:
+
+2010-03-29  Thomas Zander  <t.zander@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Make it possible to build using both Windows and Linux for Symbian
+        https://bugs.webkit.org/show_bug.cgi?id=36748
+
+        * WebCore.pro: don't assume Windows buildsystem is the only one
+        and exclude the windows-only setters from the linux builds.
+
+2010-03-29  Thomas Zander  <t.zander@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36745
+
+        [Qt] Fix def file builds with Qt 4.7.
+
+        Switched to using DEF_FILE, which is the official variable.
+
+        * WebCore.pro: Use DEF_FILE
+
+2010-03-24  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        A few more steps towards IndexedDB
+        https://bugs.webkit.org/show_bug.cgi?id=36546
+
+        Add a callback interface to be used by all async methods.
+        Add the first fragments of IDBDatabase.
+        Clean up on IDBDatabaseError.
+        Flesh out IndexedDatabase further.
+
+        Not enough hooked up yet to test.  Soon though...
+
+        * WebCore.gypi:
+        * storage/IDBCallbacks.h: Added.
+        (WebCore::IDBCallbacks::~IDBCallbacks):
+        * storage/IDBDatabase.cpp: Added.
+        * storage/IDBDatabase.h: Added.
+        (WebCore::IDBDatabase::~IDBDatabase):
+        * storage/IDBDatabaseError.h:
+        (WebCore::IDBDatabaseError::create):
+        (WebCore::IDBDatabaseError::message):
+        (WebCore::IDBDatabaseError::IDBDatabaseError):
+        * storage/IndexedDatabase.h:
+        * storage/IndexedDatabaseImpl.cpp:
+        (WebCore::IndexedDatabaseImpl::IndexedDatabaseImpl):
+        (WebCore::IndexedDatabaseImpl::~IndexedDatabaseImpl):
+        (WebCore::IndexedDatabaseImpl::open):
+        * storage/IndexedDatabaseImpl.h:
+        * storage/IndexedDatabaseRequest.cpp:
+        (WebCore::IndexedDatabaseRequest::open):
+
+2010-03-29  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Remove a possibility of confusion from Profiles panel Welcome screen
+        by turning buttons into non-clickable glyphs. Also, span instructions
+        alongside panel width.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34319
+
+        * English.lproj/localizedStrings.js:
+        * inspector/front-end/ProfileView.js:
+        (WebInspector.CPUProfileType.prototype.get welcomeMessage):
+        * inspector/front-end/ProfilesPanel.js:
+        (WebInspector.ProfilesPanel.prototype._addWelcomeMessage):
+        * inspector/front-end/inspector.css:
+        (.panel-enabler-view.welcome .instructions):
+        (.panel-enabler-view.welcome button.status-bar-item):
+
+2010-03-26  Philippe Normand  <pnormand@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        [GStreamer] define static variables with DEFINE_STATIC_LOCAL macro
+        https://bugs.webkit.org/show_bug.cgi?id=36653
+
+        Defined the static variables using DEFINE_STATIC_GLOBAL.
+
+        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::mimeTypeCache):
+
+2010-03-26  Philippe Normand  <pnormand@igalia.com>
+
+        Reviewed by Eric Seidel.
+
+        [GStreamer] player header cleanups
+        https://bugs.webkit.org/show_bug.cgi?id=36656
+
+        Destructor made private and added missing
+        mediaPlayerPrivateMuteChangedCallback declaration.
+
+        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h:
+
+2010-03-29  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Protect global object from being GC'ed if there are messages written to console from the iframe with that global object.
+
+        Whent serializing objects in the injected script check that global object properties are still defined before using them as arguments. The may become undefined if owning frame navigated to a different domain.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36612
+
+        Test: http/tests/inspector-enabled/console-log-before-frame-navigation.html
+
+        * bindings/js/ScriptState.h:
+        (WebCore::ScriptStateProtectedPtr::ScriptStateProtectedPtr):
+        (WebCore::ScriptStateProtectedPtr::get):
+        * bindings/v8/ScriptState.h:
+        (WebCore::ScriptStateProtectedPtr::ScriptStateProtectedPtr):
+        (WebCore::ScriptStateProtectedPtr::~ScriptStateProtectedPtr):
+        (WebCore::ScriptStateProtectedPtr::get):
+        * inspector/ConsoleMessage.cpp:
+        (WebCore::ConsoleMessage::addToFrontend):
+        * inspector/ConsoleMessage.h:
+        * inspector/front-end/InjectedScript.js:
+        (injectedScriptConstructor):
+        (injectedScriptConstructor.):
+
+2010-03-26  Philippe Normand  <pnormand@igalia.com>
+
+        Reviewed by Eric Carlson.
+
+        It should be possible to use GStreamer in addition to another media engine
+        https://bugs.webkit.org/show_bug.cgi?id=36654
+
+        Renamed gstreamer player and added a WTF_USE_GSTREAMER
+        define. Made the MediaPlayer register the GStreamer backend only
+        if it's enabled (true by default on WebKitGTK+).
+
+        * GNUmakefile.am:
+        * platform/graphics/MediaPlayer.cpp:
+        (WebCore::installedMediaEngines):
+        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp:
+        (WebCore::mediaPlayerPrivateMessageCallback):
+        (WebCore::mediaPlayerPrivateSourceChangedCallback):
+        (WebCore::mediaPlayerPrivateVolumeChangedCallback):
+        (WebCore::mediaPlayerPrivateMuteChangedCallback):
+        (WebCore::mediaPlayerPrivateRepaintCallback):
+        (WebCore::MediaPlayerPrivateGStreamer::create):
+        (WebCore::MediaPlayerPrivateGStreamer::registerMediaEngine):
+        (WebCore::MediaPlayerPrivateGStreamer::isAvailable):
+        (WebCore::MediaPlayerPrivateGStreamer::MediaPlayerPrivateGStreamer):
+        (WebCore::MediaPlayerPrivateGStreamer::~MediaPlayerPrivateGStreamer):
+        (WebCore::MediaPlayerPrivateGStreamer::load):
+        (WebCore::MediaPlayerPrivateGStreamer::commitLoad):
+        (WebCore::MediaPlayerPrivateGStreamer::changePipelineState):
+        (WebCore::MediaPlayerPrivateGStreamer::prepareToPlay):
+        (WebCore::MediaPlayerPrivateGStreamer::play):
+        (WebCore::MediaPlayerPrivateGStreamer::pause):
+        (WebCore::MediaPlayerPrivateGStreamer::duration):
+        (WebCore::MediaPlayerPrivateGStreamer::currentTime):
+        (WebCore::MediaPlayerPrivateGStreamer::seek):
+        (WebCore::MediaPlayerPrivateGStreamer::startEndPointTimerIfNeeded):
+        (WebCore::MediaPlayerPrivateGStreamer::cancelSeek):
+        (WebCore::MediaPlayerPrivateGStreamer::endPointTimerFired):
+        (WebCore::MediaPlayerPrivateGStreamer::paused):
+        (WebCore::MediaPlayerPrivateGStreamer::seeking):
+        (WebCore::MediaPlayerPrivateGStreamer::naturalSize):
+        (WebCore::MediaPlayerPrivateGStreamer::hasVideo):
+        (WebCore::MediaPlayerPrivateGStreamer::hasAudio):
+        (WebCore::MediaPlayerPrivateGStreamer::setVolume):
+        (WebCore::MediaPlayerPrivateGStreamer::volumeChangedTimerFired):
+        (WebCore::MediaPlayerPrivateGStreamer::volumeChanged):
+        (WebCore::MediaPlayerPrivateGStreamer::setRate):
+        (WebCore::MediaPlayerPrivateGStreamer::networkState):
+        (WebCore::MediaPlayerPrivateGStreamer::readyState):
+        (WebCore::MediaPlayerPrivateGStreamer::buffered):
+        (WebCore::MediaPlayerPrivateGStreamer::processBufferingStats):
+        (WebCore::MediaPlayerPrivateGStreamer::fillTimerFired):
+        (WebCore::MediaPlayerPrivateGStreamer::maxTimeSeekable):
+        (WebCore::MediaPlayerPrivateGStreamer::maxTimeLoaded):
+        (WebCore::MediaPlayerPrivateGStreamer::bytesLoaded):
+        (WebCore::MediaPlayerPrivateGStreamer::totalBytes):
+        (WebCore::MediaPlayerPrivateGStreamer::cancelLoad):
+        (WebCore::MediaPlayerPrivateGStreamer::updateStates):
+        (WebCore::MediaPlayerPrivateGStreamer::mediaLocationChanged):
+        (WebCore::MediaPlayerPrivateGStreamer::loadNextLocation):
+        (WebCore::MediaPlayerPrivateGStreamer::loadStateChanged):
+        (WebCore::MediaPlayerPrivateGStreamer::sizeChanged):
+        (WebCore::MediaPlayerPrivateGStreamer::timeChanged):
+        (WebCore::MediaPlayerPrivateGStreamer::didEnd):
+        (WebCore::MediaPlayerPrivateGStreamer::durationChanged):
+        (WebCore::MediaPlayerPrivateGStreamer::supportsMuting):
+        (WebCore::MediaPlayerPrivateGStreamer::setMuted):
+        (WebCore::MediaPlayerPrivateGStreamer::muteChangedTimerFired):
+        (WebCore::MediaPlayerPrivateGStreamer::muteChanged):
+        (WebCore::MediaPlayerPrivateGStreamer::loadingFailed):
+        (WebCore::MediaPlayerPrivateGStreamer::setSize):
+        (WebCore::MediaPlayerPrivateGStreamer::setVisible):
+        (WebCore::MediaPlayerPrivateGStreamer::repaint):
+        (WebCore::MediaPlayerPrivateGStreamer::paint):
+        (WebCore::MediaPlayerPrivateGStreamer::getSupportedTypes):
+        (WebCore::MediaPlayerPrivateGStreamer::supportsType):
+        (WebCore::MediaPlayerPrivateGStreamer::hasSingleSecurityOrigin):
+        (WebCore::MediaPlayerPrivateGStreamer::supportsFullscreen):
+        (WebCore::MediaPlayerPrivateGStreamer::setPreload):
+        (WebCore::MediaPlayerPrivateGStreamer::createGSTPlayBin):
+        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h:
+
+2010-03-28  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36733
+        Use a common header for Windows virtual key codes on all platforms
+
+        No change in functionality, so no new tests.
+
+        * platform/WindowsKeyboardCodes.h: Added. Define VK_* key codes as macros, matching Windows.
+
+        * platform/KeyboardCodes.h: Removed.
+        * platform/android/KeyboardCodes.h: Removed.
+        * platform/chromium/KeyboardCodesPosix.h: Removed.
+        * platform/chromium/KeyboardCodesWin.h: Removed.
+        * platform/haiku/KeyboardCodes.h: Removed.
+        * platform/wx/KeyboardCodes.h: Removed.
+        Removed platform specific attempts to do the same thing. In fact, platform/KeyboardCodes.h
+        was supposed to be cross-platform, but it didn't have a sufficiently descriptive name, and
+        its name was the same as platform-specific versions, so I chose a new one.
+
+        * platform/chromium/KeyboardCodes.h: Copied from WebCore/platform/chromium/KeyboardCodesWin.h.
+        Chromium redefines Windows constants to different names; keeping the header doing that to
+        avoid breaking Chromium code.
+
+        * GNUmakefile.am:
+        * WebCore.gypi:
+        Replaced KeyboardCodes.h with WindowsKeyboardCodes.h.
+
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/cocoa/KeyEventCocoa.mm:
+        (WebCore::windowsKeyCodeForKeyCode):
+        (WebCore::windowsKeyCodeForCharCode):
+        Mac used to hardcode the key codes; changed to use VK_* macros.
+
+        * config.h: Removed a hack to include KeyboardCodes.h, it shouldn't be necessary any more.
+
+        * platform/android/KeyEventAndroid.cpp:
+        * platform/brew/PlatformKeyboardEventBrew.cpp:
+        * platform/efl/PlatformKeyboardEventEfl.cpp:
+        * platform/gtk/KeyEventGtk.cpp:
+        * platform/haiku/PlatformKeyboardEventHaiku.cpp:
+        * platform/qt/PlatformKeyboardEventQt.cpp:
+        * platform/wx/KeyboardEventWx.cpp:
+        Changed to include WindowsKeyboardCodes.h.
+
 2010-03-28  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Simon Hausmann.

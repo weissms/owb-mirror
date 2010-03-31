@@ -83,7 +83,7 @@
 #endif
 #include "ObserverData.h"
 #include "ObserverServiceData.h"
-#include "KeyboardCodes.h"
+#include "WindowsKeyboardCodes.h"
 #include <PlatformString.h>
 #include <Cache.h>
 #include <Chrome.h>
@@ -2891,8 +2891,8 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->pluginAllowedRunTime();
     settings->setPluginAllowedRunTime(enabled);
 
-    enabled = preferences->isFrameSetFlatteningEnabled();
-    settings->setFrameSetFlatteningEnabled(enabled);
+    enabled = preferences->isFrameFlatteningEnabled();
+    settings->setFrameFlatteningEnabled(enabled);
     
     enabled = preferences->webGLEnabled();
     settings->setWebGLEnabled(enabled);

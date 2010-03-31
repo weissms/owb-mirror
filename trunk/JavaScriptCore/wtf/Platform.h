@@ -558,6 +558,9 @@
 
 #if PLATFORM(QT)
 #define WTF_USE_QT4_UNICODE 1
+#if !defined(ENABLE_WIDGETS_10_SUPPORT)
+#define ENABLE_WIDGETS_10_SUPPORT 1
+#endif
 #elif OS(WINCE)
 #define WTF_USE_WINCE_UNICODE 1
 #elif PLATFORM(GTK)
@@ -808,6 +811,10 @@
 #define ENABLE_DASHBOARD_SUPPORT 0
 #endif
 
+#if !defined(ENABLE_WIDGETS_10_SUPPORT)
+#define ENABLE_WIDGETS_10_SUPPORT 0
+#endif
+
 #if !defined(ENABLE_INSPECTOR)
 #define ENABLE_INSPECTOR 1
 #endif
@@ -922,6 +929,9 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
     #define ENABLE_JIT 1
 #elif CPU(ARM_TRADITIONAL) && OS(LINUX)
     #define ENABLE_JIT 1
+#elif CPU(MIPS) && OS(LINUX)
+    #define ENABLE_JIT 1
+    #define WTF_USE_JIT_STUB_ARGUMENT_VA_LIST 0
 #endif
 #endif /* PLATFORM(QT) */
 

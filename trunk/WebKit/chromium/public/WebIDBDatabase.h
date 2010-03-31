@@ -25,21 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-module storage {
 
-    interface [
-        Conditional=INDEXED_DATABASE,
-        EventTarget
-    ] IDBRequest {
-        void abort();
-        const unsigned short INITIAL = 0;
-        const unsigned short LOADING = 1;
-        const unsigned short DONE = 2;
-        readonly attribute unsigned short readyState;
-        readonly attribute IDBDatabaseError error;
-        readonly attribute [CustomGetter] any result;
-        attribute EventListener onsuccess;
-        attribute EventListener onerror;
-    };
+#ifndef WebIDBDatabase_h
+#define WebIDBDatabase_h
 
-}
+#include "WebCommon.h"
+
+namespace WebKit {
+
+// See comment in WebIndexedDatabase for a high level overview these classes.
+class WebIDBDatabase {
+public:
+    virtual ~WebIDBDatabase() { }
+
+    // FIXME: Implement.
+};
+
+} // namespace WebKit
+
+#endif // WebIDBDatabase_h

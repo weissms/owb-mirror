@@ -131,7 +131,7 @@
 
 #define WebKitExperimentalNotificationsEnabledPreferenceKey "WebKitExperimentalNotificationsEnabled"
 #define WebKitPluginAllowedRunTimePreferenceKey "WebKitPluginAllowedRunTime"
-#define WebKitFrameSetFlatteningEnabledPreferenceKey "WebKitFrameSetFlatteningEnabled"
+#define WebKitFrameFlatteningEnabledPreferenceKey "WebKitFrameSetFlatteningEnabled"
 #define WebKitWebGLEnabledPreferenceKey "WebKitWebGLEnabled"
 #define WebKitAcceleratedCompositingEnabledPreferenceKey "WebKitAcceleratedCompositingEnabled"
 #define WebKitShowDebugBordersPreferenceKey "WebKitShowDebugBorders"

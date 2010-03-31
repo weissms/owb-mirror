@@ -25,40 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "config.h"
-#include "IDBRequest.h"
+
+#ifndef IDBDatabase_h
+#define IDBDatabase_h
+
+#include <wtf/Threading.h>
 
 #if ENABLE(INDEXED_DATABASE)
 
-#include "IDBDatabaseError.h"
-#include "SerializedScriptValue.h"
-
 namespace WebCore {
 
-IDBRequest::IDBRequest(ScriptExecutionContext* context)
-    : ActiveDOMObject(context, this)
-{
-}
-
-IDBRequest::~IDBRequest()
-{
-}
-
-void IDBRequest::abort()
-{
-}
-
-EventTargetData* IDBRequest::eventTargetData()
-{
-    return 0;
-}
-
-EventTargetData* IDBRequest::ensureEventTargetData()
-{
-    return 0;
-}
+// This class is shared by IDBDatabaseRequest (async) and IDBDatabaseSync (sync).
+// This is implemented by IDBDatabaseImpl and optionally others (in order to proxy
+// calls across process barriers). All calls to these classes should be non-blocking and
+// trigger work on a background thread if necessary.
+class IDBDatabase : public ThreadSafeShared<IDBDatabase> {
+public:
+    virtual ~IDBDatabase() { }
+    // FIXME: Write.
+};
 
 } // namespace WebCore
 
-#endif // ENABLE(INDEXED_DATABASE)
+#endif
+
+#endif // IDBDatabase_h
 

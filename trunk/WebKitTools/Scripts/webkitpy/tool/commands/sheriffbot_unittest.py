@@ -28,6 +28,8 @@
 
 import os
 
+from webkitpy.common.net.buildbot import Builder
+from webkitpy.thirdparty.mock import Mock
 from webkitpy.tool.commands.queuestest import QueuesTest
 from webkitpy.tool.commands.sheriffbot import SheriffBot
 from webkitpy.tool.mocktool import MockTool, mock_builder
@@ -41,7 +43,32 @@ class SheriffBotTest(QueuesTest):
         expected_stderr = {
             "begin_work_queue": "CAUTION: sheriff-bot will discard all local changes in \"%s\"\nRunning WebKit sheriff-bot.\n" % os.getcwd(),
             "next_work_item": "",
-            "process_work_item": "MOCK: irc.post: abarth, darin, eseidel: r29837 appears to have broken Mock builder name (Tests)\n",
+            "process_work_item": "MOCK: irc.post: abarth, darin, eseidel: http://trac.webkit.org/changeset/29837 appears to have broken Mock builder name (Tests)\n",
             "handle_unexpected_error": "Mock error message\n"
         }
         self.assert_queue_outputs(SheriffBot(), work_item=mock_work_item, expected_stderr=expected_stderr)
+
+    def test_rollout_reason(self):
+        bot = SheriffBot()
+        builders = [
+            Builder("Foo", None),
+            Builder("Bar", None),
+        ]
+        reason = "Caused builders Foo and Bar to fail."
+        self.assertEquals(bot._rollout_reason(builders), reason)
+
+    def test_post_blame_comment_on_bug(self):
+        bot = SheriffBot()
+        bot.tool = MockTool()
+        builders = [
+            Builder("Foo", None),
+            Builder("Bar", None),
+        ]
+        commit_info = Mock()
+        commit_info.bug_id = lambda:None
+        commit_info.revision = lambda:4321
+        # Should do nothing with no bug_id
+        bot._post_blame_comment_on_bug(commit_info, builders)
+        # Should try to post a comment to the bug, but MockTool.bugs does nothing.
+        commit_info.bug_id = lambda:1234
+        bot._post_blame_comment_on_bug(commit_info, builders)

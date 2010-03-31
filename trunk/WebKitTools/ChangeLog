@@ -1,3 +1,321 @@
+2010-03-30  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        webkit-patch what-broke throws exception
+        https://bugs.webkit.org/show_bug.cgi?id=36852
+
+        * Scripts/webkitpy/common/checkout/api.py: Add missing import StringIO.
+        * Scripts/webkitpy/common/checkout/api_unittest.py: Test the function which previously threw and exception.
+
+2010-03-30  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36616
+        Dvorak-Qwerty keyboard layout gives unexpected results in javascript keydown
+
+        https://bugs.webkit.org/show_bug.cgi?id=36797
+        For non-Roman layouts, keydown Event.keyCode is always 0
+
+        * DumpRenderTree/mac/EventSendingController.mm:
+        (-[EventSendingController keyDown:withModifiers:withLocation:]): Generate a correct keyCode
+        for keys used in tests (we used to always pass 0 for 'A').
+
+2010-03-30  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Implement win-ews
+        https://bugs.webkit.org/show_bug.cgi?id=36809
+
+        * Scripts/webkitpy/common/config/ports.py:
+        * Scripts/webkitpy/tool/commands/earlywarningsystem.py:
+
+2010-03-30  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Adjusted test-webkitpy to delete all orphaned *.pyc files
+        from webkitpy/ prior to importing any modules from webkitpy.
+        This ensures that no import statements in webkitpy falsely
+        succeed because of leftover *.pyc files.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36599
+
+        * Scripts/test-webkitpy:
+          - Added _clean_pyc_files() to delete orphaned *.pyc files
+            from a directory.
+          - Added _clean_webkitpy_with_test() to call and test
+            _clean_pyc_files().
+          - Moved the "import webkitpy.python24.versioning" statement
+            from the top of the module to the init() method -- immediately
+            after the call to _clean_webkitpy_with_test().
+
+2010-03-30  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        [Chromium-Win] subprocess.call should be called with stdin=open(os.devnull,'r')
+        https://bugs.webkit.org/show_bug.cgi?id=36811
+
+        subproess.Popen() on Python 2.4/Windows with stdout,stdout, but no stdin will fail, because it uses return value of GetStdHandle(STD_INPUT_HANDLE), but DuplicateHandle requires integer, not the handle.
+        We don't need stdin, so use devnull as stdin.
+        Same as https://bugs.webkit.org/show_bug.cgi?id=36586
+
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py: open os.devnull for stdin
+
+2010-03-29  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, build fix only.
+
+        * Scripts/webkitpy/tool/steps/validatereviewer.py: Add missing import.
+
+2010-03-29  Hayato Ito  <hayato@chromium.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Remove '_flymake' suffix from base part of file name so that
+        check-webkit-style uses a correct header guard name when it is called from Emacs's flymake.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36573
+
+        * Scripts/webkitpy/style/processors/cpp.py:
+        * Scripts/webkitpy/style/processors/cpp_unittest.py:
+
+2010-03-29  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Get the following test-webkitpy unit test working again:
+        scm_unittest.SVNTest.test_svn_apply().
+
+        https://bugs.webkit.org/show_bug.cgi?id=36696
+
+        * Scripts/webkitpy/common/checkout/scm_unittest.py:
+          - Add leading spaces to the empty lines of the ChangeLog strings.
+          - Manually set the _reviewer attribute on the Attachment object
+            to get the tests to pass.
+
+2010-03-29  Martin Robinson  <mrobinson@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        [GTK] suppress (un)desired launcher output that can make layout test to fail with stderr
+        https://bugs.webkit.org/show_bug.cgi?id=36390
+
+        Suppress debugging messages sent to the GLib logger during DRT runs.
+
+        * DumpRenderTree/gtk/DumpRenderTree.cpp:
+        (logHandler): Added.
+        (main): Use logHandler as the default GLib log message handler.
+
+2010-03-29  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        sheriff-bot should comment on bugs when builders break
+        https://bugs.webkit.org/show_bug.cgi?id=36786
+
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+         - Add a new _post_blame_comment_to_bug and all it from process_work_item
+         - Move commit-queue logic into _post_rollout_patch to make its api match the other _post commands.
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+         - Test the new _post_blame_comment_to_bug call
+
+2010-03-29  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        sheriff-bot fails to get information about certain builds
+        https://bugs.webkit.org/show_bug.cgi?id=36768
+
+        This seems to be caused by:
+        http://buildbot.net/trac/ticket/753
+        I have no work-around, but for now at least we're logging
+        the error better.  I also added allow_none to our ServerProxy
+        creation in case that fixes things for other versions of python.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+
+2010-03-29  Victor Wang  <victorw@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add sign in/out link to TestResults appengine
+
+        Add a link to main menu for sign in/out to this appengine.
+        People signed in with admin privilege could perform
+        actions that are only allowed to admins like deleting files.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36767
+
+        * TestResultServer/handlers/menu.py:
+        * TestResultServer/stylesheets/menu.css:
+        (.sign):
+        * TestResultServer/templates/menu.html:
+
+2010-03-29  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        ValidateReviewer step is draconian and un-tested
+        https://bugs.webkit.org/show_bug.cgi?id=36792
+
+        ValidateReviewer logic was commented out in
+        http://trac.webkit.org/changeset/56744
+        That was a symptom of the fact that validatereviewer.py
+        is too inflexible to be used when real humans are driving webkit-patch.
+        For now we just disable ValidateReviewer when humans are at the keyboard.
+
+        * Scripts/webkitpy/tool/steps/validatereviewer.py:
+         - Only run when in non-interactive mode.
+        * Scripts/webkitpy/tool/steps/validatereviewer_unittest.py: Added.
+         - Test our validation logic to make sure it's sane.
+
+2010-03-29  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Eliminate explicit slash characters from check-webkit-style's
+        _rel_path() method to make its implementation more platform
+        independent.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36759
+
+        * Scripts/webkitpy/style/main.py:
+          - Changed to use os.sep instead of slash_chars "/\\".  This can
+            be done since os.path.abspath() converts slashes to os.sep.
+
+2010-03-29  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Change new-run-webkit-tests to not use more than four threads by
+        default on the mac port until
+        https://bugs.webkit.org/show_bug.cgi?id=36622 is fixed.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36687
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+
+2010-03-29  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Reformat port/mac.py to fit witin 80 columns for PEP-8 compliance.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36691
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+
+2010-03-29  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests fails java/lc3 on a clean checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36078
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+         - Build the java support files in check_build
+         - Unwrap a line which would still fit under 80col
+
+2010-02-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Add support for Widgets 1.0: View Mode Media Feature
+        https://bugs.webkit.org/show_bug.cgi?id=35446
+
+        Add hooks to the Qt DRT for testing the view mode media feature.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setViewModeMediaFeature):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-03-29  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Update expected results for unit tests.
+
+        * Scripts/webkitpy/tool/bot/sheriffircbot_unittest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+
+2010-03-29  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  I think Eric meant svn_revision.
+
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+
+2010-03-26  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        webkit-patch commit-queue should notice if it breaks builders (and roll out its own changes)
+        https://bugs.webkit.org/show_bug.cgi?id=29311
+
+        Now that we have sheriff-bot watching the tree, it can post
+        rollout patches on behalf of the commit queue.
+
+        * Scripts/webkitpy/common/checkout/commitinfo.py: add responsible_parties()
+        * Scripts/webkitpy/common/checkout/commitinfo_unittest.py: test responsible_parties()
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+         - Break IRC logic out into _post_irc_warning for easier testing.
+         - Add _post_rollout_patch for posting rollout patches to bugzilla.
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+         - Test _rollout_reason
+        * Scripts/webkitpy/tool/grammar.py:
+         - Fix join_with_separators to not add Adam's "oxford comma" for two item lists.
+        * Scripts/webkitpy/tool/grammar_unittest.py:
+         - Test join_with_separators
+
+2010-03-29  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Sheriffbot should actually run commands
+        https://bugs.webkit.org/show_bug.cgi?id=36776
+
+        Some minor changes to Sheriffbot:
+
+        1) We should actually run commands (by giving control back to the
+        command processing object.
+
+        2) Use URLs instead of just numbers to represent SVN revisions (making
+        it easier to folks in IRC ot followup).
+
+        * Scripts/webkitpy/tool/bot/irc_command.py:
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+
+2010-03-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        Renaming of frame flattening LayoutTestController method
+        to setFrameFlatteningEnabled(bool)
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setFrameFlatteningEnabledCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setFrameFlatteningEnabled):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setFrameFlatteningEnabled):
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setFrameFlatteningEnabled):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setFrameFlatteningEnabled):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setFrameFlatteningEnabled):
+
 2010-03-28  Gustavo Noronha Silva  <gns@gnome.org>
 
         No review, rolling out r56679.

@@ -138,7 +138,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs[WebKitAllowUniversalAccessFromFileURLsPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitAllowFileAccessFromFileURLsPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitXSSAuditorEnabledPreferenceKey] =  "1";//TRUE
-    m_privatePrefs[WebKitFrameSetFlatteningEnabledPreferenceKey] =  "0";//FALSE
+    m_privatePrefs[WebKitFrameFlatteningEnabledPreferenceKey] =  "0";//FALSE
     m_privatePrefs[WebKitCustomDragCursorsEnabledPreferenceKey] = "0";//FALSE
     m_privatePrefs[WebKitJavaScriptCanOpenWindowsAutomaticallyPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitPluginsEnabledPreferenceKey] = "1";//TRUE
@@ -577,14 +577,14 @@ unsigned int WebPreferences::pluginAllowedRunTime()
     return integerValueForKey(WebKitPluginAllowedRunTimePreferenceKey);
 }
 
-bool WebPreferences::isFrameSetFlatteningEnabled()
+bool WebPreferences::isFrameFlatteningEnabled()
 {
-    return boolValueForKey(WebKitFrameSetFlatteningEnabledPreferenceKey);
+    return boolValueForKey(WebKitFrameFlatteningEnabledPreferenceKey);
 }
 
-void WebPreferences::setFrameSetFlatteningEnabled(bool enabled)
+void WebPreferences::setFrameFlatteningEnabled(bool enabled)
 {
-    setBoolValue(WebKitFrameSetFlatteningEnabledPreferenceKey, enabled);
+    setBoolValue(WebKitFrameFlatteningEnabledPreferenceKey, enabled);
 }
 
 void WebPreferences::setPreferenceForTest(const char* key, const char* value)

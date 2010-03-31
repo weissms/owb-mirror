@@ -36,11 +36,12 @@
 #include <QLocale>
 #include <qwebsettings.h>
 
+extern void qt_wrt_setViewMode(QWebPage*, const QString& mode);
 extern void qt_dump_editing_callbacks(bool b);
 extern void qt_dump_frame_loader(bool b);
 extern void qt_dump_resource_load_callbacks(bool b);
 extern void qt_drt_setMediaType(QWebFrame* qframe, const QString& type);
-extern void qt_drt_setFrameSetFlatteningEnabled(QWebPage*, bool);
+extern void qt_drt_setFrameFlatteningEnabled(QWebPage*, bool);
 extern void qt_drt_setJavaScriptProfilingEnabled(QWebFrame*, bool enabled);
 extern void qt_drt_setTimelineProfilingEnabled(QWebPage*, bool enabled);
 extern bool qt_drt_pauseAnimation(QWebFrame*, const QString& name, double time, const QString& elementId);
@@ -144,6 +145,11 @@ void LayoutTestController::waitUntilDone()
 QString LayoutTestController::counterValueForElementById(const QString& id)
 {
     return qt_drt_counterValueForElementById(m_drt->webPage()->mainFrame(), id);
+}
+
+void LayoutTestController::setViewModeMediaFeature(const QString& mode)
+{
+    qt_wrt_setViewMode(m_drt->webPage(), mode);
 }
 
 int LayoutTestController::webHistoryItemCount()
@@ -317,9 +323,9 @@ void LayoutTestController::evaluateInWebInspector(long callId, const QString& sc
     qt_drt_webinspector_executeScript(m_drt->webPage(), callId, script);
 }
 
-void LayoutTestController::setFrameSetFlatteningEnabled(bool enabled)
+void LayoutTestController::setFrameFlatteningEnabled(bool enabled)
 {
-    qt_drt_setFrameSetFlatteningEnabled(m_drt->webPage(), enabled);
+    qt_drt_setFrameFlatteningEnabled(m_drt->webPage(), enabled);
 }
 
 void LayoutTestController::setAllowUniversalAccessFromFileURLs(bool enabled)

@@ -57,7 +57,7 @@ BAL/Events/WebCore/WK	WebCore/platform/PlatformMouseEvent.h
 BAL/Events/WebCore/WK   WebCore/platform/PlatformTouchEvent.h
 BAL/Events/WebCore/WK   WebCore/platform/PlatformTouchPoint.h
 BAL/Events/WebCore/WK	WebCore/platform/PlatformWheelEvent.h
-BAL/Events/WebCore/WK	WebCore/platform/KeyboardCodes.h
+BAL/Events/WebCore/WK	WebCore/platform/WindowsKeyboardCodes.h
 
 
 BAL/Skeletons/Facilities    WebCore/platform/CrossThreadCopier.h

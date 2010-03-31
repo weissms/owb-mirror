@@ -26,6 +26,8 @@
 #include "config.h"
 #include "JSCustomPositionCallback.h"
 
+#if ENABLE(GEOLOCATION)
+
 #include "Frame.h"
 #include "ScriptController.h"
 #include <runtime/JSLock.h>
@@ -57,3 +59,5 @@ void JSCustomPositionCallback::handleEvent(Geoposition* geoposition)
 }
 
 } // namespace WebCore
+
+#endif // ENABLE(GEOLOCATION)

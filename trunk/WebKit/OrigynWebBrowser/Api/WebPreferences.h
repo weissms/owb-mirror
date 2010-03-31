@@ -632,9 +632,9 @@ public:
 
     virtual unsigned int pluginAllowedRunTime();
 
-    virtual bool isFrameSetFlatteningEnabled();
+    virtual bool isFrameFlatteningEnabled();
     
-    virtual void setFrameSetFlatteningEnabled(bool enabled);
+    virtual void setFrameFlatteningEnabled(bool enabled);
     
     virtual void setPreferenceForTest(const char* key, const char* value);
     

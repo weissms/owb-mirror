@@ -77,7 +77,7 @@ NotificationPresenter::Permission WebDesktopNotificationsDelegate::checkPermissi
     return (NotificationPresenter::Permission) out;
 }
 
-NotificationPresenter::Permission WebDesktopNotificationsDelegate::checkPermission(SecurityOrigin* origin)
+NotificationPresenter::Permission WebDesktopNotificationsDelegate::checkPermission(const KURL& url)
 {
     return NotificationPresenter::PermissionNotAllowed;
 }

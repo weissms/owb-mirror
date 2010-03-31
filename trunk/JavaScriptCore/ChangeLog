@@ -1,3 +1,93 @@
+2010-03-30  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by nobody, build break.
+
+        [Qt] Fix build break on Qt Mac.
+
+        DESTDIR path on Mac do not include the configuration path by default
+        like on Windows. Have to force it.
+
+        * JavaScriptCore.pro:
+
+2010-03-29  Alice Liu  <alice.liu@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreGenerated.make:
+        add JSObjectRefPrivate.h
+
+2010-03-29  Chao-ying Fu  <fu@mips.com>
+
+        Reviewed by Oliver Hunt.
+
+        MIPS JIT Supports
+        https://bugs.webkit.org/show_bug.cgi?id=30144
+
+        The following changes enable MIPS JIT.
+
+        * assembler/MIPSAssembler.h:
+        (JSC::MIPSAssembler::lbu):
+        (JSC::MIPSAssembler::linkWithOffset):
+        * assembler/MacroAssemblerMIPS.h:
+        (JSC::MacroAssemblerMIPS::load8):
+        (JSC::MacroAssemblerMIPS::branch8):
+        (JSC::MacroAssemblerMIPS::branchTest8):
+        (JSC::MacroAssemblerMIPS::setTest8):
+        (JSC::MacroAssemblerMIPS::setTest32):
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::preserveReturnAddressAfterCall):
+        (JSC::JIT::restoreReturnAddressBeforeReturn):
+        * jit/JITOpcodes.cpp:
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::JITThunks):
+        * jit/JITStubs.h:
+        (JSC::JITStackFrame::returnAddressSlot):
+        * wtf/Platform.h:
+
+2010-02-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Add support for Widgets 1.0: View Mode Media Feature
+        https://bugs.webkit.org/show_bug.cgi?id=35446
+
+        Add an enable flag for the Widgets (http://www.w3.org/TR/widgets-reqs/)
+        and turn it on for Qt only.
+
+        * wtf/Platform.h:
+
+2010-03-29  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Darin Adler.
+
+        Corrected name of (u)int64_t compile time assert.
+        https://bugs.webkit.org/show_bug.cgi?id=36739
+
+        int64_t_is_four_bytes -> int64_t_is_eight_bytes
+
+        * os-win32/stdint.h:
+
+2010-03-29  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Use the -l syntax for linking against JavaScriptCore on Windows.
+        This allow qmake to extract dependencies correctly when generating VS
+        solutions.
+
+        * JavaScriptCore.pri:
+
+2010-03-29  Thomas Zander  <t.zander@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36742
+
+        gcc for Symbian doesn't support gcc extensions like atomicity.h - disable
+
+        * wtf/Threading.h: also detect os symbian
+
 2010-03-28  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Simon Hausmann.

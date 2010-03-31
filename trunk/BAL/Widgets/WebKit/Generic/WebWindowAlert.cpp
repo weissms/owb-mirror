@@ -35,7 +35,7 @@
 #include "GraphicsContext.h"
 #include "Image.h"
 #include "IntRect.h"
-#include "KeyboardCodes.h"
+#include "WindowsKeyboardCodes.h"
 #include "PlatformKeyboardEvent.h"
 #include "PlatformMouseEvent.h"
 #include "TextBreakIterator.h"

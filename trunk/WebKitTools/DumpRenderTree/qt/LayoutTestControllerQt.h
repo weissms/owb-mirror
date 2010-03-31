@@ -123,7 +123,7 @@ public slots:
     void evaluateInWebInspector(long callId, const QString& script);
 
     void setMediaType(const QString& type);
-    void setFrameSetFlatteningEnabled(bool enable);
+    void setFrameFlatteningEnabled(bool enable);
     void setAllowUniversalAccessFromFileURLs(bool enable);
     void setAllowFileAccessFromFileURLs(bool enable);
     void setAppCacheMaximumSize(unsigned long long quota);
@@ -139,6 +139,7 @@ public slots:
     void setMainFrameIsFirstResponder(bool isFirst);
     void setXSSAuditorEnabled(bool enable);
     void setCaretBrowsingEnabled(bool enable);
+    void setViewModeMediaFeature(const QString& mode);
 
     bool pauseAnimationAtTimeOnElementWithId(const QString& animationName, double time, const QString& elementId);
     bool pauseTransitionAtTimeOnElementWithId(const QString& propertyName, double time, const QString& elementId);

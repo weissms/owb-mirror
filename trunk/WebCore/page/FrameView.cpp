@@ -624,7 +624,7 @@ void FrameView::layout(bool allowSubtree)
         RenderObject* rootRenderer = documentElement ? documentElement->renderer() : 0;
         Node* body = document->body();
         if (body && body->renderer()) {
-            if (body->hasTagName(framesetTag) && !m_frame->settings()->frameSetFlatteningEnabled()) {
+            if (body->hasTagName(framesetTag) && !m_frame->settings()->frameFlatteningEnabled()) {
                 body->renderer()->setChildNeedsLayout(true);
                 vMode = ScrollbarAlwaysOff;
                 hMode = ScrollbarAlwaysOff;
@@ -661,8 +661,9 @@ void FrameView::layout(bool allowSubtree)
         ScrollbarMode currentVMode = verticalScrollbarMode();
 
         if (m_firstLayout || (hMode != currentHMode || vMode != currentVMode)) {
-            setScrollbarsSuppressed(true);
             if (m_firstLayout) {
+                setScrollbarsSuppressed(true);
+
                 m_firstLayout = false;
                 m_firstLayoutCallbackPending = true;
                 m_lastLayoutSize = IntSize(width(), height());
@@ -674,9 +675,11 @@ void FrameView::layout(bool allowSubtree)
                 // Set the initial hMode to AlwaysOff if we're auto.
                 if (hMode == ScrollbarAuto)
                     setHorizontalScrollbarMode(ScrollbarAlwaysOff); // This causes a horizontal scrollbar to disappear.
-            }
-            setScrollbarModes(hMode, vMode);
-            setScrollbarsSuppressed(false, true);
+
+                setScrollbarModes(hMode, vMode);
+                setScrollbarsSuppressed(false, true);
+            } else
+                setScrollbarModes(hMode, vMode);
         }
 
         IntSize oldSize = m_size;
@@ -1261,7 +1264,7 @@ void FrameView::scheduleRelayout()
 
     // When frameset flattening is enabled, the contents of the frame affects layout of the parent frames.
     // Also invalidate parent frame starting from the owner element of this frame.
-    if (m_frame->settings()->frameSetFlatteningEnabled() && m_frame->ownerRenderer())
+    if (m_frame->settings()->frameFlatteningEnabled() && m_frame->ownerRenderer() && m_frame->ownerElement()->hasTagName(frameTag))
         m_frame->ownerRenderer()->setNeedsLayout(true, true);
 
     int delay = m_frame->document()->minimumLayoutDelay();

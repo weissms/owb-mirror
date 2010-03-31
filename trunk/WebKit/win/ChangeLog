@@ -1,3 +1,48 @@
+2010-03-30  Adam Roben  <aroben@apple.com>
+
+        Windows build fix
+
+        * Interfaces/WebKit.idl: Touched this to force a build.
+
+2010-03-29  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Default value of accelerated compositing should be false for Windows
+        https://bugs.webkit.org/show_bug.cgi?id=36805
+
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+
+2010-03-29  Rafael Weinstein  <rafaelw@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Change NotificationPresenter::checkPermission() to take the source frames full KURL,
+        rather than its SecurityOrigin. This will aid chromium in having more fine grained
+        permissions to control notification spam.
+
+        * WebCoreSupport/WebDesktopNotificationsDelegate.cpp:
+        (WebDesktopNotificationsDelegate::checkPermission):
+        * WebCoreSupport/WebDesktopNotificationsDelegate.h:
+
+2010-03-26  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        Change method name due to it dealing with both flattening
+        of frame sets and inner frames.
+
+        * Interfaces/IWebPreferencesPrivate.idl:
+        * WebPreferenceKeysPrivate.h:
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::isFrameFlatteningEnabled):
+        (WebPreferences::setFrameFlatteningEnabled):
+        * WebPreferences.h:
+        * WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
 2010-03-25  Jon Honeycutt  <jhoneycutt@apple.com>
 
         <rdar://problem/7780798> Missing plug-ins should be represented by text

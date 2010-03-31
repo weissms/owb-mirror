@@ -54,10 +54,21 @@
 #include "FrameView.h"
 #include "HTMLFrameOwnerElement.h"
 #include "History.h"
+#if ENABLE(INDEXED_DATABASE)
+#include "IndexedDatabase.h"
+#include "IndexedDatabaseRequest.h"
+#endif
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#include "InspectorTimelineAgent.h"
+#endif
 #include "Location.h"
 #include "Media.h"
 #include "MessageEvent.h"
 #include "Navigator.h"
+#if ENABLE(NOTIFICATIONS)
+#include "NotificationCenter.h"
+#endif
 #include "Page.h"
 #include "PageGroup.h"
 #include "PlatformScreen.h"
@@ -482,6 +493,12 @@ void DOMWindow::clear()
         m_notifications->disconnectFrame();
     m_notifications = 0;
 #endif
+
+#if ENABLE(INDEXED_DATABASE)
+    if (m_indexedDatabaseRequest)
+        m_indexedDatabaseRequest->disconnectFrame();
+    m_indexedDatabaseRequest = 0;
+#endif
 }
 
 #if ENABLE(ORIENTATION_EVENTS)
@@ -661,7 +678,23 @@ NotificationCenter* DOMWindow::webkitNotifications() const
 #if ENABLE(INDEXED_DATABASE)
 IndexedDatabaseRequest* DOMWindow::indexedDB() const
 {
-    return 0;
+    if (m_indexedDatabaseRequest)
+        return m_indexedDatabaseRequest.get();
+
+    Document* document = this->document();
+    if (!document)
+        return 0;
+
+    // FIXME: See if access is allowed.
+
+    Page* page = document->page();
+    if (!page)
+        return 0;
+
+    // FIXME: See if indexedDatabase access is allowed.
+
+    m_indexedDatabaseRequest = IndexedDatabaseRequest::create(page->group().indexedDatabase(), m_frame);
+    return m_indexedDatabaseRequest.get();
 }
 #endif
 

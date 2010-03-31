@@ -46,7 +46,7 @@ endif(ENABLE_DOM_STORAGE)
 
 if(ENABLE_INDEXED_DATABASE)
     list(APPEND WEBCORE_SRC
-        storage/IDBRequest.cpp
+        storage/IDBDatabase.cpp
         storage/IndexedDatabase.cpp
         storage/IndexedDatabaseImpl.cpp
         storage/IndexedDatabaseRequest.cpp
@@ -55,7 +55,6 @@ if(ENABLE_INDEXED_DATABASE)
         storage/IDBDatabaseError.idl
         storage/IDBDatabaseException.idl
         storage/IDBDatabaseRequest.idl
-        storage/IDBRequest.idl
         storage/IndexedDatabaseRequest.idl
     )
 endif(ENABLE_INDEXED_DATABASE)

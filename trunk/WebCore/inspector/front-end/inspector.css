@@ -2306,7 +2306,6 @@ button.show-all-nodes {
 .panel-enabler-view.welcome .instructions {
     display: inline-block;
     vertical-align: middle;
-    width: 330px;
     margin: 0;
     white-space: normal;
     line-height: 175%;
@@ -2317,7 +2316,8 @@ button.show-all-nodes {
 }
 
 .panel-enabler-view.welcome button.status-bar-item {
-    vertical-align: middle;
+    background-image: none;
+    vertical-align: top;
 }
 
 .pane button {
@@ -3655,6 +3655,14 @@ body.inactive .sidebar-tree-item.selected .bubble.search-matches {
 
 .timeline-filter-status-bar-item.toggled-on .glyph {
     background-color: rgb(66, 129, 235) !important;
+}
+
+.timeline-records-counter {
+    font-size: 11px;
+    position: relative;
+    top: 5px;
+    margin-left: 5px;
+    text-shadow: white 0 1px 0;
 }
 
 /* Profiler Style */
