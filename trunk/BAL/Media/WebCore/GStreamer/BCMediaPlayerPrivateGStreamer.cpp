@@ -377,7 +377,7 @@ MediaPlayerPrivateGStreamer::~MediaPlayerPrivateGStreamer()
 }
 
 #if ENABLE(DAE_TUNER)
-void MediaPlayerPrivate::load(PassRefPtr<Channel> channel)
+void MediaPlayerPrivateGStreamer::load(PassRefPtr<Channel> channel)
 {
     LOG_VERBOSE(Media, "Loading WebChannel %p", channel);
     ChannelInternalInfo* info = channel->channelInternalInfo();
@@ -1286,13 +1286,13 @@ void MediaPlayerPrivateGStreamer::paint(GraphicsContext* context, const IntRect&
 }
 
 #if ENABLE(CEHTML_MEDIA_OBJECTS) || ENABLE(DAE_TUNER)
-void MediaPlayerPrivate::stop()
+void MediaPlayerPrivateGStreamer::stop()
 {
     gst_element_set_state(m_playBin, GST_STATE_NULL);
     m_paused = true;
 }
 
-void MediaPlayerPrivate::setAspect(MediaPlayer::VideoScale scale)
+void MediaPlayerPrivateGStreamer::setAspect(MediaPlayer::VideoScale scale)
 {
     switch (scale) {
     case MediaPlayer::ArbitraryScale:
@@ -1307,7 +1307,7 @@ void MediaPlayerPrivate::setAspect(MediaPlayer::VideoScale scale)
     sizeChanged();
 }
 
-WTF::Vector<float> MediaPlayerPrivate::playSpeeds()
+WTF::Vector<float> MediaPlayerPrivateGStreamer::playSpeeds()
 {
     static WTF::Vector<float> speed;
     if (speed.size() == 0)
@@ -1317,19 +1317,19 @@ WTF::Vector<float> MediaPlayerPrivate::playSpeeds()
 #endif
 
 #if ENABLE(CEHTML_MEDIA_OBJECTS)
-bool MediaPlayerPrivate::nextTrack()
+bool MediaPlayerPrivateGStreamer::nextTrack()
 {
     notImplemented();
     return false;
 }
 
-bool MediaPlayerPrivate::previousTrack()
+bool MediaPlayerPrivateGStreamer::previousTrack()
 {
     notImplemented();
     return false;
 }
 
-unsigned int MediaPlayerPrivate::numTracks()
+unsigned int MediaPlayerPrivateGStreamer::numTracks()
 {
     if (m_networkState != MediaPlayer::Loaded)
         return 0;
@@ -1338,13 +1338,13 @@ unsigned int MediaPlayerPrivate::numTracks()
     return 1;
 }
 
-unsigned int MediaPlayerPrivate::currentTrack()
+unsigned int MediaPlayerPrivateGStreamer::currentTrack()
 {
     notImplemented();
     return 0;
 }
 
-void MediaPlayerPrivate::setCurrentTrack(unsigned int index)
+void MediaPlayerPrivateGStreamer::setCurrentTrack(unsigned int index)
 {
     notImplemented();
 }
