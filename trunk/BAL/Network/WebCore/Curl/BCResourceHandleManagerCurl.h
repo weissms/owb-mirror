@@ -29,7 +29,6 @@
 #define ResourceHandleManager_h
 
 #include "CertificateCache.h"
-#include "CString.h"
 #include "Frame.h"
 #include "PlatformString.h"
 #include "Timer.h"
@@ -42,6 +41,7 @@
 
 #include <curl/curl.h>
 #include <wtf/Vector.h>
+#include <wtf/text/CString.h>
 
 namespace WebCore {
 

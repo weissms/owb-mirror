@@ -25,7 +25,6 @@
 
 #include "config.h"
 #include "BackForwardList.h"
-#include "CString.h"
 #include "Document.h"
 #include "Editor.h"
 #include "Element.h"
@@ -50,6 +49,7 @@
 #include "JSDOMBinding.h"
 #include <runtime/JSValue.h>
 #include <runtime/UString.h>
+#include <wtf/text/CString.h>
 
 #include "EditorClientWx.h"
 #include "FrameLoaderClientWx.h"
@@ -206,7 +206,7 @@ wxString wxWebFrame::RunScript(const wxString& javascript)
             if (jsEnabled) {
                 JSC::JSValue result = controller->executeScript(javascript, true).jsValue();
                 if (result)
-                    returnValue = wxString(result.toString(m_impl->frame->script()->globalObject(WebCore::mainThreadNormalWorld())->globalExec()).UTF8String().c_str(), wxConvUTF8);        
+                    returnValue = wxString(result.toString(m_impl->frame->script()->globalObject(WebCore::mainThreadNormalWorld())->globalExec()).UTF8String().data(), wxConvUTF8);        
             }
         }
     }

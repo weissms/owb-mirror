@@ -1,3 +1,175 @@
+2010-04-01  Finnur Thorarinsson  <finnur.webkit@gmail.com>
+
+        Reviewed by Eric Seidel.
+
+        [chromium] FindInPage on multi-frame pages wasn't always updating
+        tickmarks on scrollbars for the subframes. It was calling invalidateRect
+        on the View and specifying a rect that's in window coordinates, whereas
+        the invalidateRect expects frame coordinates.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36982
+        
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::invalidateArea):
+
+2010-04-01  Finnur Thorarinsson  <finnur.webkit@gmail.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] FindInPage should clear the focused node when a match has
+        been found. This is because WebFrameImpl::setFocus will try to refocus
+        editable elements if it thinks they have focus, causing the page to
+        scroll.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36923
+
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::find):
+
+2010-04-01  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        As a follow up on https://bugs.webkit.org/show_bug.cgi?id=36535, remove:
+        GeolocationServiceBridgeChromium.h
+        dettachBridge()
+        getGeolocationService()
+        https://bugs.webkit.org/show_bug.cgi?id=36895
+
+        * WebKit.gyp:
+        * public/GeolocationServiceBridgeChromium.h: Removed.
+        * public/WebGeolocationService.h:
+        (WebKit::WebGeolocationService::detachBridge):
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::geolocationService):
+
+2010-03-31  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Nate Chapin.
+
+        Misc IndexedDatabase cleanup
+        https://bugs.webkit.org/show_bug.cgi?id=36889
+
+        Plumb the Frame* so Chromium knows where the request originated from.
+
+        * public/WebIndexedDatabase.h:
+        * src/IndexedDatabaseProxy.cpp:
+        (WebCore::IndexedDatabaseProxy::open):
+        * src/IndexedDatabaseProxy.h:
+        * src/WebIndexedDatabaseImpl.cpp:
+        (WebKit::WebIndexedDatabaseImpl::open):
+        * src/WebIndexedDatabaseImpl.h:
+
+2010-03-31  Alpha Lam  <hclam@chromium.org>
+
+        Not reviewed. Build fix.
+
+        Fixing a build break caused by 56872. One of the Chromium bots doesn't
+        like std::strstr(). Includes string.h and use strstr() instead.
+
+        * src/WebGraphicsContext3DDefaultImpl.cpp:
+        (WebKit::WebGraphicsContext3DDefaultImpl::validateAttributes):
+        Includes string.h and use strstr().
+
+2010-03-31  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Hook up WebGLContextAttributes to OpenGL context creation code
+        https://bugs.webkit.org/show_bug.cgi?id=33416
+
+        * src/WebGraphicsContext3DDefaultImpl.cpp: Hook up WebGLContextAttributes to OpenGL context creation code for Chrome.
+        (WebKit::WebGraphicsContext3DDefaultImpl::WebGraphicsContext3DDefaultImpl):
+        (WebKit::WebGraphicsContext3DDefaultImpl::~WebGraphicsContext3DDefaultImpl):
+        (WebKit::WebGraphicsContext3DDefaultImpl::initialize):
+        (WebKit::WebGraphicsContext3DDefaultImpl::validateAttributes):
+        (WebKit::WebGraphicsContext3DDefaultImpl::reshape):
+        (WebKit::WebGraphicsContext3DDefaultImpl::readBackFramebuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::bindFramebuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::readPixels): Deal with wrong returned alpha values in Mac.
+        * src/WebGraphicsContext3DDefaultImpl.h: Add a function.
+
+2010-03-31  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by David Levin.
+
+        [chromium] including WebKit.gyp:webkit should automatically add Skia
+        and NPAPI include paths
+
+        https://bugs.webkit.org/show_bug.cgi?id=36887
+
+        * WebKit.gyp:
+
+2010-03-31  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Implements cancelGeolocationPermissionRequestForFrame.
+        https://bugs.webkit.org/show_bug.cgi?id=35031
+
+        * public/WebGeolocationService.h:
+        (WebKit::WebGeolocationService::cancelPermissionRequestForFrame):
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::cancelGeolocationPermissionRequestForFrame):
+        * src/ChromeClientImpl.h:
+
+2010-03-31  Pavel Feldman  <pfeldman@chromium.org>
+
+        Not reviewed. Rolling out r56829 since it broke chromium layout tests.
+
+        [REGRESSION] Inspector tests started crashing since r56829
+        https://bugs.webkit.org/show_bug.cgi?id=36888
+
+        * public/WebFrameClient.h:
+        * src/FrameLoaderClientImpl.cpp:
+        * src/FrameLoaderClientImpl.h:
+
+2010-03-31  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Add stubs for moveWindowBy and setAttachedWindowHeight.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36842
+
+        * src/WebDevToolsFrontendImpl.cpp:
+        (WebKit::WebDevToolsFrontendImpl::WebDevToolsFrontendImpl):
+        (WebKit::WebDevToolsFrontendImpl::jsSetAttachedWindowHeight):
+        (WebKit::WebDevToolsFrontendImpl::jsMoveWindowBy):
+        * src/WebDevToolsFrontendImpl.h:
+
+2010-03-31  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] add logging of cross-frame property accesses for site isolation
+        https://bugs.webkit.org/show_bug.cgi?id=35773
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::logCrossFramePropertyAccess):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::logCrossFramePropertyAccess):
+        * src/FrameLoaderClientImpl.h:
+
+2010-03-30  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36866
+        Move CString to WTF
+
+        * public/WebCString.h:
+        * src/FrameLoaderClientImpl.cpp:
+        * src/GraphicsContext3D.cpp:
+        * src/WebCString.cpp:
+        (WebKit::WebCString::assign):
+        (WebKit::WebCString::WebCString):
+        (WebKit::WebCString::operator=):
+        (WebKit::WebCString::operator WTF::CString):
+        * src/WebMediaPlayerClientImpl.cpp:
+        * src/WebString.cpp:
+        * src/WebURLError.cpp:
+
 2010-03-30  Marcus Bulach  <bulach@chromium.org>
 
         Reviewed by Darin Fisher.

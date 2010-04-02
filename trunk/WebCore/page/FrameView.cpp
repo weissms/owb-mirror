@@ -331,6 +331,23 @@ void FrameView::setMarginHeight(int h)
     m_margins.setHeight(h);
 }
 
+bool FrameView::avoidScrollbarCreation()
+{
+    ASSERT(m_frame);
+
+    // with frame flattening no subframe can have scrollbars
+    // but we also cannot turn scrollbars of as we determine
+    // our flattening policy using that.
+
+    if (!m_frame->ownerElement())
+        return false;
+
+    if (!m_frame->settings() || m_frame->settings()->frameFlatteningEnabled())
+        return true;
+
+    return false;
+}
+
 void FrameView::setCanHaveScrollbars(bool canHaveScrollbars)
 {
     m_canHaveScrollbars = canHaveScrollbars;
@@ -727,10 +744,12 @@ void FrameView::layout(bool allowSubtree)
 
     // Now update the positions of all layers.
     beginDeferredRepaints();
+    IntPoint cachedOffset;
     layer->updateLayerPositions((m_doFullRepaint ? RenderLayer::DoFullRepaint : 0)
                                 | RenderLayer::CheckForRepaint
                                 | RenderLayer::IsCompositingUpdateRoot
-                                | RenderLayer::UpdateCompositingLayers);
+                                | RenderLayer::UpdateCompositingLayers,
+                                subtree ? 0 : &cachedOffset);
     endDeferredRepaints();
 
 #if USE(ACCELERATED_COMPOSITING)

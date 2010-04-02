@@ -29,6 +29,7 @@
 #define IndexedDatabaseRequest_h
 
 #include "ExceptionCode.h"
+#include "IndexedDatabase.h"
 #include "PlatformString.h"
 #include <wtf/PassRefPtr.h>
 #include <wtf/RefCounted.h>
@@ -49,7 +50,7 @@ public:
     }
     ~IndexedDatabaseRequest();
 
-    void open(const String& name, const String& description, bool modifyDatabase, ExceptionCode&);
+    void open(const String& name, const String& description, bool modifyDatabase, ExceptionCode&, PassRefPtr<IDBDatabaseCallbacks>);
 
     void disconnectFrame() { m_frame = 0; }
 

@@ -1,3 +1,1247 @@
+2010-04-01  Yuzo Fujishima  <yuzo@google.com>
+
+        Reviewed by David Hyatt.
+
+        Fix bug: CSS3 :not selector with ID simple selector sequence test fails
+        As per http://www.w3.org/TR/css3-selectors/#negation, :not(X) takes a simple selector as an argument.
+        WebKit was accepting a simple selector *sequence*.
+        This patch adds WebCore::CSSSelector::isSimple which judges if the selector is simple.
+        The method is used in CSSGrammar.y to decide whether to accept the selector as the argument of :not().
+        https://bugs.webkit.org/show_bug.cgi?id=36276
+
+        Test: fast/css/invalid-not-with-simple-selector-sequence.html
+
+        * css/CSSGrammar.y:
+        * css/CSSSelector.cpp:
+        (WebCore::CSSSelector::isSimple):
+        * css/CSSSelector.h:
+
+2010-04-01  Chris Evans  <cevans@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Fix a NULL pointer crash if @import fails to load a stylesheet.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36804
+
+        Test: fast/xsl/xslt-bad-import-uri.html
+
+        * xml/XSLStyleSheetLibxslt.cpp:
+        (WebCore::XSLStyleSheet::parseString):
+          Handle an empty string gracefully. An empty string has a NULL
+          buffer, which we pass in to xmlCreateMemoryParserCtxt(). It returns
+          NULL if it is passed a NULL buffer.
+          In the top-level XSL case, the current code does not crash "by luck"
+          because the other APIs used can handle a NULL argument. In the
+          @import case, additional code runs which will deference the NULL.
+
+2010-04-01  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36854
+        <rdar://problem/7811668> REGRESSION (r47291): Body from cross origin preflight response
+        is prepended to the actual response body
+
+        Tests: http/tests/xmlhttprequest/access-control-response-with-body-sync.html
+               http/tests/xmlhttprequest/access-control-response-with-body.html
+
+        * loader/DocumentThreadableLoader.cpp: (WebCore::DocumentThreadableLoader::didReceiveData):
+        Don't send data to the client when handling a preflight request.
+
+2010-04-01  Ada Chan  <adachan@apple.com>
+
+        Reviewed by Darin Adler.
+        
+        Change DatabaseTracker::deleteOrigin() to return true if there are no errors in deleting the origin.
+        Ditto for DatabaseTracker::deleteDatabase().
+        
+        https://bugs.webkit.org/show_bug.cgi?id=36988
+
+        * storage/DatabaseTracker.cpp:
+        (WebCore::DatabaseTracker::deleteOrigin):
+        (WebCore::DatabaseTracker::deleteDatabase):
+        * storage/DatabaseTracker.h:
+
+2010-04-01  Simon Fraser  <simon.fraser@apple.com>
+
+        No review.
+
+        Remove some casts that I indended to remove before committing r56948.
+
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::writeRenderObject):
+        (WebCore::write):
+
+2010-04-01  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Assertion failure (willBeComposited == needsToBeComposited(layer)) in
+        RenderLayerCompositor::computeCompositingRequirements() on hulu.com
+        https://bugs.webkit.org/show_bug.cgi?id=36516
+        
+        Fix assertions added in r56017. That changed replaced calls to needsToBeComposited()
+        with use of the local 'willBeComposited' variable, but that fails to take into
+        account the fact that needsToBeComposited() also tests layer->isSelfPaintingLayer().
+        
+        Fix by adding a canBeComposited() method that we call before testing
+        whether the layer should go into compositing mode.
+
+        Test: compositing/self-painting-layers2.html
+
+        * rendering/RenderLayerCompositor.cpp:
+        (WebCore::RenderLayerCompositor::calculateCompositedBounds): Repace use of isSelfPaintingLayer()
+        with a call to canBeComposited().
+        (WebCore::RenderLayerCompositor::computeCompositingRequirements): Call canBeComposited() to ensure
+        that we only toggle 'willBeComposited' for layers that can.
+        (WebCore::RenderLayerCompositor::needsToBeComposited): Call canBeComposited().
+        (WebCore::RenderLayerCompositor::canBeComposited): Test if compositing is enabled, and whether
+        the layer is self-painting.
+        * rendering/RenderLayerCompositor.h: Add canBeComposited().
+
+2010-04-01  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36980
+        Add object addresses to debug showLayerTree() output.
+        
+        Add the ability to print RenderLayer and RenderObject addresses in the showLayerTree()
+        output.
+
+        * platform/text/TextStream.cpp:
+        (WebCore::TextStream::operator<<):
+        * platform/text/TextStream.h:
+        * rendering/RenderLayer.cpp:
+        (showLayerTree):
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::writeRenderObject):
+        (WebCore::write):
+        * rendering/RenderTreeAsText.h:
+
+2010-03-29  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Changing SQLiteStatement::prepare() to return an error when it's
+        given a string that has more than one statement in it. Currently,
+        everything past the first statement is silently ignored.
+
+        Test: storage/executesql-accepts-only-one-statement.html
+
+        * platform/sql/SQLiteStatement.cpp:
+        (WebCore::SQLiteStatement::prepare):
+
+2010-04-01  James Robinson  <jamesr@chromium.org>
+
+        Reviewed by Simon Fraser.
+
+        Keeps a transient optimistic offset to the root in RenderLayer::updateLayerPositions
+        https://bugs.webkit.org/show_bug.cgi?id=33520
+
+        RenderLayer::updateLayerPositions() makes a recursive walk through all RenderLayers and updates the repaint rectangles on each.
+        These rectangles have to be calculated in the repaint container's coordinates using RenderObject::mapLocalToContainer to walk
+        up to the repaint container.  This patch keeps track of the offset to the root and uses that offset instead of walking back up to
+        the root every time.
+
+        Tests: fast/layers/nested-layers-1.html
+               fast/layers/nested-layers-2.html
+               fast/layers/nested-layers-3.html
+               fast/layers/nested-layers-4.html
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::layout):
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::outlineBoundsForRepaint):
+        * rendering/RenderBox.h:
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateLayerPositions):
+        * rendering/RenderLayer.h:
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::outlineBoundsForRepaint):
+        * rendering/RenderSVGModelObject.cpp:
+        (WebCore::RenderSVGModelObject::outlineBoundsForRepaint):
+        * rendering/RenderSVGModelObject.h:
+
+2010-04-01  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36901
+
+        Removed functions Range::operator == and Range::operator != as they
+        were using C++ code that was not sound and hence may have undefined
+        behavior.
+
+        Test case: manual-tests/crash-on-find-with-no-selection.html
+
+        * dom/Range.cpp:
+        (WebCore::areRangesEqual): Added.
+        * dom/Range.h:
+        * editing/markup.cpp:
+        (WebCore::createMarkup): Modified to call WebCore::areRangesEqual.
+        * manual-tests/crash-on-find-with-no-selection.html: Added.
+        * page/Frame.cpp:
+        (WebCore::Frame::findString): Modified to call WebCore::areRangesEqual.
+
+2010-04-01  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Synchronous rendering when setting form control values slows down JavaScript
+        https://bugs.webkit.org/show_bug.cgi?id=36967
+
+        This patch basically reverts http://trac.webkit.org/changeset/19006.
+        
+        Dan asked me to investigate why 19006 is no longer needed. I have two answers:
+
+            (1) I was also able to remove the synchronous call to updateFromElement().
+            That call was the proximate cause of the crash that 19006 fixed.
+
+            (2) updateFromElement() no longer calls HTMLElement::setInnerText()
+            in the way that it used to. (However, it doesn't seem prudent to
+            rely on this happy coincidence.)
+
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::setValue): Simplified some logic here. Moved
+        setNeedsValidityCheck() outside of individual 'if' clauses, since they all
+        called it.
+        
+        Removed call to updateStyleIfNeeded(), which does rendering synchronously,
+        since that was the performance problem. (setNeedsStyleRecalc() ensures
+        that rendering will happen asynchronously.) Also removed comment about
+        ordering dangers introduced by updateStyleIfNeeded().
+        
+        Removed call to updateFromElement(), since it's dangerous and also a minor
+        performance problem. (setNeedsStyleRecalc() ensures that updateFromElement()
+        will happen asynchronously, too.)
+
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::setNonDirtyValue): Ditto. Here, I had to
+        add a call to setNeedsStyleRecalc(), since there wasn't one before.
+
+2010-04-01  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Sometimes js code can detach page from it's frame and in that case
+        Dispatch Events will stay in the TimelineAgent's events stack. Only immediate events will
+        appear at frontend.
+        https://bugs.webkit.org/show_bug.cgi?id=36890
+
+        * bindings/v8/V8Proxy.cpp:
+        (WebCore::V8Proxy::callFunction):
+        * dom/Node.cpp:
+        (WebCore::Node::dispatchGenericEvent):
+        * page/DOMWindow.cpp:
+        (WebCore::DOMWindow::dispatchEvent):
+
+2010-04-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 36977 - aria-label doesn't work on image map area
+        https://bugs.webkit.org/show_bug.cgi?id=36977
+
+        Test: platform/mac/accessibility/area-with-aria-label.html
+
+        * accessibility/AccessibilityImageMapLink.cpp:
+        (WebCore::AccessibilityImageMapLink::accessibilityDescription):
+
+2010-04-01  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Assertion failure: !repaintContainer || repaintContainer == this
+        https://bugs.webkit.org/show_bug.cgi?id=36672
+        
+        RenderText's implementation of clippedOverflowRectForRepaint() uses containingBlock()
+        to get the renderer to use for computing the repaint rect. However, the renderer returned
+        by containingBlock() may be an ancestor of the repaintContainer, and containingBlock()
+        doesn't have the 'repaintContainerSkipped' logic that container() has.
+        
+        So in this case, check to see whether repaintContainer is actually a descendant of the
+        containing block, and in that case just repaint the entire repaintContainer.
+
+        Test: compositing/repaint/inline-repaint-container.html
+
+        * rendering/RenderText.cpp:
+        (WebCore::RenderText::clippedOverflowRectForRepaint):
+
+2010-04-01  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by Jian Li.
+
+        [Qt] REGRESSION(r56869): Windows build is broken
+        https://bugs.webkit.org/show_bug.cgi?id=36929
+
+        * WebCore.pro: LIBS += -lOle32 added.
+        * platform/UUID.cpp: Define ARRAYSIZE macro if it isn't defined before.
+
+2010-04-01  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Bug 36968 - 1 crash in Safari at com.apple.WebCore: WebCore::Element::getAttribute const
+        https://bugs.webkit.org/show_bug.cgi?id=36968
+
+        Test: accessibility/crash-with-noelement-selectbox.html
+
+        When a <select> element had no options, the selectedIndex == -1 and that was being
+        used to index into an empty array.
+
+        * accessibility/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::stringValue):
+
+2010-04-01  MORITA Hajime  <morrita@google.com>
+
+        Reviewed by Shinichiro Hamaji.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36948
+        Refactoring: Position::primaryDirection() should be extracted.
+
+        No new tests. No functinal change.
+
+        * dom/Position.cpp:
+        (WebCore::Position::getInlineBoxAndOffset):
+        (WebCore::Position::primaryDirection): Added
+        * dom/Position.h:
+        * editing/VisiblePosition.cpp:
+        (WebCore::VisiblePosition::leftVisuallyDistinctCandidate):
+        (WebCore::VisiblePosition::rightVisuallyDistinctCandidate):
+
+2010-04-01  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Audits: fix parsing of injected script-evaluated result for CssInHeadRule
+        https://bugs.webkit.org/show_bug.cgi?id=36952
+
+        * inspector/front-end/AuditRules.js:
+        (WebInspector.AuditRules.CssInHeadRule.prototype.doRun):
+
+2010-03-31  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Nate Chapin.
+
+        Misc IndexedDatabase cleanup
+        https://bugs.webkit.org/show_bug.cgi?id=36889
+
+        No functional changes.
+
+        * bindings/v8/custom/V8CustomIDBCallbacks.h:  
+        (WebCore::V8CustomIDBCallbacks::onSuccess):
+        (WebCore::V8CustomIDBCallbacks::onError):
+        (WebCore::V8CustomIDBCallbacks::V8CustomIDBCallbacks):
+            Get rid of 2 largely redundant bools
+
+        * storage/IndexedDatabase.h:
+        * storage/IndexedDatabaseImpl.cpp:
+        (WebCore::IndexedDatabaseImpl::open):
+        * storage/IndexedDatabaseImpl.h:
+        * storage/IndexedDatabaseRequest.cpp:
+        (WebCore::IndexedDatabaseRequest::open):
+        * storage/IndexedDatabaseRequest.h:
+            Plumb the Frame* and style cleanups.
+
+2010-03-31  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Dirk Schulze.
+
+        REGRESSION: document.documentElement.getScreenCTM() returns incorrect matrix.
+        https://bugs.webkit.org/show_bug.cgi?id=27183
+
+        Rewrite getCTM() / getScreenCTM() handling in an iterative way, fixing all known problems/limitations.
+        The bug mentioned above is actually not a regression, getScreenCTM() only worked before, because we
+        did not handle non-SVG CSS box parents properly. When support was added to handle those cases, the
+        getScreenCTM() handling was completly off, causing a lot of trouble in real-life SVG applications (carto.net for instance)
+
+        Tests: svg/custom/svgsvgelement-ctm.xhtml (fixed typo, missing unit identifier in CSS 'height' property, leading to incorrect results)
+               svg/custom/svgsvgelement-ctm2.xhtml
+               svg/custom/svgsvgelement-ctm3.xhtml
+               svg/custom/svgsvgelement-ctm4.xhtml
+               svg/custom/svgsvgelement-ctm5.xhtml
+
+        * svg/SVGLocatable.cpp:
+        (WebCore::SVGLocatable::getBBox):
+        (WebCore::SVGLocatable::computeCTM):
+        * svg/SVGLocatable.h:
+        (WebCore::SVGLocatable::localCoordinateSpaceTransform):
+        * svg/SVGSVGElement.cpp:
+        (WebCore::SVGSVGElement::localCoordinateSpaceTransform):
+        (WebCore::SVGSVGElement::createRenderer):
+        * svg/SVGSVGElement.h:
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::localCoordinateSpaceTransform):
+        * svg/SVGStyledElement.h:
+        * svg/SVGStyledLocatableElement.cpp:
+        (WebCore::SVGStyledLocatableElement::getCTM):
+        (WebCore::SVGStyledLocatableElement::getScreenCTM):
+        * svg/SVGStyledLocatableElement.h:
+        (WebCore::SVGStyledLocatableElement::localCoordinateSpaceTransform):
+        * svg/SVGStyledTransformableElement.cpp:
+        (WebCore::SVGStyledTransformableElement::getCTM):
+        (WebCore::SVGStyledTransformableElement::getScreenCTM):
+        * svg/SVGStyledTransformableElement.h:
+        (WebCore::SVGStyledTransformableElement::localCoordinateSpaceTransform):
+        * svg/SVGTextElement.cpp:
+        (WebCore::SVGTextElement::getCTM):
+        (WebCore::SVGTextElement::getScreenCTM):
+        * svg/SVGTextElement.h:
+        (WebCore::SVGTextElement::localCoordinateSpaceTransform):
+        * svg/SVGTransformable.cpp:
+        (WebCore::SVGTransformable::SVGTransformable):
+        * svg/SVGTransformable.h:
+        (WebCore::SVGTransformable::localCoordinateSpaceTransform):
+
+2010-04-01  Vitaly Repeshko  <vitalyr@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [V8] Quick fix for failure in SerializedScriptValue
+        https://bugs.webkit.org/show_bug.cgi?id=36943
+
+        This allows the web worker layout tests to pass again.
+
+        * bindings/v8/SerializedScriptValue.h:
+        (WebCore::SerializedScriptValue::deserializeAndSetProperty):
+
+2010-03-31  MORITA Hajime  <morrita@google.com>
+        
+        Reviewed by Darin Adler.
+
+        Crash when writing into a detached TITLE element
+        https://bugs.webkit.org/show_bug.cgi?id=25567
+        
+        Document::setTitle() invoked HTMLTitleElement::setText(), which
+        contains DOM tree modification, even when setTitle() is called
+        from HTMLTitleElement::childrenChanged().  Fix to skip setText()
+        when setTitle() is called childrenChanged() to avoid cascading
+        DOM mutations between Document and HTMLTitleElement.
+
+        Test: fast/dom/title-content-write-set.html
+
+        * dom/Document.cpp:
+        (WebCore::Document::setTitle):
+
+2010-04-01  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Bug 36803 - 'Inline-table' workaround for <ruby> broken with ruby support
+        https://bugs.webkit.org/show_bug.cgi?id=36803
+
+        Don't use ruby rendering if the underlying 'display' property has been
+        changed into a value other than 'inline' or 'block' (such as 'inline-table').
+
+        Test: fast/ruby/ruby-inline-table.html
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::createObject):
+
+2010-03-31  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Crash submitting display:none textarea in a form
+        https://bugs.webkit.org/show_bug.cgi?id=36905
+
+        Test: fast/forms/textarea-submit-crash.html
+
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::appendFormData): Do update layout before
+        asking our renderer for its text, since we can't rely on our renderer's
+        text if layout is needed.
+
+        * rendering/RenderTextControl.cpp:
+        (WebCore::RenderTextControl::textWithHardLineBreaks): Don't update layout
+        while being asked for our text, since doing so may delete us, causing a crash.
+
+2010-03-31  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 36845 - AX: need a way to set the label of a AXWebArea through WebKit
+        https://bugs.webkit.org/show_bug.cgi?id=36845
+
+        Provide a way through WebKit to set an accessible label that describes the web area.
+
+        Test: platform/mac/accessibility/html-with-aria-label.html
+
+        * accessibility/AccessibilityObject.h:
+        (WebCore::AccessibilityObject::setAccessibleName):
+        * accessibility/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::accessibilityDescription):
+        (WebCore::AccessibilityRenderObject::setAccessibleName):
+        * accessibility/AccessibilityRenderObject.h:
+
+2010-03-31  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <http://webkit.org/b/36878> REGRESSION: Trailing colon on hostnames (with no port specified) causes "Not allowed to use restricted network port"
+
+        * platform/KURL.cpp:
+        (WebCore::KURL::port): Explicitly handle the case of a colon being present in the URL after the host name but with
+        no port number before the path.  This is handled in the same manner as the colon and port being omitted completely.
+
+2010-03-31  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Remove dependency on TextBreakIterator from StringImpl.cpp,
+        and from member methods of String.
+
+        Make 'numGraphemeClusters' & 'numCharactersInGraphemeClusters'
+        global function defined in PlatformString.h, rather than
+        member methods on String (these can be implemented purely
+        using the characters() and length() public interface),
+        and make 'makeCapitalized' a static function in RenderText.cpp.
+
+        * dom/InputElement.cpp:
+        (WebCore::InputElement::sanitizeUserInputValue):
+        (WebCore::InputElement::handleBeforeTextInsertedEvent):
+        * html/HTMLInputElement.cpp:
+        (WebCore::HTMLInputElement::tooLong):
+        * html/HTMLTextAreaElement.cpp:
+        (WebCore::HTMLTextAreaElement::handleBeforeTextInsertedEvent):
+        (WebCore::HTMLTextAreaElement::sanitizeUserInputValue):
+        (WebCore::HTMLTextAreaElement::tooLong):
+        * platform/text/PlatformString.h:
+        (WebCore::String::makeSecure):
+        * platform/text/String.cpp:
+        (WebCore::numGraphemeClusters):
+        (WebCore::numCharactersInGraphemeClusters):
+        * platform/text/StringImpl.cpp:
+        * platform/text/StringImpl.h:
+        * rendering/RenderText.cpp:
+        (WebCore::makeCapitalized):
+        (WebCore::RenderText::setTextInternal):
+
+2010-03-31  Vitaly Repeshko  <vitalyr@chromium.org>
+
+        Reviewed by David Levin.
+
+        [V8] SerializedScriptValue must be deserialized only once and in the right context
+        https://bugs.webkit.org/show_bug.cgi?id=36892
+
+        See also https://bugs.webkit.org/show_bug.cgi?id=34227 for the
+        corresponding JSC change.
+
+        General idea: SerializedScriptValue must be deserialized only once
+        and in the context of the intended MessageEvent recepient. The
+        approach we take for now is to eagerly deserialize when a
+        JavaScript wrapper for MessageEvent is created.
+
+        A better fix would be to keep a reference to the context in
+        MessageEvent and use it when lazily deserializing. It's harder to
+        do since the API doesn't have a clean method to have such a reference.
+
+        Tested by fast/dom/Window/window-postmessage-clone-frames.html. This
+        test still fails but only for the types which we can't serialize yet.
+
+        * bindings/scripts/CodeGeneratorV8.pm:
+        * bindings/v8/SerializedScriptValue.h:
+        (WebCore::SerializedScriptValue::deserializeAndSetProperty):
+        * bindings/v8/custom/V8MessageEventCustom.cpp:
+        (WebCore::V8MessageEvent::initMessageEventCallback):
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        Cleanup RedirectScheduler
+        https://bugs.webkit.org/show_bug.cgi?id=36874
+
+        Removed the nutty ScheduledRedirection struct in favor of a hierarchy
+        of classes to represent the various kinds of scheduled redirects.
+        Doing this lets us get rid of the pseudo RTTI switch statements on
+        "type" in favour of calling virtual functions.
+
+        No new tests because this change should be API identical with the
+        existing RedirectScheduler.
+
+        * loader/RedirectScheduler.cpp:
+        (WebCore::ScheduledNavigation::ScheduledNavigation):
+        (WebCore::ScheduledNavigation::~ScheduledNavigation):
+        (WebCore::ScheduledNavigation::isLocationChange):
+        (WebCore::ScheduledNavigation::shouldStartTimer):
+        (WebCore::ScheduledNavigation::didStartTimer):
+        (WebCore::ScheduledNavigation::didStopTimer):
+        (WebCore::ScheduledNavigation::delay):
+        (WebCore::ScheduledNavigation::lockHistory):
+        (WebCore::ScheduledNavigation::lockBackForwardList):
+        (WebCore::ScheduledNavigation::wasDuringLoad):
+        (WebCore::ScheduledURLNavigation::ScheduledURLNavigation):
+        (WebCore::ScheduledURLNavigation::fire):
+        (WebCore::ScheduledURLNavigation::didStartTimer):
+        (WebCore::ScheduledURLNavigation::didStopTimer):
+        (WebCore::ScheduledURLNavigation::url):
+        (WebCore::ScheduledURLNavigation::referrer):
+        (WebCore::ScheduledURLNavigation::wasUserGesture):
+        (WebCore::ScheduledRedirect::ScheduledRedirect):
+        (WebCore::ScheduledRedirect::isLocationChange):
+        (WebCore::ScheduledRedirect::shouldStartTimer):
+        (WebCore::ScheduledLocationChange::ScheduledLocationChange):
+        (WebCore::ScheduledRefresh::ScheduledRefresh):
+        (WebCore::ScheduledRefresh::fire):
+        (WebCore::ScheduledHistoryNavigation::ScheduledHistoryNavigation):
+        (WebCore::ScheduledHistoryNavigation::fire):
+        (WebCore::ScheduledFormSubmission::ScheduledFormSubmission):
+        (WebCore::ScheduledFormSubmission::fire):
+        (WebCore::RedirectScheduler::redirectScheduledDuringLoad):
+        (WebCore::RedirectScheduler::clear):
+        (WebCore::RedirectScheduler::scheduleRedirect):
+        (WebCore::RedirectScheduler::mustLockBackForwardList):
+        (WebCore::RedirectScheduler::scheduleLocationChange):
+        (WebCore::RedirectScheduler::scheduleFormSubmission):
+        (WebCore::RedirectScheduler::scheduleRefresh):
+        (WebCore::RedirectScheduler::locationChangePending):
+        (WebCore::RedirectScheduler::scheduleHistoryNavigation):
+        (WebCore::RedirectScheduler::timerFired):
+        (WebCore::RedirectScheduler::schedule):
+        (WebCore::RedirectScheduler::startTimer):
+        (WebCore::RedirectScheduler::cancel):
+        * loader/RedirectScheduler.h:
+
+2010-03-31  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Hook up WebGLContextAttributes to OpenGL context creation code
+        https://bugs.webkit.org/show_bug.cgi?id=33416
+
+        Test: fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias.html
+
+        * bindings/v8/custom/V8HTMLCanvasElementCustom.cpp: Fix an index bug.
+        (WebCore::V8HTMLCanvasElement::getContextCallback):
+        * platform/graphics/GraphicsContext3D.h: Add members/functions for multisampling/stencil buffer purpose.
+        * platform/graphics/mac/Canvas3DLayer.h: Add GraphicsContext3D as a member of Canvas3DLayer.
+        * platform/graphics/mac/Canvas3DLayer.mm: Add multisampling support.
+        (-[Canvas3DLayer drawInCGLContext:pixelFormat:forLayerTime:displayTime:]):
+        * platform/graphics/mac/GraphicsContext3DMac.cpp: Hook up WebGLContextAttributes to OpenGL context creation code for Mac.
+        (WebCore::GraphicsContext3D::GraphicsContext3D):
+        (WebCore::GraphicsContext3D::~GraphicsContext3D):
+        (WebCore::GraphicsContext3D::validateAttributes):
+        (WebCore::GraphicsContext3D::reshape):
+        (WebCore::GraphicsContext3D::prepareTexture):
+        (WebCore::GraphicsContext3D::bindFramebuffer):
+        (WebCore::GraphicsContext3D::readPixels):
+        * platform/graphics/mac/GraphicsLayerCA.mm: Adjust to modified Canvas3DLayer init call.
+        (WebCore::GraphicsLayerCA::setContentsToGraphicsContext3D):
+
+2010-03-31  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Add support to create UUID string.
+        https://bugs.webkit.org/show_bug.cgi?id=36472
+
+        * GNUmakefile.am:
+        * WebCore.gypi:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * platform/UUID.cpp: Added.
+        (WebCore::createCanonicalUUIDString):
+        * platform/UUID.h: Added.
+
+2010-03-31  Darin Adler  <darin@apple.com>
+
+        * rendering/RenderThemeChromiumWin.h: Fix inconsistent line endings.
+
+2010-03-31  Luiz Agostini  <luiz.agostini@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Maemo5 theme - form controls style
+        https://bugs.webkit.org/show_bug.cgi?id=36370
+
+        Adjusting Mameo5 form elements rendering.
+
+        * WebCore.pri:
+        * WebCore.pro:
+        * css/themeQtMaemo5.css: Added.
+        (select):
+        (select:disabled):
+        (select:active):
+        (select:active:disabled):
+        (textarea):
+        (textarea:disabled):
+        (textarea:active):
+        * platform/qt/Maemo5Webstyle.cpp: Added.
+        (Maemo5WebStyle::Maemo5WebStyle):
+        (drawRectangularControlBackgorund):
+        (Maemo5WebStyle::drawChecker):
+        (Maemo5WebStyle::findChecker):
+        (Maemo5WebStyle::drawRadio):
+        (Maemo5WebStyle::findRadio):
+        (Maemo5WebStyle::drawControl):
+        (Maemo5WebStyle::drawComplexControl):
+        * platform/qt/Maemo5Webstyle.h: Added.
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::RenderThemeQt):
+        (WebCore::RenderThemeQt::isControlStyled):
+        (WebCore::RenderThemeQt::popupInternalPaddingBottom):
+        (WebCore::RenderThemeQt::extraDefaultStyleSheet):
+        (WebCore::RenderThemeQt::adjustMenuListButtonStyle):
+        * platform/qt/RenderThemeQt.h:
+
+2010-03-31  Alexey Proskuryakov  <ap@apple.com>
+
+        https://bugs.webkit.org/show_bug.cgi?id=36897
+        <rdar://problem/7804018> REGRESSION (r56429): Flash ads are clipped when main page is scrolled (boxofficemojo.com)
+
+        Addressing additional review comments.
+
+        * rendering/RenderWidget.cpp: Removed an unneeded include.
+        * rendering/RenderWidget.h: Reworded the new comment.
+
+2010-03-31  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36897
+        <rdar://problem/7804018> REGRESSION (r56429): Flash ads are clipped when main page is scrolled (boxofficemojo.com)
+
+        * manual-tests/plugin-in-iframe-scroll.html: Added.
+        * manual-tests/resources/plugin-in-iframe-scroll-iframe.html: Added.
+
+        * rendering/RenderWidget.cpp:
+        (WebCore::RenderWidget::setWidgetGeometry): This method isn't called when an iframe containing
+        the widget moves, so we should store a value that is not dependent on current scroll offset.
+        (WebCore::RenderWidget::windowClipRect): Apply scroll offset and window clip now.
+
+        * rendering/RenderWidget.h: Renamed m_windowClipRect to m_clipRect, because it is no longer
+        in window coordinates.
+
+        * WebCore.base.exp: Export RenderWidget::windowClipRect(), since it's no longer inline.
+
+2010-03-31  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Unreviewed crash fix.
+
+        Crash with frame flattening on after r56854
+        https://bugs.webkit.org/show_bug.cgi?id=36894
+
+        Solution tested by Greg Bolsinga, thanks.
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::avoidScrollbarCreation):
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setHasHorizontalScrollbar):
+        (WebCore::ScrollView::setHasVerticalScrollbar):
+
+2010-03-31  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        iframe flattening doesn't flatten
+        https://bugs.webkit.org/show_bug.cgi?id=36798
+
+        Do not draw scrollbars for subframes when frame flattening is
+        enabled. Implemented using a virtual method in ScrollView as
+        suggested by Dave Hyatt.
+
+        Do not suppress scrollbars as that is wrong according to
+        Dave Hyatt.
+
+        Covered by current tests.
+
+        * page/FrameView.cpp:
+        (WebCore::FrameView::avoidScrollbarCreation):
+        * page/FrameView.h:
+        * platform/ScrollView.cpp:
+        (WebCore::ScrollView::setHasHorizontalScrollbar):
+        (WebCore::ScrollView::setHasVerticalScrollbar):
+        * platform/ScrollView.h:
+        (WebCore::ScrollView::avoidScrollbarCreation):
+        * rendering/RenderPart.cpp:
+        (WebCore::RenderPart::layoutWithFlattening):
+
+2010-03-30  Kenneth Rohde Christiansen  <kenneth@webkit.org>
+
+        Reviewed by Antti Koivisto.
+
+        iframe flattening doesn't flatten
+        https://bugs.webkit.org/show_bug.cgi?id=36798
+
+        Fix wrongly reversing logic in frame flattening check.
+
+        Tests:
+        fast/frames/flattening/iframe-flattening-fixed-height.html
+        fast/frames/flattening/iframe-flattening-fixed-width.html
+        fast/frames/flattening/iframe-flattening-fixed-width-and-height.html
+        fast/frames/flattening/iframe-flattening-fixed-width-and-height-no-scrolling.html
+
+        * rendering/RenderPartObject.cpp:
+        (WebCore::RenderPartObject::flattenFrame):
+
+2010-03-31  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Implements cancelGeolocationPermissionRequestForFrame.
+        Similar to requestGeolocationPermissionForFrame(), passes Geolocation* to cancelGeolocationPermissionRequestForFrame(),
+        so that the embedder can identify which Geolocation object is cancelling the pending permission request.
+        Calls cancelGeolocationPermissionRequestForFrame() before stopUpdating() so it better matches the startUpdating() / requestPermission() flow.
+        https://bugs.webkit.org/show_bug.cgi?id=35031
+
+        * loader/EmptyClients.h:
+        (WebCore::EmptyChromeClient::cancelGeolocationPermissionRequestForFrame):
+        * page/Chrome.cpp:
+        (WebCore::Chrome::cancelGeolocationPermissionRequestForFrame):
+        * page/Chrome.h:
+        * page/ChromeClient.h:
+        * page/Geolocation.cpp:
+        (WebCore::Geolocation::disconnectFrame):
+
+2010-03-31  Yael Aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Antti Koivisto.
+
+        Add animation to progress element
+        https://bugs.webkit.org/show_bug.cgi?id=36664
+
+        Add a timer to control the animation. The timer is started after painting
+        or a state change in the progress bar, to prevent animation from running
+        when the progress bar is not visible.
+
+        * html/HTMLProgressElement.cpp:
+        (WebCore::HTMLProgressElement::createRenderer):
+        * manual-tests/dom: Added.
+        * manual-tests/dom/progressbar.html: Added.
+        * platform/qt/RenderThemeQt.cpp:
+        (WebCore::RenderThemeQt::animationRepeatIntervalForProgressBar):
+        (WebCore::RenderThemeQt::animationDurationForProgressBar):
+        (WebCore::RenderThemeQt::paintProgressBar):
+        * platform/qt/RenderThemeQt.h:
+        * rendering/RenderProgress.cpp:
+        (WebCore::RenderProgress::RenderProgress):
+        (WebCore::RenderProgress::layout):
+        (WebCore::RenderProgress::updateFromElement):
+        (WebCore::RenderProgress::animationProgress):
+        (WebCore::RenderProgress::animationTimerFired):
+        (WebCore::RenderProgress::paint):
+        (WebCore::RenderProgress::updateAnimationState):
+        * rendering/RenderProgress.h:
+        * rendering/RenderTheme.cpp:
+        (WebCore::RenderTheme::animationRepeatIntervalForProgressBar):
+        (WebCore::RenderTheme::animationDurationForProgressBar):
+        * rendering/RenderTheme.h:
+
+2010-03-31  Pavel Feldman  <pfeldman@chromium.org>
+
+        Not reviewed. Rolling out r56829 since it broke chromium layout tests.
+
+        [REGRESSION] Inspector tests started crashing since r56829
+        https://bugs.webkit.org/show_bug.cgi?id=36888
+
+        * bindings/scripts/CodeGeneratorV8.pm:
+        * bindings/v8/V8Utilities.cpp:
+        * bindings/v8/V8Utilities.h:
+        * loader/FrameLoaderClient.h:
+
+2010-03-31  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: creating new style bugfixing.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36884
+
+        - InspectorDOMAgent should clear internal state upon reset (we are re-using
+          single dom agent instance throughout entire inspector controller lifetime) 
+        - Brought back blank style 'refresh' processing logic - remove it by mistake earlier
+        - Blocked couple of click handlers so that double-click to edit was not
+          expanding / collapsing the pane
+        - There is no need to reach out for matched rules upon 'refresh' update -
+          getting computed style is sufficient.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::matchRulesForList):
+        * inspector/InspectorDOMAgent.cpp:
+        (WebCore::InspectorDOMAgent::discardBindings):
+        * inspector/front-end/StylesSidebarPane.js:
+        (WebInspector.StylesSidebarPane.prototype.update.getStylesCallback):
+        (WebInspector.StylesSidebarPane.prototype.update.getComputedStyleCallback):
+        (WebInspector.StylesSidebarPane.prototype.update):
+        (WebInspector.StylesSidebarPane.prototype._refreshUpdate):
+        (WebInspector.StylesSidebarPane.prototype._rebuildUpdate):
+        (WebInspector.StylesSidebarPane.prototype._refreshStyleRules):
+        (WebInspector.StylesSidebarPane.prototype.addBlankSection):
+        (WebInspector.StylePropertiesSection.prototype._dblclickEmptySpace):
+        (WebInspector.StylePropertiesSection.prototype._clickSelector):
+
+2010-03-31  Yury Semikhatsky  <yurys@chromium.org>
+
+        Unreviewed. Chromium build fix: create missing v8::HandleScope.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36828
+
+        * bindings/v8/custom/V8InjectedScriptHostCustom.cpp:
+        (WebCore::InjectedScriptHost::canAccessInspectedWindow):
+
+2010-03-31  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Check that injected script can still access inspected window object when wrapping console object. When the window cannot be access serialize objects as strings. Also don't call InjectedScript.dispatch if the window cannot be accessed (due to frame navigation).
+
+        https://bugs.webkit.org/show_bug.cgi?id=36828
+
+        * bindings/js/JSInjectedScriptHostCustom.cpp:
+        (WebCore::InjectedScriptHost::canAccessInspectedWindow):
+        * bindings/v8/custom/V8InjectedScriptHostCustom.cpp:
+        (WebCore::InjectedScriptHost::canAccessInspectedWindow):
+        * inspector/InjectedScript.cpp:
+        (WebCore::InjectedScript::wrapForConsole):
+        * inspector/InjectedScriptHost.h:
+        * inspector/front-end/InjectedScript.js:
+        (injectedScriptConstructor):
+
+2010-03-31  Mattias Nissler  <mnissler@google.com>
+
+        Reviewed by Pavel Feldman.
+
+        Allow generic resource URLs for cookie handling in the inspector. This
+        enables display of all cookies, not only those that are associated
+        with resources accessed through http, https or file.
+        https://bugs.webkit.org/show_bug.cgi?id=36877
+
+        * inspector/front-end/CookieItemsView.js:
+        (WebInspector.CookieItemsView.prototype._filterCookiesForDomain):
+        * inspector/front-end/DOMAgent.js:
+        (WebInspector.Cookies.cookieMatchesResourceURL):
+        * inspector/front-end/inspector.js:
+        (WebInspector.updateResource):
+
+2010-03-30  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Nate Chapin.
+
+        IndexedDB: Finish hooking up bindings for IndexedDatabaseRequest
+        https://bugs.webkit.org/show_bug.cgi?id=36830
+
+        Still not enough hooked up to test.  Soon!
+
+        * WebCore.gypi:
+        * bindings/v8/custom/V8CustomIDBCallback.h: Removed.
+        * bindings/v8/custom/V8CustomIDBCallbacks.h: Added.
+        (WebCore::V8CustomIDBCallbacks::create):
+        (WebCore::V8CustomIDBCallbacks::~V8CustomIDBCallbacks):
+        (WebCore::V8CustomIDBCallbacks::onSuccess):
+        (WebCore::V8CustomIDBCallbacks::onError):
+        (WebCore::V8CustomIDBCallbacks::V8CustomIDBCallbacks):
+        * bindings/v8/custom/V8IndexedDatabaseRequestCustom.cpp:
+        (WebCore::V8IndexedDatabaseRequest::openCallback):
+        * storage/IDBDatabaseRequest.cpp: Added.
+        (WebCore::IDBDatabaseRequest::IDBDatabaseRequest):
+        (WebCore::IDBDatabaseRequest::~IDBDatabaseRequest):
+        * storage/IDBDatabaseRequest.h:
+        (WebCore::IDBDatabaseRequest::create):
+        * storage/IndexedDatabaseRequest.cpp:
+        (WebCore::IndexedDatabaseRequest::open):
+        * storage/IndexedDatabaseRequest.h:
+
+2010-03-31  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Implement memmove behavior for WebGLArray set()
+        https://bugs.webkit.org/show_bug.cgi?id=35619
+
+        New test cases are added to fast/canvas/webgl/array-setters.html.
+
+        * html/canvas/WebGLArray.cpp: Use memmove instead of memcpy; with memmove, copying takes place as if an intermediate buffer was used, allowing the destination and source to overlap.
+        (WebCore::WebGLArray::setImpl):
+
+2010-03-31  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        tryLayoutDoingPositionedMovementOnly does not have to be in RenderObject or be virtual
+        https://bugs.webkit.org/show_bug.cgi?id=36810
+
+        Move tryLayoutDoingPositionedMovementOnly as a regular method of RenderBox
+
+        * rendering/RenderBox.h:
+        (WebCore::RenderBox::tryLayoutDoingPositionedMovementOnly):
+        * rendering/RenderObject.h:
+
+2010-03-31  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] add logging of cross-frame property accesses for site isolation
+        https://bugs.webkit.org/show_bug.cgi?id=35773
+
+        No new tests as no new functionality.
+
+        * bindings/scripts/CodeGeneratorV8.pm:
+        * bindings/v8/V8Utilities.cpp:
+        (WebCore::logPropertyAccess):
+        * bindings/v8/V8Utilities.h:
+        * loader/FrameLoaderClient.h:
+        (WebCore::FrameLoaderClient::logCrossFramePropertyAccess):
+
+2010-03-30  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36866
+        Move CString to WTF
+
+        * Android.mk:
+        * ForwardingHeaders/wtf/text: Added.
+        * ForwardingHeaders/wtf/text/CString.h: Added.
+        * GNUmakefile.am:
+        * WebCore.base.exp:
+        * WebCore.gypi:
+        * WebCore.order:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * accessibility/gtk/AccessibilityObjectWrapperAtk.cpp:
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/ScheduledAction.cpp:
+        * bindings/js/ScriptController.cpp:
+        * bindings/v8/ScriptController.cpp:
+        * bindings/v8/V8Binding.cpp:
+        * bindings/v8/V8DOMWindowShell.cpp:
+        * bridge/jni/JNIBridge.cpp:
+        * bridge/jni/v8/JavaStringV8.h:
+        (JSC::Bindings::JavaStringImpl::init):
+        * css/CSSParser.cpp:
+        * dom/CharacterData.cpp:
+        * dom/Document.cpp:
+        * dom/Element.cpp:
+        * dom/Node.cpp:
+        * dom/Position.cpp:
+        * dom/Range.cpp:
+        * dom/Text.cpp:
+        * dom/XMLTokenizer.cpp:
+        * dom/XMLTokenizerLibxml2.cpp:
+        * dom/XMLTokenizerQt.cpp:
+        * editing/SelectionController.cpp:
+        * editing/VisiblePosition.cpp:
+        * editing/VisibleSelection.cpp:
+        * history/CachedFrame.cpp:
+        * history/HistoryItem.cpp:
+        * history/qt/HistoryItemQt.cpp:
+        * html/FormDataList.h:
+        (WebCore::FormDataList::appendData):
+        (WebCore::FormDataList::Item::Item):
+        (WebCore::FormDataList::Item::data):
+        * html/HTMLDocument.cpp:
+        * html/PreloadScanner.cpp:
+        * inspector/InspectorController.cpp:
+        * inspector/InspectorDOMAgent.cpp:
+        * loader/DocLoader.cpp:
+        * loader/FTPDirectoryDocument.cpp:
+        * loader/FrameLoader.cpp:
+        * loader/HistoryController.cpp:
+        * loader/ProgressTracker.cpp:
+        * loader/appcache/ApplicationCacheStorage.cpp:
+        * loader/archive/cf/LegacyWebArchive.cpp:
+        * loader/icon/wince/IconDatabaseWince.cpp:
+        * loader/loader.cpp:
+        * page/Console.cpp:
+        * page/DOMWindow.cpp:
+        * page/SecurityOrigin.cpp:
+        * page/XSSAuditor.cpp:
+        * page/animation/AnimationBase.cpp:
+        * platform/ContextMenu.cpp:
+        * platform/FileSystem.h:
+        * platform/KURL.cpp:
+        * platform/KURLGoogle.cpp:
+        * platform/KURLGooglePrivate.h:
+        * platform/Pasteboard.h:
+        * platform/android/FileSystemAndroid.cpp:
+        * platform/android/TemporaryLinkStubs.cpp:
+        * platform/brew/KURLBrew.cpp:
+        * platform/cf/FileSystemCF.cpp:
+        * platform/chromium/MIMETypeRegistryChromium.cpp:
+        * platform/efl/FileSystemEfl.cpp:
+        * platform/efl/PasteboardEfl.cpp:
+        * platform/efl/PlatformKeyboardEventEfl.cpp:
+        * platform/efl/PlatformScreenEfl.cpp:
+        * platform/efl/RenderThemeEfl.cpp:
+        * platform/efl/ScrollbarEfl.cpp:
+        * platform/efl/SharedBufferEfl.cpp:
+        * platform/efl/WidgetEfl.cpp:
+        * platform/graphics/GlyphPageTreeNode.cpp:
+        * platform/graphics/cairo/FontPlatformDataCairo.cpp:
+        * platform/graphics/cg/ImageBufferCG.cpp:
+        * platform/graphics/chromium/FontCacheLinux.cpp:
+        * platform/graphics/chromium/FontPlatformDataLinux.h:
+        * platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp:
+        * platform/graphics/gstreamer/WebKitWebSourceGStreamer.cpp:
+        * platform/graphics/gtk/FontPlatformDataPango.cpp:
+        * platform/graphics/gtk/IconGtk.cpp:
+        * platform/graphics/gtk/ImageGtk.cpp:
+        * platform/graphics/haiku/GraphicsContextHaiku.cpp:
+        * platform/graphics/mac/GraphicsContext3DMac.cpp:
+        * platform/graphics/mac/GraphicsLayerCA.mm:
+        * platform/graphics/qt/GraphicsContext3DQt.cpp:
+        * platform/graphics/qt/ImageBufferQt.cpp:
+        * platform/graphics/qt/MediaPlayerPrivatePhonon.cpp:
+        * platform/graphics/qt/MediaPlayerPrivateQt.cpp:
+        * platform/graphics/skia/GraphicsLayerSkia.cpp:
+        * platform/graphics/win/GraphicsLayerCACF.cpp:
+        * platform/graphics/win/WKCACFLayer.cpp:
+        * platform/graphics/wx/FontPlatformData.h:
+        * platform/gtk/ClipboardGtk.cpp:
+        * platform/gtk/ContextMenuItemGtk.cpp:
+        * platform/gtk/DataObjectGtk.h:
+        * platform/gtk/FileChooserGtk.cpp:
+        * platform/gtk/FileSystemGtk.cpp:
+        * platform/gtk/GeolocationServiceGtk.cpp:
+        * platform/gtk/KURLGtk.cpp:
+        * platform/gtk/Language.cpp:
+        * platform/gtk/LocalizedStringsGtk.cpp:
+        * platform/gtk/PasteboardGtk.cpp:
+        * platform/gtk/PopupMenuGtk.cpp:
+        * platform/gtk/RenderThemeGtk.cpp:
+        * platform/gtk/SharedBufferGtk.cpp:
+        * platform/haiku/FileSystemHaiku.cpp:
+        * platform/haiku/PlatformKeyboardEventHaiku.cpp:
+        * platform/network/CredentialStorage.cpp:
+        * platform/network/FormData.cpp:
+        * platform/network/FormData.h:
+        * platform/network/FormDataBuilder.cpp:
+        * platform/network/FormDataBuilder.h:
+        * platform/network/HTTPParsers.cpp:
+        * platform/network/android/ResourceHandleAndroid.cpp:
+        * platform/network/cf/FormDataStreamCFNet.cpp:
+        * platform/network/cf/ResourceHandleCFNet.cpp:
+        * platform/network/chromium/ResourceResponse.h:
+        * platform/network/curl/FormDataStreamCurl.cpp:
+        * platform/network/curl/ResourceHandleManager.cpp:
+        * platform/network/curl/ResourceHandleManager.h:
+        * platform/network/mac/FormDataStreamMac.mm:
+        * platform/network/mac/ResourceHandleMac.mm:
+        * platform/network/qt/QNetworkReplyHandler.cpp:
+        * platform/network/soup/CookieJarSoup.cpp:
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        * platform/network/soup/ResourceRequestSoup.cpp:
+        * platform/network/soup/ResourceResponseSoup.cpp:
+        * platform/network/win/ResourceHandleWin.cpp:
+        * platform/posix/FileSystemPOSIX.cpp:
+        * platform/qt/FileSystemQt.cpp:
+        * platform/qt/KURLQt.cpp:
+        * platform/qt/TemporaryLinkStubs.cpp:
+        * platform/sql/chromium/SQLiteFileSystemChromium.cpp:
+        * platform/text/CString.cpp: Removed.
+        * platform/text/CString.h: Removed.
+        * platform/text/PlatformString.h:
+        * platform/text/String.cpp:
+        * platform/text/StringImpl.cpp:
+        * platform/text/TextCodec.h:
+        * platform/text/TextCodecICU.cpp:
+        * platform/text/TextCodecLatin1.cpp:
+        * platform/text/TextCodecUTF16.cpp:
+        * platform/text/TextCodecUserDefined.cpp:
+        * platform/text/TextEncoding.cpp:
+        * platform/text/TextEncoding.h:
+        * platform/text/chromium/TextBreakIteratorInternalICUChromium.cpp:
+        * platform/text/gtk/TextCodecGtk.cpp:
+        * platform/text/haiku/StringHaiku.cpp:
+        * platform/text/mac/TextCodecMac.cpp:
+        * platform/text/qt/TextCodecQt.cpp:
+        * platform/text/wx/StringWx.cpp:
+        * platform/win/ClipboardUtilitiesWin.cpp:
+        * platform/win/ClipboardWin.cpp:
+        * platform/win/ContextMenuItemWin.cpp:
+        * platform/win/ContextMenuWin.cpp:
+        * platform/win/FileSystemWin.cpp:
+        * platform/win/GDIObjectCounter.cpp:
+        * platform/win/Language.cpp:
+        * platform/win/PasteboardWin.cpp:
+        * platform/wince/FileSystemWince.cpp:
+        * platform/wince/KeygenWince.cpp:
+        * platform/wince/PasteboardWince.cpp:
+        * platform/wx/FileSystemWx.cpp:
+        * platform/wx/LoggingWx.cpp:
+        * plugins/PluginDebug.h:
+        * plugins/PluginPackage.cpp:
+        * plugins/PluginStream.cpp:
+        * plugins/PluginStream.h:
+        * plugins/PluginView.h:
+        * plugins/gtk/PluginPackageGtk.cpp:
+        * plugins/mac/PluginPackageMac.cpp:
+        * plugins/qt/PluginPackageQt.cpp:
+        * plugins/symbian/PluginPackageSymbian.cpp:
+        * plugins/win/PluginPackageWin.cpp:
+        * rendering/RenderLayer.cpp:
+        * rendering/RenderLayerCompositor.cpp:
+        * rendering/RenderTreeAsText.cpp:
+        * storage/Database.cpp:
+        * storage/SQLTransactionCoordinator.cpp:
+        * storage/SQLTransactionCoordinator.h:
+        * storage/StorageAreaSync.cpp:
+        * storage/StorageSyncManager.cpp:
+        * storage/chromium/DatabaseTrackerChromium.cpp:
+        * storage/chromium/QuotaTracker.cpp:
+        * storage/chromium/QuotaTracker.h:
+        * svg/SVGFontFaceElement.cpp:
+        * svg/SVGStyledElement.cpp:
+        * svg/SVGUseElement.cpp:
+        * websockets/WebSocket.cpp:
+        * websockets/WebSocketChannel.cpp:
+        * websockets/WebSocketHandshake.cpp:
+        * wml/WMLErrorHandling.cpp:
+        * wml/WMLGoElement.cpp:
+        * wml/WMLPageState.cpp:
+        * wml/WMLPostfieldElement.cpp:
+        * wml/WMLSelectElement.cpp:
+        * xml/XMLHttpRequest.cpp:
+        * xml/XSLStyleSheetLibxslt.cpp:
+        * xml/XSLTProcessorLibxslt.cpp:
+
+2010-03-30  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Brady Eidson.
+
+        REGRESSION (r56439) - Crash when a renderer for a file upload control
+        with a selected file is recreated
+        https://bugs.webkit.org/show_bug.cgi?id=36723
+
+        RenderFileUploadControl::chooseIconForFiles was called before
+        m_fileChooser was initialized.
+
+        * platform/FileChooser.cpp:
+        (WebCore::FileChooser::FileChooser): Introduce m_isInitializing flag to
+          avoid FileChooserClient::repaint() call.
+        (WebCore::FileChooser::loadIcon):
+        (WebCore::FileChooser::iconLoaded):
+        * platform/FileChooser.h: Add a FielChooser parameter to
+          FileChooserClient::chooseIconForFiles().
+        * rendering/RenderFileUploadControl.cpp:
+        (WebCore::RenderFileUploadControl::chooseIconForFiles):
+        (WebCore::RenderFileUploadControl::paintObject): Add an assertion.
+        * rendering/RenderFileUploadControl.h:
+
+2010-03-30  Stanislav Paltis  <Stanislav.Paltis@nokia.com>
+
+        Reviewed by Laszlo Gombos.
+
+        [Qt] qmake/symbian build failure
+        https://bugs.webkit.org/show_bug.cgi?id=36745
+
+        Fix build break in Symbian build introduced in r56714,
+        by modifying comment escape character from ";" to "#".
+
+        * WebCore.pro:
+
+2010-03-30  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix after new localized string addition.
+
+        * platform/wx/LocalizedStringsWx.cpp:
+        (WebCore::missingPluginText):
+
 2010-03-30  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Anders Carlsson.

@@ -25,7 +25,6 @@
 
 #include <limits>
 
-#include "CString.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
 #include "MIMETypeRegistry.h"
@@ -33,6 +32,7 @@
 #include "TimeRanges.h"
 #include "Widget.h"
 #include <wtf/HashSet.h>
+#include <wtf/text/CString.h>
 
 #include <QDebug>
 #include <QEvent>

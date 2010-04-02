@@ -130,4 +130,10 @@ typedef enum {
 // This does not affect the scrollability of the document.
 - (void)setAlwaysHideHorizontalScroller:(BOOL)flag;
 - (void)setAlwaysHideVerticalScroller:(BOOL)flag;
+
+// Sets the name presented to accessibility clients for the web area object.
+- (void)setAccessibleName:(NSString *)name;
+
+- (NSString*)_layerTreeAsText;
+
 @end

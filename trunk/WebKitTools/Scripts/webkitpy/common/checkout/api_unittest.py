@@ -32,7 +32,8 @@ import tempfile
 import unittest
 
 from webkitpy.common.checkout.api import Checkout
-from webkitpy.common.checkout.scm import detect_scm_system
+from webkitpy.common.checkout.changelog import ChangeLogEntry
+from webkitpy.common.checkout.scm import detect_scm_system, CommitMessage
 from webkitpy.common.system.outputcapture import OutputCapture
 from webkitpy.thirdparty.mock import Mock
 
@@ -133,7 +134,7 @@ class CheckoutTest(unittest.TestCase):
         scm = Mock()
         scm.committer_email_for_revision = lambda revision: "committer@example.com"
         checkout = Checkout(scm)
-        checkout.changelog_entries_for_revision = lambda revision: ChangeLogEntry(_changelog1entry1)
+        checkout.changelog_entries_for_revision = lambda revision: [ChangeLogEntry(_changelog1entry1)]
         commitinfo = checkout.commit_info_for_revision(4)
         self.assertEqual(commitinfo.bug_id(), 36629)
         self.assertEqual(commitinfo.author_name(), "Eric Seidel")
@@ -142,3 +143,24 @@ class CheckoutTest(unittest.TestCase):
         self.assertEqual(commitinfo.reviewer(), None)
         self.assertEqual(commitinfo.committer_email(), "committer@example.com")
         self.assertEqual(commitinfo.committer(), None)
+
+    def test_bug_id_for_revision(self):
+        scm = Mock()
+        scm.committer_email_for_revision = lambda revision: "committer@example.com"
+        checkout = Checkout(scm)
+        checkout.changelog_entries_for_revision = lambda revision: [ChangeLogEntry(_changelog1entry1)]
+        self.assertEqual(checkout.bug_id_for_revision(4), 36629)
+
+    def test_bug_id_for_this_commit(self):
+        scm = Mock()
+        checkout = Checkout(scm)
+        checkout.commit_message_for_this_commit = lambda: CommitMessage(ChangeLogEntry(_changelog1entry1).contents().splitlines())
+        self.assertEqual(checkout.bug_id_for_this_commit(), 36629)
+
+    def test_modified_changelogs(self):
+        scm = Mock()
+        scm.checkout_root = "/foo/bar"
+        scm.changed_files = lambda:["file1", "ChangeLog", "relative/path/ChangeLog"]
+        checkout = Checkout(scm)
+        expected_changlogs = ["/foo/bar/ChangeLog", "/foo/bar/relative/path/ChangeLog"]
+        self.assertEqual(checkout.modified_changelogs(), expected_changlogs)

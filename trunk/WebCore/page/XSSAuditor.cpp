@@ -40,6 +40,7 @@
 #include "ScriptSourceCode.h"
 #include "Settings.h"
 #include "TextResourceDecoder.h"
+#include <wtf/text/CString.h>
 
 using namespace WTF;
 

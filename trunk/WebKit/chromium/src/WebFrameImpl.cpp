@@ -1323,6 +1323,9 @@ bool WebFrameImpl::find(int identifier,
             executeCommand(WebString::fromUTF8("Unselect"));
         }
 
+        // Make sure no node is focused. See http://crbug.com/38700.
+        frame()->document()->setFocusedNode(0);
+
         if (!options.findNext || activeSelection) {
             // This is either a Find operation or a Find-next from a new start point
             // due to a selection, so we set the flag to ask the scoping effort
@@ -1960,6 +1963,8 @@ void WebFrameImpl::invalidateArea(AreaToInvalidate area)
         if ((area & InvalidateContentArea) == InvalidateContentArea) {
             IntRect contentArea(
                 view->x(), view->y(), view->visibleWidth(), view->visibleHeight());
+            IntRect frameRect = view->frameRect();
+            contentArea.move(-frameRect.topLeft().x(), -frameRect.topLeft().y());
             view->invalidateRect(contentArea);
         }
 
@@ -1969,6 +1974,8 @@ void WebFrameImpl::invalidateArea(AreaToInvalidate area)
                 view->x() + view->visibleWidth(), view->y(),
                 ScrollbarTheme::nativeTheme()->scrollbarThickness(),
                 view->visibleHeight());
+            IntRect frameRect = view->frameRect();
+            scrollBarVert.move(-frameRect.topLeft().x(), -frameRect.topLeft().y());
             view->invalidateRect(scrollBarVert);
         }
     }

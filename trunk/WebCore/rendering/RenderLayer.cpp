@@ -44,7 +44,6 @@
 #include "config.h"
 #include "RenderLayer.h"
 
-#include "CString.h"
 #include "CSSPropertyNames.h"
 #include "CSSStyleDeclaration.h"
 #include "CSSStyleSelector.h"
@@ -83,6 +82,7 @@
 #include "TransformationMatrix.h"
 #include "TransformState.h"
 #include "TranslateTransformOperation.h"
+#include <wtf/text/CString.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/UnusedParam.h>
 
@@ -245,7 +245,7 @@ bool RenderLayer::hasAcceleratedCompositing() const
 #endif
 }
 
-void RenderLayer::updateLayerPositions(UpdateLayerPositionsFlags flags)
+void RenderLayer::updateLayerPositions(UpdateLayerPositionsFlags flags, IntPoint* cachedOffset)
 {
     if (flags & DoFullRepaint) {
         renderer()->repaint();
@@ -259,13 +259,52 @@ void RenderLayer::updateLayerPositions(UpdateLayerPositionsFlags flags)
 #endif
     }
     
+
     updateLayerPosition(); // For relpositioned layers or non-positioned layers,
                            // we need to keep in sync, since we may have shifted relative
                            // to our parent layer.
+    IntPoint oldCachedOffset;
+    if (cachedOffset) {
+        // We can't cache our offset to the repaint container if the mapping is anything more complex than a simple translation
+        bool disableOffsetCache = 
+#if ENABLE(SVG)
+                                  renderer()->isSVGRoot() ||
+#endif
+                                  renderer()->hasColumns() || 
+                                  renderer()->hasTransform() || 
+                                  isComposited();
+        if (disableOffsetCache)
+            cachedOffset = 0; // If our cached offset is invalid make sure it's not passed to any of our children
+        else {
+            oldCachedOffset = *cachedOffset;
+            // Frequently our parent layer's renderer will be the same as our renderer's containing block.  In that case,
+            // we just update the cache using our offset to our parent (which is m_x / m_y).  Otherwise, regenerated cached
+            // offsets to the root from the render tree.
+            if (!m_parent || m_parent->renderer() == renderer()->containingBlock())
+                cachedOffset->move(m_x, m_y); // Fast case
+            else {
+                int x = 0;
+                int y = 0;
+                convertToLayerCoords(root(), x, y);
+                *cachedOffset = IntPoint(x, y);
+            }
+        }
+    }
 
     int x = 0;
     int y = 0;
-    convertToLayerCoords(root(), x, y);
+    if (cachedOffset) {
+        x += cachedOffset->x();
+        y += cachedOffset->y();
+#ifndef NDEBUG
+        int nonCachedX = 0;
+        int nonCachedY = 0;
+        convertToLayerCoords(root(), nonCachedX, nonCachedY);
+        ASSERT(x == nonCachedX);
+        ASSERT(y == nonCachedY);
+#endif
+    } else
+        convertToLayerCoords(root(), x, y);
     positionOverflowControls(x, y);
 
     updateVisibilityStatus();
@@ -281,7 +320,8 @@ void RenderLayer::updateLayerPositions(UpdateLayerPositionsFlags flags)
 
         RenderBoxModelObject* repaintContainer = renderer()->containerForRepaint();
         IntRect newRect = renderer()->clippedOverflowRectForRepaint(repaintContainer);
-        IntRect newOutlineBox = renderer()->outlineBoundsForRepaint(repaintContainer);
+        IntRect newOutlineBox = renderer()->outlineBoundsForRepaint(repaintContainer, cachedOffset);
+        ASSERT(newOutlineBox == renderer()->outlineBoundsForRepaint(repaintContainer, 0));
         if (flags & CheckForRepaint) {
             if (view && !view->printing()) {
                 if (m_needsFullRepaint) {
@@ -313,7 +353,7 @@ void RenderLayer::updateLayerPositions(UpdateLayerPositionsFlags flags)
 #endif
 
     for (RenderLayer* child = firstChild(); child; child = child->nextSibling())
-        child->updateLayerPositions(flags);
+        child->updateLayerPositions(flags, cachedOffset);
 
 #if USE(ACCELERATED_COMPOSITING)
     if ((flags & UpdateCompositingLayers) && isComposited())
@@ -323,6 +363,9 @@ void RenderLayer::updateLayerPositions(UpdateLayerPositionsFlags flags)
     // With all our children positioned, now update our marquee if we need to.
     if (m_marquee)
         m_marquee->updateMarqueePosition();
+
+    if (cachedOffset)
+        *cachedOffset = oldCachedOffset;
 }
 
 void RenderLayer::computeRepaintRects()
@@ -3513,7 +3556,7 @@ void showLayerTree(const WebCore::RenderLayer* layer)
         return;
 
     if (WebCore::Frame* frame = layer->renderer()->document()->frame()) {
-        WebCore::String output = externalRepresentation(frame, WebCore::RenderAsTextShowAllLayers | WebCore::RenderAsTextShowLayerNesting | WebCore::RenderAsTextShowCompositedLayers);
+        WebCore::String output = externalRepresentation(frame, WebCore::RenderAsTextShowAllLayers | WebCore::RenderAsTextShowLayerNesting | WebCore::RenderAsTextShowCompositedLayers | WebCore::RenderAsTextShowAddresses);
         fprintf(stderr, "%s\n", output.utf8().data());
     }
 }

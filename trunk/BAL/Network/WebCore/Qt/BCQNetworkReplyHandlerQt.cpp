@@ -21,7 +21,6 @@
 #include "config.h"
 #include "QNetworkReplyHandler.h"
 
-#include "CString.h"
 #include "HTTPParsers.h"
 #include "MIMETypeRegistry.h"
 #include "ResourceHandle.h"
@@ -33,13 +32,10 @@
 #include <QFile>
 #include <QNetworkReply>
 #include <QNetworkCookie>
-#if 0
 #include <qwebframe.h>
 #include <qwebpage.h>
-#else
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#endif
+#include <wtf/text/CString.h>
+
 #include <QDebug>
 #include <QCoreApplication>
 

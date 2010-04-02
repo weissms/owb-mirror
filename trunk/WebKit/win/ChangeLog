@@ -1,3 +1,45 @@
+2010-04-01  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Added layerTreeAsText function to DRT (for Mac)
+        https://bugs.webkit.org/show_bug.cgi?id=36782
+
+        This is the WebKit side for Windows. It plumbs the
+        call from WebCore to DRT.
+
+        * Interfaces/IWebFramePrivate.idl:
+        * WebFrame.cpp:WebKit (Windows) side of plumbing
+        (WebFrame::layerTreeAsText):
+        * WebFrame.h:
+
+2010-03-31  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Adds Geolocation param for cancelGeolocationPermissionRequestForFrame.
+        https://bugs.webkit.org/show_bug.cgi?id=35031
+
+        * WebCoreSupport/WebChromeClient.h:
+        (WebChromeClient::cancelGeolocationPermissionRequestForFrame):
+
+2010-03-30  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36866
+        Move CString to WTF
+
+        * WebDownload.cpp:
+        * WebDownloadCFNet.cpp:
+        * WebDownloadCurl.cpp:
+        * WebHistoryItem.cpp:
+        * WebLocalizableStrings.cpp:
+        * WebMutableURLRequest.cpp:
+        * WebPreferences.cpp:
+        (WebPreferences::migrateWebKitPreferencesToCFPreferences):
+        * WebView.cpp:
+
 2010-03-30  Adam Roben  <aroben@apple.com>
 
         Windows build fix

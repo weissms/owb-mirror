@@ -46,6 +46,7 @@
 #include "PlatformString.h"
 #include "Range.h"
 #include "RenderImage.h"
+#include "SharedBuffer.h"
 #include "StringBuilder.h"
 
 #include "CString.h"

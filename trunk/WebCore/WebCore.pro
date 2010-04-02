@@ -811,7 +811,6 @@ SOURCES += \
     platform/ContentType.cpp \
     platform/ContextMenu.cpp \
     platform/CrossThreadCopier.cpp \
-    platform/text/CString.cpp \
     platform/DeprecatedPtrListImpl.cpp \
     platform/DragData.cpp \
     platform/DragImage.cpp \
@@ -895,6 +894,7 @@ SOURCES += \
     platform/ThreadTimers.cpp \
     platform/Timer.cpp \
     platform/text/UnicodeRange.cpp \
+    platform/UUID.cpp \
     platform/Widget.cpp \
     plugins/PluginDatabase.cpp \
     plugins/PluginDebug.cpp \
@@ -1620,7 +1620,6 @@ HEADERS += \
     platform/text/AtomicString.h \
     platform/text/Base64.h \
     platform/text/BidiContext.h \
-    platform/text/CString.h \
     platform/text/qt/TextCodecQt.h \
     platform/text/RegularExpression.h \
     platform/text/SegmentedString.h \
@@ -2118,10 +2117,13 @@ SOURCES += \
     ../WebKit/qt/Api/qwebinspector.cpp \
     ../WebKit/qt/Api/qwebkitversion.cpp
 
-
 maemo5 {
-    HEADERS += ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.h
-    SOURCES += ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.cpp
+    HEADERS += \
+        ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.h \
+        platform/qt/Maemo5Webstyle.h
+    SOURCES += \
+        ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.cpp \
+        platform/qt/Maemo5Webstyle.cpp
 }
 
 
@@ -2139,6 +2141,7 @@ maemo5 {
 
     win32-* {
         LIBS += -lgdi32
+        LIBS += -lOle32
         LIBS += -luser32
     }
     wince*: LIBS += -lmmtimer
@@ -2946,7 +2949,7 @@ symbian {
     shared {
         contains(CONFIG, def_files) {
             DEF_FILE=../WebKit/qt/symbian
-            ; defFilePath is for Qt4.6 compatibility
+            # defFilePath is for Qt4.6 compatibility
             defFilePath=../WebKit/qt/symbian
         } else {
             MMP_RULES += EXPORTUNFROZEN

@@ -35,7 +35,6 @@ import logging
 import os.path
 import sys
 
-from .. style_references import parse_patch
 from error_handlers import DefaultStyleErrorHandler
 from error_handlers import PatchStyleErrorHandler
 from filter import FilterConfiguration
@@ -44,7 +43,10 @@ from optparser import DefaultCommandOptionValues
 from processors.common import categories as CommonCategories
 from processors.common import CarriageReturnProcessor
 from processors.cpp import CppProcessor
+from processors.python import PythonProcessor
 from processors.text import TextProcessor
+from webkitpy.style_references import parse_patch
+from webkitpy.style_references import configure_logging as _configure_logging
 
 _log = logging.getLogger("webkitpy.style.checker")
 
@@ -167,7 +169,8 @@ _SKIPPED_FILES_WITH_WARNING = [
 # Don't include a warning for skipped files that are more common
 # and more obvious.
 _SKIPPED_FILES_WITHOUT_WARNING = [
-    "LayoutTests/"
+    "LayoutTests/",
+    ".pyc",
     ]
 
 
@@ -309,10 +312,8 @@ def configure_logging(stream, logger=None, is_verbose=False):
         logging_level = logging.INFO
         handlers = _create_log_handlers(stream)
 
-    logger.setLevel(logging_level)
-
-    for handler in handlers:
-        logger.addHandler(handler)
+    handlers = _configure_logging(logging_level=logging_level, logger=logger,
+                                  handlers=handlers)
 
     return handlers
 
@@ -323,7 +324,8 @@ class FileType:
     NONE = 1
     # Alphabetize remaining types
     CPP = 2
-    TEXT = 3
+    PYTHON = 3
+    TEXT = 4
 
 
 class ProcessorDispatcher(object):
@@ -344,7 +346,6 @@ class ProcessorDispatcher(object):
         'mm',
         'php',
         'pm',
-        'py',
         'txt',
         )
 
@@ -378,9 +379,11 @@ class ProcessorDispatcher(object):
             # reading from stdin, cpp_style tests should not rely on
             # the extension.
             return FileType.CPP
-        elif ("ChangeLog" in file_path
-              or "WebKitTools/Scripts/" in file_path
-              or file_extension in self.text_file_extensions):
+        elif file_extension == "py":
+            return FileType.PYTHON
+        elif ("ChangeLog" in file_path or
+              (not file_extension and "WebKitTools/Scripts/" in file_path) or
+              file_extension in self.text_file_extensions):
             return FileType.TEXT
         else:
             return FileType.NONE
@@ -394,6 +397,8 @@ class ProcessorDispatcher(object):
             file_extension = self._file_extension(file_path)
             processor = CppProcessor(file_path, file_extension,
                                      handle_style_error, min_confidence)
+        elif file_type == FileType.PYTHON:
+            processor = PythonProcessor(file_path, handle_style_error)
         elif file_type == FileType.TEXT:
             processor = TextProcessor(file_path, handle_style_error)
         else:
@@ -663,10 +668,8 @@ class StyleChecker(object):
                                                   handle_style_error,
                                                   min_confidence)
         if processor is None:
-            # Display a warning so as not to give an impression that this
-            # was checked.
-            _log.info('File not a recognized type to check. Skipping: "%s"'
-                      % file_path)
+            _log.debug('File not a recognized type to check. Skipping: "%s"'
+                       % file_path)
             return
 
 

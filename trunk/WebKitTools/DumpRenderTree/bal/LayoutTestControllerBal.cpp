@@ -586,3 +586,12 @@ bool LayoutTestController::callShouldCloseOnWebView()
     return false;
 }
 
+JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
+{
+    WebView* webView = getWebView();
+    const char* text = webView->mainFrame()->layerTreeAsText();
+
+    JSRetainPtr<JSStringRef> textValueJS(Adopt, JSStringCreateWithUTF8CString(text));
+    return textValueJS;
+}
+

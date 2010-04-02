@@ -427,9 +427,9 @@ void Chrome::requestGeolocationPermissionForFrame(Frame* frame, Geolocation* geo
     m_client->requestGeolocationPermissionForFrame(frame, geolocation);
 }
 
-void Chrome::cancelGeolocationPermissionRequestForFrame(Frame* frame)
+void Chrome::cancelGeolocationPermissionRequestForFrame(Frame* frame, Geolocation* geolocation)
 {
-    m_client->cancelGeolocationPermissionRequestForFrame(frame);
+    m_client->cancelGeolocationPermissionRequestForFrame(frame, geolocation);
 }
 #endif
 

@@ -1,3 +1,641 @@
+2010-04-01  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        sheriffbot rollout should verify that the svn revision is a number.
+        https://bugs.webkit.org/show_bug.cgi?id=37001
+
+        * Scripts/webkitpy/common/net/bugzilla.py: Allow for the message to be None.
+        * Scripts/webkitpy/tool/bot/sheriff.py: Did verification that svn revision
+         is a number. Fixed the imports (since the files uses ScriptError and log)
+         and a typo.
+        * Scripts/webkitpy/tool/bot/sheriffircbot_unittest.py: Added a test to verify
+         the behavior.
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Print an error message for readline bogosity in MacPorts
+        https://bugs.webkit.org/show_bug.cgi?id=36979
+
+        * Scripts/webkitpy/common/system/user.py:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Don't pass --non-interactive to create-rollout
+        https://bugs.webkit.org/show_bug.cgi?id=36989
+
+        It turns out you can't pass --non-interactive to create-rollout.  Also,
+        improve our error reporting slighly to catch the case where we error
+        out after creating the rollout bug.
+
+        * Scripts/webkitpy/tool/bot/irc_command.py:
+        * Scripts/webkitpy/tool/bot/sheriff.py:
+
+2010-04-01  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch can incorrectly think the working directory is modified
+        https://bugs.webkit.org/show_bug.cgi?id=36985
+
+        If a file's modification time is modified, but the contents are not,
+        then diff-index will think the file has been modified unless you do
+        some crazy update-index call. Instead, call diff --name-only, which
+        has the index update builtin.
+
+        Tried to write a test, but could not reproduce this in a unittest.
+        To test manually:
+            touch file-in-repo
+            git diff-index HEAD
+            git diff HEAD --name-only
+
+        The diff-index call incorrectly shows file-in-repo as modified.
+
+        * Scripts/webkitpy/common/checkout/scm.py:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add rollout command to sheriffbot
+        https://bugs.webkit.org/show_bug.cgi?id=36986
+
+        This IRC command creates a new bug an attaches a rollout patch.  To
+        actually commit the rollout, a committer needs to mark the patch
+        commit-queue+ in bugs.webkit.org.
+
+        Also, factored out some of the logic from the queue into a separate
+        object for easier testing.
+
+        * Scripts/webkitpy/common/system/executive.py:
+        * Scripts/webkitpy/tool/bot/irc_command.py:
+        * Scripts/webkitpy/tool/bot/sheriff.py: Added.
+        * Scripts/webkitpy/tool/bot/sheriff_unittest.py: Added.
+        * Scripts/webkitpy/tool/bot/sheriffircbot.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot_unittest.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+
+2010-04-01  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, only ignoring chatty style errors.
+
+        check-webkit-style: WebKit needs a python style checker
+        https://bugs.webkit.org/show_bug.cgi?id=33639
+
+        Remove the 79 char line limit by ignoring 
+        pep8/E501.  Because we have our own report_error
+        implementation we have to ignore E501 by hand
+        instead of passing --ignore=E501.
+
+        Right now over 1400 lines of our existing python
+        fail E501 so this rule just generates needless noise.
+        The rest of WebKit has no wrapping rule so it makes
+        little sense for our Python to differ here.
+
+        * Scripts/webkitpy/style/processors/python.py:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Add cmarrin's IRC nickname.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        EWS spins hot when unable to build
+        https://bugs.webkit.org/show_bug.cgi?id=36981
+
+        The problem is that the queue engine things we have more work to do,
+        but the bot isn't actually able to do anything.  After this change, we
+        back off the usual amount.
+
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/bot/queueengine_unittest.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+
+2010-04-01  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Added layerTreeAsText function to DRT (for Mac)
+        https://bugs.webkit.org/show_bug.cgi?id=36782
+
+        This is the DRT side. It exposes the call to JavaScript
+        through the LayoutTestController.
+
+        * DumpRenderTree/LayoutTestController.cpp:Platform independent JavaScript shim
+        (layerTreeAsTextCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:Mac specific plumbing to WebKit
+        (LayoutTestController::layerTreeAsText):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:Windows specific plumbing to WebKit
+        (LayoutTestController::layerTreeAsText):
+
+2010-04-01  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix after addition of JavaScriptCore/wtf/text directory.
+
+        * wx/build/settings.py:
+
+2010-04-01  Jian Li  <jianli@chromium.org>
+
+        Rubber-stamped by David Levin.
+
+        Add myself to the reviewers list.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Turns out the Chromium Windows bots don't have pdevenv installed.
+
+        * Scripts/webkitdirs.pm:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Let Chromium Windows build with Visual Studio Express
+        https://bugs.webkit.org/show_bug.cgi?id=36919
+
+        This is horrible, horrible copy/paste code, but that seems to be the
+        way of webkitdirs.pm.  :(
+
+        Someone needs to go through an cleanup this code, but I don't have the
+        heart to do it in this patch.
+
+        * Scripts/webkitdirs.pm:
+
+2010-04-01  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        Add myself to the committers list.
+        https://bugs.webkit.org/show_bug.cgi?id=36953
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-01  Eric Seidel  <eric@webkit.org>
+
+        Rubber-stamped by Adam Barth.
+
+        Add Snow Leopard Release bot to the list of "core builders" (builders which stop the commit-queue when they turn red)
+        https://bugs.webkit.org/show_bug.cgi?id=33292
+
+        Just adding the "Build" builder for now.
+        We'll add the "Test" builders when the tests
+        are less flaky.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/common/net/buildbot_unittest.py:
+
+2010-04-01  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by David Levin.
+
+        Add myself to the reviewers list.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36935
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-03-31  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        Added Python style checking to check-webkit-style using
+        the third-party pep8 module (via autoinstall).
+
+        https://bugs.webkit.org/show_bug.cgi?id=33639
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added PYTHON to FileType.
+          - Updated ProcessorDispatcher to return a PythonProcessor
+            for *.py files.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated the ProcessorDispatcher unit tests for *.py files.
+
+        * Scripts/webkitpy/style/processors/python.py: Added.
+          - Added PythonProcessor class.
+
+        * Scripts/webkitpy/style/processors/python_unittest.py: Added.
+          - Added PythonProcessor unit tests.
+
+        * Scripts/webkitpy/style/processors/python_unittest_input.py: Added.
+          - Added a sample Python file to test the PythonProcessor.process()
+            code path (since pep8 accepts a file path).
+
+        * Scripts/webkitpy/style/unittests.py:
+          - Updated the style unit test file to import python_unittest.py.
+
+        * Scripts/webkitpy/style_references.py:
+          - Adjusted style references to import pep8.
+
+2010-03-31  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Dave Levin.
+
+        Rewrote autoinstall.py to support unzipping *.zip files after
+        download, unzipping and extracting *.tar.gz files after download,
+        and copying installed files to a given destination directory.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35163
+
+        These changes will let us autoinstall pep8.py from the web and put
+        our third-party autoinstalled code in an explicit directory like
+        webkitpy/thirdparty/autoinstalled. These changes should also speed
+        up the execution of autoinstalled *.zip packages slightly since
+        *.pyc files cannot be generated when importing from zipped
+        packages using the current autoinstall.
+
+        * Scripts/test-webkitpy:
+          - Addressed the FIXME to enable auto-install logging once
+            autoinstall was rewritten not to log as verbosely.
+
+        * Scripts/webkitpy/common/net/bugzilla.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/common/net/irc/ircbot.py:
+          - Updated ircbot and irclib import statements.
+
+        * Scripts/webkitpy/common/net/networktransaction.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/common/net/networktransaction_unittest.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/common/net/statusserver.py:
+          - Updated mechanize import statement.
+
+        * Scripts/webkitpy/common/system/autoinstall.py: Added.
+          - Added AutoInstaller class.
+          - Added sample/testing usage to the __main__ block.
+
+        * Scripts/webkitpy/thirdparty/__init__.py:
+          - Updated the autoinstall lines to use the new autoinstall methods.
+          - Added pep8.py to the list of auto-installed packages.
+          - Added a README file to the target autoinstallation directory
+            so users know that the directory is safe to delete.
+
+        * Scripts/webkitpy/thirdparty/autoinstall.py: Removed.
+          - This is replaced by the rewritten autoinstall
+            webkitpy/common/system/autoinstall.py.
+
+        * Scripts/webkitpy/thirdparty/autoinstalled/__init__.py: Removed.
+          - The target autoinstallation directory is now auto-generated.
+
+2010-03-31  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Tweak webkitpy's logtesting.LogTesting class to get more mileage out
+        of our unit tests that test log messages.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36886
+
+        This patch adds to the LogTesting class's tearDown() method a line
+        asserting that the array of remaining log messages is empty.  This
+        ensures that no extra log messages are getting logged that the caller
+        might not be aware of or may have forgotten to check for.
+
+        * Scripts/webkitpy/common/system/logtesting.py:
+          - Modified the tearDown() method as described above.
+          - Also modified the assertMessages() method to clear the array
+            of log messages after asserting.
+
+2010-03-31  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Added support for a --verbose-logging flag to test-webkitpy.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36429
+
+        Verbose logging is useful for debugging test-webkitpy code that
+        runs before the actual unit tests -- things like autoinstalling and
+        unit-test auto-detection logic.  This is different from verbose
+        logging of the unit tests themselves (which corresponds to the
+        unittest module's --verbose flag).
+
+        * Scripts/test-webkitpy:
+          - In the configure_logging() method--
+            - Added an is_verbose_logging parameter that sets the logging
+              level to logging.DEBUG instead of logging.INFO.
+            - Changed the method to throttle the logging level on the
+              root logger's handler instead of directly on the root logger
+              itself.
+            - Enabled logging of the autoinstall module when the flag is set.
+
+        * Scripts/webkitpy/thirdparty/autoinstalled/__init__.py:
+          - Added a work-around for a bug in Python 2.6's logging module
+            that was discovered while working on this patch.
+
+2010-03-31  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Enabled Python's logging module for webkit-patch, and replaced
+        deprecated_logging with Python logging in networktransaction.py.
+        This eliminates some spurious output when running test-webkitpy.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36725
+
+        * Scripts/webkit-patch:
+          - Replaced the configure_logging() function with a call to
+            the new logutils.configure_logging() function.
+
+        * Scripts/webkitpy/common/net/networktransaction.py:
+          - Replaced the use of deprecated_logging with Python logging.
+
+        * Scripts/webkitpy/common/system/logutils.py:
+          - Added _default_handlers() which creates the default logging
+            handler for webkitpy.
+          - Added configure_logging() which configures default logging
+            for webkitpy.
+
+        * Scripts/webkitpy/common/system/logutils_unittest.py:
+          - Added unit tests for logutils.configure_logging().
+
+        * Scripts/webkitpy/style/checker.py:
+          - Refactored check-webkit-style's configure_logging() method
+            to call the new logutils.configure_logging().
+
+        * Scripts/webkitpy/style_references.py:
+          - Updated references as necessary.
+
+2010-03-31  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        webkit-patch land fails if not run from the root directory
+        https://bugs.webkit.org/show_bug.cgi?id=35822
+
+        The root of the problem was that ChangeLog.__init__ expects a path
+        relative to the current working directory, and SCM expects to
+        return paths relative to the SCM root.  Fix it by converting from
+        SCM-relative to absolute paths in Checkout.modified_changelogs
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/api_unittest.py:
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add more tests for webkitpy.common.checkout
+        https://bugs.webkit.org/show_bug.cgi?id=36926
+
+        We don't have a great way of testing checkout, sadly.
+
+        * Scripts/webkitpy/common/checkout/api_unittest.py:
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        REGRESSION: EWS crashes on failure
+        https://bugs.webkit.org/show_bug.cgi?id=36924
+
+        Turns out we need to pass one more argument.  My test is kind of lame,
+        but at least it's there.
+
+        * Scripts/webkitpy/tool/commands/earlywarningsystem.py:
+        * Scripts/webkitpy/tool/commands/earlywarningsystem_unittest.py:
+
+2010-03-31  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Fixed typo in WebKitTools/ChangeLog: opsys -> ospath.
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Make the EWS go faster by being optimistic
+        https://bugs.webkit.org/show_bug.cgi?id=36916
+
+        Have the EWS be optimistic that a patch will correctly build.  This
+        should speed up the common case by not requiring two builds for every
+        patch.
+
+        * Scripts/webkitpy/tool/commands/earlywarningsystem.py:
+        * Scripts/webkitpy/tool/commands/queues.py:
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add the ability to restart sheriffbot from IRC
+        https://bugs.webkit.org/show_bug.cgi?id=36909
+
+        * Scripts/webkitpy/tool/bot/irc_command.py:
+        * Scripts/webkitpy/tool/bot/queueengine.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot_unittest.py:
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add win-ews to QueueStatusServer
+        https://bugs.webkit.org/show_bug.cgi?id=36876
+
+        The win-ews is still experimental, but it seems to be more or less
+        running.  We should show its results to the people.
+
+        * QueueStatusServer/model/queues.py:
+        * QueueStatusServer/templates/dashboard.html:
+        * QueueStatusServer/templates/statusbubble.html:
+
+2010-03-30  Victor Wang  <victorw@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Update rebaseline tool to check the release image diff binary and
+        fallback to debug if the release version does not exist.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36245
+
+        * Scripts/webkitpy/layout_tests/port/base.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+
+2010-03-31  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Teach buildbot.py how to parse builder activity from /one_box_per_builder
+        https://bugs.webkit.org/show_bug.cgi?id=36898
+
+        I also removed some obsolete FIXMEs and
+        refactored one_box_per_builder parsing into multiple
+        methods for easier reading.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/common/net/buildbot_unittest.py:
+
+2010-03-31  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix logging in new-run-webkit-tests so that we don't report IMAGE
+        expected failures as unexpected passes when we run with pixel tests
+        disabled.
+
+        This change splits some of the logic embedded into the TestExpectations
+        classes out into separate pure functions (result_was_expected,
+        remove_image_failures) to make them easier to test. This also adds
+        a parameter to matches_an_expected_result() to indicate whether or
+        not pixel test results should be included in the expectations.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36771
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations_test.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-03-31  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        In webkitpy, refactored two calls to os.path.relpath() replacements
+        to use a common method.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36891
+
+        * Scripts/webkitpy/common/net/bugzilla.py:
+          - Replaced the relpath implementation with a call to
+            webkitpy.common.system.ospath.relpath().
+
+        * Scripts/webkitpy/common/system/ospath.py: Added.
+          - Moved the relpath() implementation from style/main.py.
+
+        * Scripts/webkitpy/common/system/ospath_unittest.py: Added.
+          - Moved the relpath() unit tests from style/main_unittest.py.
+
+        * Scripts/webkitpy/style/main.py:
+          - Replaced the relpath implementation with a call to
+            webkitpy.common.system.ospath.relpath().
+
+        * Scripts/webkitpy/style/main_unittest.py:
+          - Moved the relpath unit tests to ospath_unittest.py.
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add a Builder.force_build method
+        https://bugs.webkit.org/show_bug.cgi?id=36875
+
+        We plan to eventually use this in SheriffBot to break deadlocks created
+        by flaky tests.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch reads wrong bug url from unified diff context
+        https://bugs.webkit.org/show_bug.cgi?id=36477
+
+        Instead of trying to figure out the bug_id from the diff, we should
+        just get the information from the Checkout object, which understands
+        these concepts.
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/commitinfo.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+
+2010-03-31  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch commit-queue should land patches optimistically
+        https://bugs.webkit.org/show_bug.cgi?id=34187
+
+        This patch adds an optimistic path to commit-queue and a "fail twice"
+        requirement for rejecting patches.  That means we'll land good patches
+        faster (via the optmistic first run) and we'll reject many fewer
+        patches due to flaky tests.
+
+        * Scripts/webkitpy/tool/commands/queues.py:
+
+2010-03-31  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Custom user agent for user agent switcher
+        https://bugs.webkit.org/show_bug.cgi?id=36757
+
+        * QtLauncher/main.cpp:
+        (LauncherWindow::showUserAgentDialog):
+
+2010-03-31  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        path to committers.py in commit-queue rejection message is wrong
+        https://bugs.webkit.org/show_bug.cgi?id=36865
+
+        This fix would have only been 3 lines long if we had
+        1. Had access to an SCM object or tool to give us the checkout root
+        2. Been able to depend on Python 2.6
+        Instead I've added a bunch of hack code, but at least now
+        we should never have to update this string again as the location
+        of committers.py is fully dynamically discovered. :p
+
+        * Scripts/webkitpy/common/net/bugzilla.py:
+        * Scripts/webkitpy/common/net/bugzilla_unittest.py:
+
+2010-03-31  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Unreviewed test fix for r56809.
+
+        webkit-patch what-broke throws exception
+        https://bugs.webkit.org/show_bug.cgi?id=36852
+
+        * Scripts/webkitpy/common/checkout/api_unittest.py:
+
+2010-03-30  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Rubber stamped by Dave Levin.
+
+        Made check-webkit-style less chatty.
+
+        Examples include:
+         - https://bugs.webkit.org/show_bug.cgi?id=36866#c4
+         - https://bugs.webkit.org/show_bug.cgi?id=36472#c9
+
+        * Scripts/webkitpy/style/checker.py:
+          - Changed unrecognized file type log message from info to debug.
+
+2010-03-30  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix after new method added.
+
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::callShouldCloseOnWebView):
+
 2010-03-30  Eric Seidel  <eric@webkit.org>
 
         Reviewed by Adam Barth.

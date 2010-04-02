@@ -33,10 +33,6 @@
 #include "CachedImage.h"
 #include "CachedScript.h"
 #include "CachedXSLStyleSheet.h"
-#if ENABLE(INSPECTOR)
-#include "Console.h"
-#endif
-#include "CString.h"
 #include "Document.h"
 #include "DOMWindow.h"
 #include "HTMLElement.h"
@@ -46,6 +42,11 @@
 #include "loader.h"
 #include "SecurityOrigin.h"
 #include "Settings.h"
+#include <wtf/text/CString.h>
+
+#if ENABLE(INSPECTOR)
+#include "Console.h"
+#endif
 
 #define PRELOAD_DEBUG 0
 

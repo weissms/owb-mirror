@@ -32,11 +32,7 @@
 #include "CSSComputedStyleDeclaration.h"
 #include "CSSRuleList.h"
 #include "CSSStyleSelector.h"
-#include "CString.h"
 #include "Chrome.h"
-#if ENABLE(DATABASE)
-#include "DatabaseCallback.h"
-#endif
 #include "DOMApplicationCache.h"
 #include "DOMSelection.h"
 #include "DOMTimer.h"
@@ -54,21 +50,10 @@
 #include "FrameView.h"
 #include "HTMLFrameOwnerElement.h"
 #include "History.h"
-#if ENABLE(INDEXED_DATABASE)
-#include "IndexedDatabase.h"
-#include "IndexedDatabaseRequest.h"
-#endif
-#if ENABLE(INSPECTOR)
-#include "InspectorController.h"
-#include "InspectorTimelineAgent.h"
-#endif
 #include "Location.h"
 #include "Media.h"
 #include "MessageEvent.h"
 #include "Navigator.h"
-#if ENABLE(NOTIFICATIONS)
-#include "NotificationCenter.h"
-#endif
 #include "Page.h"
 #include "PageGroup.h"
 #include "PlatformScreen.h"
@@ -80,13 +65,23 @@
 #include "SuddenTermination.h"
 #include "WebKitPoint.h"
 #include <algorithm>
+#include <wtf/text/CString.h>
 #include <wtf/MathExtras.h>
 
 #if ENABLE(DATABASE)
 #include "Database.h"
+#include "DatabaseCallback.h"
+#endif
+
+#if ENABLE(DOM_STORAGE)
 #include "Storage.h"
 #include "StorageArea.h"
 #include "StorageNamespace.h"
+#endif
+
+#if ENABLE(INDEXED_DATABASE)
+#include "IndexedDatabase.h"
+#include "IndexedDatabaseRequest.h"
 #endif
 
 #if ENABLE(INSPECTOR)
@@ -1462,20 +1457,20 @@ bool DOMWindow::dispatchEvent(PassRefPtr<Event> prpEvent, PassRefPtr<EventTarget
     event->setEventPhase(Event::AT_TARGET);
 
 #if ENABLE(INSPECTOR)
-    InspectorTimelineAgent* timelineAgent = inspectorTimelineAgent();
-    bool timelineAgentIsActive = timelineAgent && hasEventListeners(event->type());
-    if (timelineAgentIsActive)
-        timelineAgent->willDispatchEvent(*event);
+    Page* inspectedPage = InspectorTimelineAgent::instanceCount() && frame() ? frame()->page() : 0;
+    if (inspectedPage)
+        if (InspectorTimelineAgent* timelineAgent = hasEventListeners(event->type()) ? inspectedPage->inspectorTimelineAgent() : 0)
+            timelineAgent->willDispatchEvent(*event);
+        else
+            inspectedPage = 0;
 #endif
 
     bool result = fireEventListeners(event.get());
 
 #if ENABLE(INSPECTOR)
-    if (timelineAgentIsActive) {
-      timelineAgent = inspectorTimelineAgent();
-      if (timelineAgent)
+    if (inspectedPage)
+        if (InspectorTimelineAgent* timelineAgent = inspectedPage->inspectorTimelineAgent())
             timelineAgent->didDispatchEvent();
-    }
 #endif
 
     return result;

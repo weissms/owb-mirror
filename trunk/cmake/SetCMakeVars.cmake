@@ -62,6 +62,7 @@ list(APPEND BASE_INCLUDE_DIRS
 )
 list(APPEND WTF_INCLUDE_DIRS
     ${OWB_BINARY_DIR}/generated_link/BAL/wtf
+    ${OWB_BINARY_DIR}/generated_link/BAL/wtf/text
     ${OWB_BINARY_DIR}/generated_link/BAL/wtf/unicode
 )
 list(APPEND BAL_INCLUDE_DIRS

@@ -55,7 +55,6 @@
 
 #include "CSSPropertyNames.h"
 #include "CSSStyleSelector.h"
-#include "CString.h"
 #include "CookieJar.h"
 #include "DocumentLoader.h"
 #include "DocumentType.h"
@@ -71,6 +70,7 @@
 #include "HTMLTokenizer.h"
 #include "KURL.h"
 #include "Page.h"
+#include <wtf/text/CString.h>
 
 #include "DocTypeStrings.cpp"
 

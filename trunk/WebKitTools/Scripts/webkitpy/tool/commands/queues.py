@@ -73,7 +73,7 @@ class AbstractQueue(Command, QueueEngineDelegate):
         # FIXME: This is a hack, we should have a more general way to pass global options.
         webkit_patch_args += ["--status-host=%s" % self.tool.status_server.host]
         webkit_patch_args += map(str, args)
-        self.tool.executive.run_and_throw_if_fail(webkit_patch_args)
+        return self.tool.executive.run_and_throw_if_fail(webkit_patch_args)
 
     # QueueEngineDelegate methods
 
@@ -176,7 +176,13 @@ class CommitQueue(AbstractPatchQueue, StepSequenceErrorHandler):
 
     def _can_build_and_test(self):
         try:
-            self.run_webkit_patch(["build-and-test", "--force-clean", "--non-interactive", "--build-style=both", "--quiet"])
+            self.run_webkit_patch([
+                "build-and-test",
+                "--force-clean",
+                "--non-interactive",
+                "--no-update",
+                "--build-style=both",
+                "--quiet"])
         except ScriptError, e:
             self._update_status("Unable to successfully build and test", None)
             return False
@@ -194,40 +200,57 @@ class CommitQueue(AbstractPatchQueue, StepSequenceErrorHandler):
         if not patch.is_rollout():
             if not self._builders_are_green():
                 return False
-            if not self._can_build_and_test():
-                return False
-            if not self._builders_are_green():
-                return False
         self._update_status("Landing patch", patch)
         return True
 
-    def process_work_item(self, patch):
+    def _land(self, patch, first_run=False):
         try:
-            self._cc_watchers(patch.bug_id())
             args = [
                 "land-attachment",
                 "--force-clean",
                 "--non-interactive",
-                "--parent-command=commit-queue",
                 "--build-style=both",
                 "--quiet",
                 patch.id()
             ]
+            if not first_run:
+                # The first time through, we don't reject the patch from the
+                # commit queue because we want to make sure we can build and
+                # test ourselves. However, the second time through, we
+                # register ourselves as the parent-command so we can reject
+                # the patch on failure.
+                args.append("--parent-command=commit-queue")
+                # The second time through, we also don't want to update so we
+                # know we're testing the same revision that we successfully
+                # built and tested.
+                args.append("--no-update")
             if patch.is_rollout():
                 # We need to ignore the builders when landing a rollout
                 # because they're probably red.
                 args.append("--ignore-builders")
-            else:
-                # We pass --no-update in the normal (non-rollout) case
-                # because we've already validated that the current revision
-                # actually builds and passes the tests.  If we update, we risk
-                # moving to a revision that doesn't!
-                args.append("--no-update")
             self.run_webkit_patch(args)
             self._did_pass(patch)
+            return True
         except ScriptError, e:
+            if first_run:
+                return False
             self._did_fail(patch)
-            raise e
+            raise
+
+    def process_work_item(self, patch):
+        self._cc_watchers(patch.bug_id())
+        if not self._land(patch, first_run=True):
+            # The patch failed to land, but the bots were green. It's possible
+            # that the bots were behind. To check that case, we try to build and
+            # test ourselves.
+            if not self._can_build_and_test():
+                return False
+            # Hum, looks like the patch is actually bad. Of course, we could
+            # have been bitten by a flaky test the first time around.  We try
+            # to land again.  If it fails a second time, we're pretty sure its
+            # a bad test and re can reject it outright.
+            self._land(patch)
+        return True
 
     def handle_unexpected_error(self, patch, message):
         self.committer_validator.reject_patch_from_commit_queue(patch.id(), message)
@@ -252,7 +275,7 @@ class AbstractReviewQueue(AbstractPatchQueue, PersistentPatchCollectionDelegate,
     def __init__(self, options=None):
         AbstractPatchQueue.__init__(self, options)
 
-    def _review_patch(self, patch):
+    def review_patch(self, patch):
         raise NotImplementedError, "subclasses must implement"
 
     # PersistentPatchCollectionDelegate methods
@@ -286,8 +309,10 @@ class AbstractReviewQueue(AbstractPatchQueue, PersistentPatchCollectionDelegate,
 
     def process_work_item(self, patch):
         try:
-            self._review_patch(patch)
+            if not self.review_patch(patch):
+                return False
             self._did_pass(patch)
+            return True
         except ScriptError, e:
             if e.exit_code != QueueEngine.handled_error_code:
                 self._did_fail(patch)
@@ -312,8 +337,9 @@ class StyleQueue(AbstractReviewQueue):
         self._update_status("Checking style", patch)
         return True
 
-    def _review_patch(self, patch):
+    def review_patch(self, patch):
         self.run_webkit_patch(["check-style", "--force-clean", "--non-interactive", "--parent-command=style-queue", patch.id()])
+        return True
 
     @classmethod
     def handle_script_error(cls, tool, state, script_error):

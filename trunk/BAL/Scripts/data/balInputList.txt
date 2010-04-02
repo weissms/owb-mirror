@@ -435,6 +435,7 @@ BAL/ImageDecoder/WebCore/XBM/WK	WebCore/platform/image-decoders/xbm/XBMImageDeco
 
 
 
+BAL/Skeletons/Internationalization	JavaScriptCore/wtf/text/CString.h
 BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/Collator.h
 BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/UTF8.h
 BAL/Skeletons/Internationalization	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h
@@ -445,7 +446,6 @@ BAL/Skeletons/Internationalization	WebCore/platform/text/AtomicStringImpl.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/Base64.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/BidiContext.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/BidiResolver.h
-BAL/Skeletons/Internationalization	WebCore/platform/text/CString.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/ParserUtilities.h
 BAL/Skeletons/Internationalization	WebCore/platform/text/PlatformString.h	
 BAL/Skeletons/Internationalization	WebCore/platform/text/RegularExpression.h
@@ -479,6 +479,8 @@ BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeMacro
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h BCUnicodeICU.h
 BAL/Internationalization/WTF/Qt	JavaScriptCore/wtf/unicode/qt4/UnicodeQt4.h BCUnicodeQt.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/CString.h BCCString.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/CString.cpp BCCString.cpp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/gtk/LocalizedStringsGtk.cpp	BCLocalizedStringsGtk.cpp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorGtk.cpp	BCTextBreakIteratorGtk.cpp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorInternalICUGtk.cpp	BCTextBreakIteratorInternalICUGtk.cpp
@@ -506,8 +508,6 @@ BAL/Internationalization/WebCore/WK	WebCore/platform/text/Base64.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/BidiContext.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/BidiContext.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/BidiResolver.h
-BAL/Internationalization/WebCore/WK	WebCore/platform/text/CString.cpp
-BAL/Internationalization/WebCore/WK	WebCore/platform/text/CString.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/CharacterNames.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/PlatformString.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/RegularExpression.cpp
@@ -894,6 +894,8 @@ BAL/Types/WebCore/WK    WebCore/platform/SuddenTermination.h
 BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.h
 BAL/Types/WebCore/WK    WebCore/platform/ThreadTimers.cpp
 BAL/Types/WebCore/WK	WebCore/platform/TreeShared.h
+BAL/Types/WebCore/WK	WebCore/platform/UUID.h
+BAL/Types/WebCore/WK	WebCore/platform/UUID.cpp
 
 
 BAL/Skeletons/Widgets	WebCore/platform/ContextMenu.h

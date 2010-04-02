@@ -408,6 +408,8 @@ public:
      */
     virtual BalRectangle visibleContentRect();
 
+
+    virtual const char* layerTreeAsText();
     /**
      * test if the frame supports text encoding
      */

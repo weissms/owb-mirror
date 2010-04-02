@@ -22,7 +22,6 @@
 #include "config.h"
 #include "MediaPlayerPrivateQt.h"
 
-#include "CString.h"
 #include "FrameLoaderClientQt.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
@@ -48,6 +47,7 @@
 #include <QUrl>
 #include <limits>
 #include <wtf/HashSet.h>
+#include <wtf/text/CString.h>
 
 using namespace WTF;
 

@@ -26,7 +26,6 @@
 
 #include "XSLTProcessor.h"
 
-#include "CString.h"
 #include "DOMWindow.h"
 #include "DocLoader.h"
 #include "Frame.h"
@@ -45,6 +44,7 @@
 #include <libxslt/variables.h>
 #include <libxslt/xsltutils.h>
 #include <wtf/Assertions.h>
+#include <wtf/text/CString.h>
 #include <wtf/Vector.h>
 
 #if ENABLE(INSPECTOR)

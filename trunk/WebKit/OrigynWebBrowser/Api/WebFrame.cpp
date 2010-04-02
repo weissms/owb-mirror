@@ -1457,3 +1457,13 @@ void WebFrame::dispatchEvent(const char* name)
     coreFrame->document()->dispatchWindowEvent(ev);
 }
 
+const char* WebFrame::layerTreeAsText()
+{
+    Frame* frame = core(this);
+    if (!frame)
+        return "";
+
+    String text = frame->layerTreeAsText();
+    return strdup(text.utf8().data());
+}
+

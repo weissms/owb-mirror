@@ -1,4 +1,5 @@
 create_include_link(${BAL_DIR}/Internationalization/WTF BAL/wtf/unicode)
+create_include_link(${BAL_DIR}/Internationalization/WTF/Text BAL/wtf/text)
 
 if(USE_I18N_EMBEDDED)
     create_include_link(${BAL_DIR}/Internationalization/WTF/Embedded BAL/wtf/unicode)
@@ -24,3 +25,4 @@ if(USE_I18N_QT)
 endif(USE_I18N_QT)
 
 aux_source_directory(${BAL_DIR}/Internationalization/WTF WTF_SRC)
+aux_source_directory(${BAL_DIR}/Internationalization/WTF/Text WTF_SRC)

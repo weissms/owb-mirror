@@ -1,3 +1,60 @@
+2010-04-01  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Holger Freyther.
+
+        [GTK] webkit_get_default_session() should make sure webkit_init() is called
+        https://bugs.webkit.org/show_bug.cgi?id=36754
+
+        Make sure global functions that do not require a WebKitWebView to
+        be created call webkit_init() before doing their job. Also add an
+        API test to check for that.
+
+        * tests/testglobals.c: Added.
+        (test_globals_default_session):
+        (main):
+        * webkit/webkitwebview.cpp:
+        (webkit_get_default_session):
+        (webkit_set_cache_model):
+        (webkit_get_cache_model):
+
+2010-03-31  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Adds Geolocation param for cancelGeolocationPermissionRequestForFrame.
+        https://bugs.webkit.org/show_bug.cgi?id=35031
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::cancelGeolocationPermissionRequestForFrame):
+        * WebCoreSupport/ChromeClientGtk.h:
+
+2010-03-30  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36866
+        Move CString to WTF
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        * WebCoreSupport/ContextMenuClientGtk.cpp:
+        * WebCoreSupport/EditorClientGtk.cpp:
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        * WebCoreSupport/InspectorClientGtk.cpp:
+        * gdom/ConvertToGCharPrivate.h:
+        * webkit/webkitdownload.cpp:
+        * webkit/webkithittestresult.cpp:
+        * webkit/webkitnetworkrequest.cpp:
+        * webkit/webkitprivate.h:
+        * webkit/webkitsecurityorigin.cpp:
+        * webkit/webkitwebdatabase.cpp:
+        * webkit/webkitwebframe.cpp:
+        * webkit/webkitwebhistoryitem.cpp:
+        (webkit_web_history_item_finalize):
+        (webkit_web_history_item_get_target):
+        * webkit/webkitwebresource.cpp:
+        * webkit/webkitwebsettings.cpp:
+        * webkit/webkitwebview.cpp:
+
 2010-03-30  Alexey Proskuryakov  <ap@apple.com>
 
         Build fix. Include WindowsKeyboardCodes.h instead of KeyboardCodes.h.

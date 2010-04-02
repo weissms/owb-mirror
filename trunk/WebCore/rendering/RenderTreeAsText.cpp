@@ -28,7 +28,6 @@
 
 #include "CSSMutableStyleDeclaration.h"
 #include "CharacterNames.h"
-#include "CString.h"
 #include "Document.h"
 #include "Frame.h"
 #include "FrameView.h"
@@ -179,9 +178,12 @@ String quoteAndEscapeNonPrintables(const String& s)
     return String::adopt(result);
 }
 
-static TextStream &operator<<(TextStream& ts, const RenderObject& o)
+static void writeRenderObject(TextStream& ts, const RenderObject& o, RenderAsTextBehavior behavior)
 {
     ts << o.renderName();
+
+    if (behavior & RenderAsTextShowAddresses)
+        ts << " " << &o;
 
     if (o.style() && o.style()->zIndex())
         ts << " zI: " << o.style()->zIndex();
@@ -255,7 +257,7 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
             ts << " [textStrokeWidth=" << o.style()->textStrokeWidth() << "]";
 
         if (!o.isBoxModelObject())
-            return ts;
+            return;
 
         const RenderBoxModelObject& box = *toRenderBoxModelObject(&o);
         if (box.borderTop() || box.borderRight() || box.borderBottom() || box.borderLeft()) {
@@ -368,8 +370,6 @@ static TextStream &operator<<(TextStream& ts, const RenderObject& o)
         }
     }
 #endif
-
-    return ts;
 }
 
 static void writeTextRun(TextStream& ts, const RenderText& o, const InlineTextBox& run)
@@ -389,7 +389,7 @@ static void writeTextRun(TextStream& ts, const RenderText& o, const InlineTextBo
         << "\n";
 }
 
-void write(TextStream& ts, const RenderObject& o, int indent)
+void write(TextStream& ts, const RenderObject& o, int indent, RenderAsTextBehavior behavior)
 {
 #if ENABLE(SVG)
     if (o.isRenderPath()) {
@@ -423,7 +423,8 @@ void write(TextStream& ts, const RenderObject& o, int indent)
 
     writeIndent(ts, indent);
 
-    ts << o << "\n";
+    writeRenderObject(ts, o, behavior);
+    ts << "\n";
 
     if (o.isText() && !o.isBR()) {
         const RenderText& text = *toRenderText(&o);
@@ -436,7 +437,7 @@ void write(TextStream& ts, const RenderObject& o, int indent)
     for (RenderObject* child = o.firstChild(); child; child = child->nextSibling()) {
         if (child->hasLayer())
             continue;
-        write(ts, *child, indent + 1);
+        write(ts, *child, indent + 1, behavior);
     }
 
     if (o.isWidget()) {
@@ -448,7 +449,7 @@ void write(TextStream& ts, const RenderObject& o, int indent)
                 view->layout();
                 RenderLayer* l = root->layer();
                 if (l)
-                    writeLayers(ts, l, l, IntRect(l->x(), l->y(), l->width(), l->height()), indent + 1);
+                    writeLayers(ts, l, l, IntRect(l->x(), l->y(), l->width(), l->height()), indent + 1, behavior);
             }
         }
     }
@@ -466,7 +467,12 @@ static void write(TextStream& ts, RenderLayer& l,
 {
     writeIndent(ts, indent);
 
-    ts << "layer " << layerBounds;
+    ts << "layer ";
+    
+    if (behavior & RenderAsTextShowAddresses)
+        ts << &l << " ";
+      
+    ts << layerBounds;
 
     if (!layerBounds.isEmpty()) {
         if (!backgroundClipRect.contains(layerBounds))
@@ -505,7 +511,7 @@ static void write(TextStream& ts, RenderLayer& l,
     ts << "\n";
 
     if (paintPhase != LayerPaintPhaseBackground)
-        write(ts, *l.renderer(), indent + 1);
+        write(ts, *l.renderer(), indent + 1, behavior);
 }
 
 static void writeLayers(TextStream& ts, const RenderLayer* rootLayer, RenderLayer* l,

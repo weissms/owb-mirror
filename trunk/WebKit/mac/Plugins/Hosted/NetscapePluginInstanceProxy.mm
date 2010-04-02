@@ -44,7 +44,6 @@
 #import <JavaScriptCore/Error.h>
 #import <JavaScriptCore/JSLock.h>
 #import <JavaScriptCore/PropertyNameArray.h>
-#import <WebCore/CString.h>
 #import <WebCore/CookieJar.h>
 #import <WebCore/DocumentLoader.h>
 #import <WebCore/Frame.h>
@@ -61,6 +60,7 @@
 #import <mach/mach.h>
 #import <utility>
 #import <wtf/RefCountedLeakCounter.h>
+#import <wtf/text/CString.h>
 
 extern "C" {
 #import "WebKitPluginClientServer.h"
@@ -117,6 +117,9 @@ inline bool NetscapePluginInstanceProxy::LocalObjectMap::contains(uint32_t objec
 
 inline JSC::JSObject* NetscapePluginInstanceProxy::LocalObjectMap::get(uint32_t objectID) const
 {
+    if (objectID == HashTraits<uint32_t>::emptyValue() || HashTraits<uint32_t>::isDeletedValue(objectID))
+        return 0;
+
     return m_idToJSObjectMap.get(objectID);
 }
 
@@ -179,8 +182,16 @@ void NetscapePluginInstanceProxy::LocalObjectMap::clear()
 
 bool NetscapePluginInstanceProxy::LocalObjectMap::forget(uint32_t objectID)
 {
+    if (objectID == HashTraits<uint32_t>::emptyValue() || HashTraits<uint32_t>::isDeletedValue(objectID)) {
+        LOG_ERROR("NetscapePluginInstanceProxy::LocalObjectMap::forget: local object id %u is not valid.", objectID);
+        return true;
+    }
+
     HashMap<uint32_t, JSC::ProtectedPtr<JSC::JSObject> >::iterator iter = m_idToJSObjectMap.find(objectID);
-    ASSERT(iter != m_idToJSObjectMap.end());
+    if (iter == m_idToJSObjectMap.end()) {
+        LOG_ERROR("NetscapePluginInstanceProxy::LocalObjectMap::forget: local object %u doesn't exist.", objectID);
+        return true;
+    }
 
     HashMap<JSC::JSObject*, pair<uint32_t, uint32_t> >::iterator rIter = m_jsObjectToIDMap.find(iter->second.get());
 
@@ -1493,7 +1504,7 @@ bool NetscapePluginInstanceProxy::getCookies(data_t urlData, mach_msg_type_numbe
     
     if (Frame* frame = core([m_pluginView webFrame])) {
         String cookieString = cookies(frame->document(), url); 
-        WebCore::CString cookieStringUTF8 = cookieString.utf8();
+        WTF::CString cookieStringUTF8 = cookieString.utf8();
         if (cookieStringUTF8.isNull())
             return false;
         
@@ -1535,7 +1546,7 @@ bool NetscapePluginInstanceProxy::getProxy(data_t urlData, mach_msg_type_number_
     if (!url)
         return false;
 
-    WebCore::CString proxyStringUTF8 = proxiesForURL(url);
+    WTF::CString proxyStringUTF8 = proxiesForURL(url);
 
     proxyLength = proxyStringUTF8.length();
     mig_allocate(reinterpret_cast<vm_address_t*>(&proxyData), proxyLength);
@@ -1547,8 +1558,8 @@ bool NetscapePluginInstanceProxy::getProxy(data_t urlData, mach_msg_type_number_
 bool NetscapePluginInstanceProxy::getAuthenticationInfo(data_t protocolData, data_t hostData, uint32_t port, data_t schemeData, data_t realmData, 
                                                         data_t& usernameData, mach_msg_type_number_t& usernameLength, data_t& passwordData, mach_msg_type_number_t& passwordLength)
 {
-    WebCore::CString username;
-    WebCore::CString password;
+    WTF::CString username;
+    WTF::CString password;
     
     if (!WebKit::getAuthenticationInfo(protocolData, hostData, port, schemeData, realmData, username, password))
         return false;
@@ -1618,7 +1629,7 @@ void NetscapePluginInstanceProxy::resolveURL(const char* url, const char* target
 {
     ASSERT(m_pluginView);
     
-    WebCore::CString resolvedURL = [m_pluginView resolvedURLStringForURL:url target:target];
+    WTF::CString resolvedURL = [m_pluginView resolvedURLStringForURL:url target:target];
     
     resolvedURLLength = resolvedURL.length();
     mig_allocate(reinterpret_cast<vm_address_t*>(&resolvedURLData), resolvedURLLength);

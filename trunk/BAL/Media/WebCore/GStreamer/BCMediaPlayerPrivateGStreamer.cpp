@@ -29,7 +29,6 @@
 
 
 #include "ColorSpace.h"
-#include "CString.h"
 #include "DataSourceGStreamer.h"
 #include "Document.h"
 #include "Frame.h"
@@ -48,6 +47,7 @@
 #include "VideoSinkGStreamer.h"
 #include "WebKitWebSourceGStreamer.h"
 #include "Widget.h"
+#include <wtf/text/CString.h>
 
 #if PLATFORM(GTK)
 #include <GOwnPtr.h>

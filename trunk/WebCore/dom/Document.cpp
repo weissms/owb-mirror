@@ -33,7 +33,6 @@
 #include "CSSStyleSelector.h"
 #include "CSSStyleSheet.h"
 #include "CSSValueKeywords.h"
-#include "CString.h"
 #include "CachedCSSStyleSheet.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
@@ -1203,7 +1202,7 @@ void Document::setTitle(const String& title, Element* titleElement)
     m_rawTitle = title;
     updateTitle();
 
-    if (m_titleSetExplicitly && m_titleElement && m_titleElement->hasTagName(titleTag))
+    if (m_titleSetExplicitly && m_titleElement && m_titleElement->hasTagName(titleTag) && !titleElement)
         static_cast<HTMLTitleElement*>(m_titleElement.get())->setText(m_title);
 }
 

@@ -23,11 +23,11 @@
 #if ENABLE(WML)
 #include "WMLErrorHandling.h"
 
-#include "CString.h"
 #include "Frame.h"
 #include "Document.h"
 #include "DOMWindow.h"
 #include "XMLTokenizer.h"
+#include <wtf/text/CString.h>
 
 #if ENABLE(INSPECTOR)
 #include "Console.h"

@@ -36,7 +36,6 @@
 
 #include "Base64.h"
 #include "CookieManager.h"
-#include "CString.h"
 #include "HTTPParsers.h"
 #include "MIMETypeRegistry.h"
 #include "NotImplemented.h"
@@ -50,14 +49,15 @@
 #include <stdio.h>
 #include <wtf/Threading.h>
 #include <wtf/Vector.h>
-
-#if USE(CURL_OPENSSL)
-#include <openssl/x509v3.h>
-#endif
+#include <wtf/text/CString.h>
 
 #if !OS(WINDOWS)
 #include <sys/param.h>
 #define MAX_PATH MAXPATHLEN
+#endif
+
+#if USE(CURL_OPENSSL)
+#include <openssl/x509v3.h>
 #endif
 
 namespace WebCore {

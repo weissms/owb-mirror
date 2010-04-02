@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2010, Google Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- *     * Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
+* Copyright (C) 2010 Google Inc. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are
+* met:
+*
+*     * Redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
@@ -28,18 +28,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GeolocationServiceBridgeChromium_h
-#define GeolocationServiceBridgeChromium_h
+#ifndef UUID_h
+#define UUID_h
 
-#include "WebGeolocationService.h"
+#include "PlatformString.h"
 
-namespace WebKit {
+namespace WebCore {
 
-// DEPRECATED: remove this file, this is a temporary compatibility layer for
-// renaming WebGeolocationServiceInterface to WebGeolocationService.
-class WebGeolocationServiceInterface : public WebGeolocationService {
-};
+// Creates a UUID that consists of 32 hexadecimal digits and returns its canonical form.
+// The canonical form is displayed in 5 groups separated by hyphens, in the form 8-4-4-4-12 for a total of 36 characters.
+// The hexadecimal values "a" through "f" are output as lower case characters.
+String createCanonicalUUIDString();
 
-} // namespace WebKit
+}
 
-#endif // GeolocationServiceBridgeChromium_h
+#endif

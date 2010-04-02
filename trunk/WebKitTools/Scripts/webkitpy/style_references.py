@@ -43,7 +43,9 @@ import os
 from webkitpy.common.checkout.diff_parser import DiffParser
 from webkitpy.common.system.logtesting import LogTesting
 from webkitpy.common.system.logtesting import TestLogStream
+from webkitpy.common.system.logutils import configure_logging
 from webkitpy.common.checkout.scm import detect_scm_system
+from webkitpy.thirdparty.autoinstalled import pep8
 
 
 def detect_checkout():

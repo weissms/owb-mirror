@@ -122,6 +122,8 @@ namespace WebCore {
                         ScrollbarMode = ScrollbarAuto, ScrollbarMode = ScrollbarAuto);
 
         void injectUserScripts(UserScriptInjectionTime);
+        
+        String layerTreeAsText() const;
 
     private:
         void injectUserScriptsForWorld(DOMWrapperWorld*, const UserScriptVector&, UserScriptInjectionTime);

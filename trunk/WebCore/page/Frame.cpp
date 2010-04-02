@@ -49,6 +49,7 @@
 #include "FrameLoaderClient.h"
 #include "FrameView.h"
 #include "GraphicsContext.h"
+#include "GraphicsLayer.h"
 #include "HTMLDocument.h"
 #include "HTMLFormControlElement.h"
 #include "HTMLFormElement.h"
@@ -83,6 +84,10 @@
 #include "visible_units.h"
 #include <wtf/RefCountedLeakCounter.h>
 #include <wtf/StdLibExtras.h>
+
+#if USE(ACCELERATED_COMPOSITING)
+#include "RenderLayerCompositor.h"
+#endif
 
 #if USE(JSC)
 #include "JSDOMWindowShell.h"
@@ -1381,7 +1386,7 @@ bool Frame::findString(const String& target, bool forward, bool caseFlag, bool w
     // If we started in the selection and the found range exactly matches the existing selection, find again.
     // Build a selection with the found range to remove collapsed whitespace.
     // Compare ranges instead of selection objects to ignore the way that the current selection was made.
-    if (startInSelection && *VisibleSelection(resultRange.get()).toNormalizedRange() == *selection.toNormalizedRange()) {
+    if (startInSelection && areRangesEqual(VisibleSelection(resultRange.get()).toNormalizedRange().get(), selection.toNormalizedRange().get())) {
         searchRange = rangeOfContents(document());
         if (forward)
             setStart(searchRange.get(), selection.visibleEnd());
@@ -1853,5 +1858,21 @@ IntRect Frame::tiledBackingStoreContentsRect()
     return IntRect(IntPoint(), m_view->contentsSize());
 }
 #endif
+
+String Frame::layerTreeAsText() const
+{
+#if USE(ACCELERATED_COMPOSITING)
+    if (!contentRenderer())
+        return String();
+
+    GraphicsLayer* rootLayer = contentRenderer()->compositor()->rootPlatformLayer();
+    if (!rootLayer)
+        return String();
+        
+    return rootLayer->layerTreeAsText();
+#else
+    return String();
+#endif
+}
 
 } // namespace WebCore

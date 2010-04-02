@@ -27,9 +27,9 @@
 #include "owb-config.h"
 
 #include "BitmapImage.h"
-#include "CString.h"
 #include "GOwnPtr.h"
 #include "SharedBuffer.h"
+#include <wtf/text/CString.h>
 #include <cairo.h>
 #include <gtk/gtk.h>
 

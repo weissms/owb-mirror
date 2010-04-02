@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include "CString.h"
 
-
 namespace WebCore {
 
 File::File(const String path)

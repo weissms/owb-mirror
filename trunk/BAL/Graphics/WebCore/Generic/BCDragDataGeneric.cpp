@@ -35,6 +35,8 @@
 #include "DocumentFragment.h"
 #include "FileSystem.h"
 #include "markup.h"
+#include "SharedBuffer.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>

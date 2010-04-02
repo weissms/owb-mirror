@@ -1435,6 +1435,21 @@ HRESULT WebFrame::canProvideDocumentSource(bool* result)
     return hr;
 }
 
+HRESULT STDMETHODCALLTYPE WebFrame::layerTreeAsText(BSTR* result)
+{
+    if (!result)
+        return E_POINTER;
+    *result = 0;
+
+    Frame* frame = core(this);
+    if (!frame)
+        return E_FAIL;
+
+    String text = frame->layerTreeAsText();
+    *result = BString(text).release();
+    return S_OK;
+}
+
 void WebFrame::frameLoaderDestroyed()
 {
     // The FrameLoader going away is equivalent to the Frame going away,
@@ -2473,3 +2488,4 @@ void WebFrame::updateBackground()
 
     coreFrame->view()->updateBackgroundRecursively(backgroundColor, webView()->transparent());
 }
+

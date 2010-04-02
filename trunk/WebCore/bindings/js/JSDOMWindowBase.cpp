@@ -23,7 +23,6 @@
 #include "config.h"
 #include "JSDOMWindowBase.h"
 
-#include "CString.h"
 #include "Chrome.h"
 #include "DOMWindow.h"
 #include "Frame.h"
@@ -35,6 +34,7 @@
 #include "SecurityOrigin.h"
 #include "Settings.h"
 #include "WebCoreJSClientData.h"
+#include <wtf/text/CString.h>
 
 #if ENABLE(INSPECTOR)
 #include "Console.h"

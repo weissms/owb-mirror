@@ -133,7 +133,7 @@ namespace WebCore {
 
 #if ENABLE(GEOLOCATION)
         void requestGeolocationPermissionForFrame(Frame*, Geolocation*);
-        void cancelGeolocationPermissionRequestForFrame(Frame*);
+        void cancelGeolocationPermissionRequestForFrame(Frame*, Geolocation*);
 #endif
 
         void runOpenPanel(Frame*, PassRefPtr<FileChooser>);
