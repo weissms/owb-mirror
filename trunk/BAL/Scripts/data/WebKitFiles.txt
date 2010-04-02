@@ -112,7 +112,7 @@ WebCore/platform/graphics/qt/MediaPlayerPrivateQt.cpp BAL/Media/WebCore/Qt/BCMed
 WebCore/platform/graphics/qt/MediaPlayerPrivateQt.h BAL/Media/WebCore/Qt/BCMediaPlayerPrivateQt.h
 WebCore/platform/gtk/TemporaryLinkStubs.cpp
 WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp BAL/ImageDecoder/WebCore/XBM/WK/BCXBMImageDecoderWK.cpp
-WebCore/platform/KeyboardCodes.h BAL/Events/WebCore/WK/BCKeyboardCodesWK.h
+WebCore/platform/WindowsKeyboardCodes.h BAL/Events/WebCore/WK/BCWindowsKeyboardCodesWK.h
 WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp
 WebCore/platform/network/ResourceHandle.h BAL/Network/WebCore/WK/BCResourceHandleWK.h
 WebCore/platform/network/ResourceHandleClient.h BAL/Network/WebCore/WK/BCResourceHandleClientWK.h
