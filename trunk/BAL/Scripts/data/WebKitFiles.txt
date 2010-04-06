@@ -138,7 +138,6 @@ WebCore/platform/qt/SharedTimerQt.cpp BAL/Timer/WebCore/Qt/BCSharedTimerQt.cpp
 WebCore/platform/qt/TemporaryLinkStubs.cpp
 WebCore/platform/qt/WidgetQt.cpp BAL/Widgets/WebCore/Qt/BCWidgetQt.cpp
 WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.cpp
-WebCore/platform/text/CString.h BAL/Internationalization/WebCore/WK/BCCStringWK.h
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/plugins/PluginView.cpp
 WebCore/plugins/PluginView.h
