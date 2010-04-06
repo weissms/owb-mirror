@@ -349,14 +349,8 @@ sub GetInternalFields
         if ($name eq "HTMLDocument") {
             push(@customInternalFields, ("markerIndex", "shadowIndex"));
         }
-    } elsif (IsSubType($dataNode, "StyleSheet") || $name eq "NamedNodeMap") {
-        push(@customInternalFields, "ownerNodeIndex");
-    } elsif ($name eq "MessageChannel") {
-        push(@customInternalFields, ("port1Index", "port2Index"));
     } elsif ($name eq "DOMWindow") {
-        push(@customInternalFields, ("consoleIndex", "historyIndex", "locationbarIndex", "menubarIndex", "navigatorIndex", 
-            "personalbarIndex", "screenIndex", "scrollbarsIndex", "selectionIndex", "statusbarIndex", "toolbarIndex", "locationIndex",
-            "domSelectionIndex", "enteredIsolatedWorldIndex"));
+        push(@customInternalFields, "enteredIsolatedWorldIndex");
     }
     return @customInternalFields;
 }
@@ -767,6 +761,32 @@ END
             # Can inline the function call into the return statement to avoid overhead of using a Ref<> temporary
             $result = $getterString;
         }
+ 
+        # Special case for readonly or Replaceable attributes (with a few exceptions). This attempts to ensure that JS wrappers don't get
+        # garbage-collected prematurely when their lifetime is strongly tied to their owner. We accomplish this by inserting a reference to
+        # the newly created wrapper into an internal field of the holder object.
+        if (!IsNodeSubType($dataNode) && $attrName ne "self" && (IsWrapperType($returnType) && ($attribute->type =~ /^readonly/ || $attribute->signature->extendedAttributes->{"Replaceable"})
+            && $returnType ne "EventTarget" && $returnType ne "SerializedScriptValue" && $returnType ne "DOMWindow" 
+            && $returnType !~ /SVG/ && $returnType !~ /HTML/ && !IsDOMNodeType($returnType))) {
+            AddIncludesForType($returnType);
+            my $domMapFunction = GetDomMapFunction(0, $returnType);
+            # Check for a wrapper in the wrapper cache. If there is one, we know that a hidden reference has already
+            # been created. If we don't find a wrapper, we create both a wrapper and a hidden reference.
+            push(@implContentDecls, "    RefPtr<$returnType> result = ${getterString};\n");
+            push(@implContentDecls, "    v8::Handle<v8::Value> wrapper = result.get() ? ${domMapFunction}.get(result.get()) : v8::Handle<v8::Value>();\n");
+            push(@implContentDecls, "    if (wrapper.IsEmpty()) {\n");
+            push(@implContentDecls, "        wrapper = toV8(result.get());\n");
+            push(@implContentDecls, "        if (!wrapper.IsEmpty())\n");
+            if ($dataNode->name eq "DOMWindow") {
+                push(@implContentDecls, "            V8DOMWrapper::setHiddenWindowReference(imp->frame(), wrapper);\n");
+            } else {
+                push(@implContentDecls, "            V8DOMWrapper::setHiddenReference(info.Holder(), wrapper);\n");
+            }
+            push(@implContentDecls, "    }\n");
+            push(@implContentDecls, "    return wrapper;\n");
+            push(@implContentDecls, "}\n\n");
+            return;
+        }
     }
 
     if (IsSVGTypeNeedingContextParameter($attrType) && !$skipContext) {
@@ -891,7 +911,13 @@ END
         } elsif ($attribute->signature->type eq "EventListener") {
             $implIncludes{"V8AbstractEventListener.h"} = 1;
             push(@implContentDecls, "    transferHiddenDependency(info.Holder(), imp->$attrName(), value, V8${interfaceName}::eventListenerCacheIndex);\n");
-            push(@implContentDecls, "    imp->set$implSetterFunctionName(V8DOMWrapper::getEventListener(value, true, ListenerFindOrCreate)");
+            if ($interfaceName eq "WorkerContext" and $attribute->signature->name eq "onerror") {
+                $implIncludes{"V8EventListenerList.h"} = 1;
+                $implIncludes{"V8WorkerContextErrorHandler.h"} = 1;
+                push(@implContentDecls, "    imp->set$implSetterFunctionName(V8EventListenerList::findOrCreateWrapper<V8WorkerContextErrorHandler>(value, true)");
+            } else {
+                push(@implContentDecls, "    imp->set$implSetterFunctionName(V8DOMWrapper::getEventListener(value, true, ListenerFindOrCreate)");
+            }
         } else {
             push(@implContentDecls, "    imp->set$implSetterFunctionName($result");
         }
@@ -2078,21 +2104,16 @@ sub HasCustomToV8Implementation {
     $interfaceName = shift;
 
     # We generate a custom converter (but JSC doesn't) for the following:
-    return 1 if $interfaceName eq "BarInfo";
     return 1 if $interfaceName eq "CSSStyleSheet";
     return 1 if $interfaceName eq "CanvasPixelArray";
-    return 1 if $interfaceName eq "DOMSelection";
     return 1 if $interfaceName eq "DOMWindow";
     return 1 if $interfaceName eq "Element";
-    return 1 if $interfaceName eq "Location";
     return 1 if $interfaceName eq "HTMLDocument";
     return 1 if $interfaceName eq "HTMLElement";
-    return 1 if $interfaceName eq "History";
+    return 1 if $interfaceName eq "Location";
     return 1 if $interfaceName eq "NamedNodeMap";
-    return 1 if $interfaceName eq "Navigator";
     return 1 if $interfaceName eq "SVGDocument";
     return 1 if $interfaceName eq "SVGElement";
-    return 1 if $interfaceName eq "Screen";
     return 1 if $interfaceName eq "WorkerContext";
     # We don't generate a custom converter (but JSC does) for the following:
     return 0 if $interfaceName eq "AbstractWorker";
@@ -2109,7 +2130,7 @@ sub GetDomMapFunction
     my $dataNode = shift;
     my $type = shift;
     return "getDOMSVGElementInstanceMap()" if $type eq "SVGElementInstance";
-    return "getDOMNodeMap()" if IsNodeSubType($dataNode);
+    return "getDOMNodeMap()" if ($dataNode && IsNodeSubType($dataNode));
     # Only use getDOMSVGObjectWithContextMap() for non-node svg objects
     return "getDOMSVGObjectWithContextMap()" if $type =~ /SVG/;
     return "" if $type eq "DOMImplementation";
@@ -2587,6 +2608,8 @@ sub RequiresCustomSignature
 my %non_wrapper_types = (
     'float' => 1,
     'double' => 1,
+    'int' => 1,
+    'unsigned int' => 1,
     'short' => 1,
     'unsigned short' => 1,
     'long' => 1,

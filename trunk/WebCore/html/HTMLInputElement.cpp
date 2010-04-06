@@ -158,13 +158,7 @@ bool HTMLInputElement::autoComplete() const
 {
     if (m_autocomplete != Uninitialized)
         return m_autocomplete == On;
-    
-    // Assuming we're still in a Form, respect the Form's setting
-    if (HTMLFormElement* form = this->form())
-        return form->autoComplete();
-    
-    // The default is true
-    return true;
+    return HTMLTextFormControlElement::autoComplete();
 }
 
 static inline CheckedRadioButtons& checkedRadioButtons(const HTMLInputElement* element)
@@ -914,9 +908,6 @@ const AtomicString& HTMLInputElement::formControlType() const
 
 bool HTMLInputElement::saveFormControlState(String& result) const
 {
-    if (!autoComplete())
-        return false;
-
     switch (inputType()) {
         case BUTTON:
         case COLOR:
@@ -938,9 +929,13 @@ bool HTMLInputElement::saveFormControlState(String& result) const
         case TEXT:
         case TIME:
         case URL:
-        case WEEK:
-            result = value();
+        case WEEK: {
+            String currentValue = value();
+            if (currentValue == defaultValue())
+                return false;
+            result = currentValue;
             return true;
+        }
         case CHECKBOX:
         case RADIO:
             result = checked() ? "on" : "off";
@@ -2612,6 +2607,9 @@ void HTMLInputElement::documentDidBecomeActive()
 
 void HTMLInputElement::willMoveToNewOwnerDocument()
 {
+    if (m_imageLoader)
+        m_imageLoader->elementWillMoveToNewOwnerDocument();
+
     // Always unregister for cache callbacks when leaving a document, even if we would otherwise like to be registered
     if (needsActivationCallback())
         document()->unregisterForDocumentActivationCallbacks(this);

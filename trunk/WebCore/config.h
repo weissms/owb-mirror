@@ -131,7 +131,7 @@
 
 #if COMPILER(MSVC)
 #define SKIP_STATIC_CONSTRUCTORS_ON_MSVC 1
-#else
+#elif !COMPILER(WINSCW)
 #define SKIP_STATIC_CONSTRUCTORS_ON_GCC 1
 #endif
 
@@ -170,21 +170,7 @@
 #endif // PLATFORM(MAC)
 
 #if OS(SYMBIAN)
-#undef WIN32
-#undef _WIN32
-#if COMPILER(WINSCW)
-#undef SKIP_STATIC_CONSTRUCTORS_ON_GCC
-#endif
 #define USE_SYSTEM_MALLOC 1
-#define U_HAVE_INT8_T 0
-#define U_HAVE_INT16_T 0
-#define U_HAVE_INT32_T 0
-#define U_HAVE_INT64_T 0
-#define U_HAVE_INTTYPES_H 0
-
-#include <stdio.h>
-#include <limits.h>
-#include <wtf/MathExtras.h>
 #endif
 
 #if PLATFORM(CHROMIUM)

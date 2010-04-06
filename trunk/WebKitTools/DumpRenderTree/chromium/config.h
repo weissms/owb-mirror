@@ -28,24 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "V8DOMSelection.h"
+#ifndef config_h
+#define config_h
 
-#include "V8DOMWindow.h"
-#include "V8DOMWrapper.h"
+// To avoid confict of LOG in wtf/Assertions.h and LOG in base/logging.h,
+// skip base/loggin.h by defining BASE_LOGGING_H_ and define some macros
+// provided by base/logging.h.
+// FIXME: Remove this hack!
+#include <iostream>
+#define BASE_LOGGING_H_
+#define CHECK(condition) while (false && (condition)) std::cerr
+#define DCHECK(condition) while (false && (condition)) std::cerr
+#define DCHECK_EQ(a, b) while (false && (a) == (b)) std::cerr
+#define DCHECK_NE(a, b) while (false && (a) != (b)) std::cerr
 
-namespace WebCore {
+#include <wtf/Platform.h>
 
-v8::Handle<v8::Value> toV8(DOMSelection* impl)
-{
-    if (!impl)
-        return v8::Null();
-    v8::Handle<v8::Object> wrapper = getDOMObjectMap().get(impl);
-    if (wrapper.IsEmpty()) {
-        wrapper = V8DOMSelection::wrap(impl);
-        V8DOMWrapper::setHiddenWindowReference(impl->frame(), V8DOMWindow::domSelectionIndex, wrapper);
-    }
-    return wrapper;
-}
-
-} // namespace WebCore
+#endif // config_h

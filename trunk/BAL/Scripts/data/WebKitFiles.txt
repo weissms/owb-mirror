@@ -20,6 +20,7 @@ WebCore/bindings/js/JSInjectedScriptHostCustom.cpp
 WebCore/bindings/js/JSInspectorFrontendHostCustom.cpp
 WebCore/bindings/js/JSPluginElementFunctions.cpp
 WebCore/bindings/js/JSPluginElementFunctions.h
+WebCore/bindings/js/JSWorkerContextErrorHandler.cpp
 WebCore/bindings/js/ScriptController.cpp
 WebCore/bridge/c/c_instance.cpp
 WebCore/bridge/jsc/BridgeJSC.cpp

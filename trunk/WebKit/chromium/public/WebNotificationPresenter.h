@@ -51,44 +51,22 @@ public:
     };
 
     // Shows a notification.
-    virtual bool show(const WebNotification&) = 0;
+    virtual bool show(const WebNotification&) { return false; }
 
     // Cancels a notification previously shown, and removes it if being shown.
-    virtual void cancel(const WebNotification&) = 0;
+    virtual void cancel(const WebNotification&) { }
 
     // Indiciates that the notification object subscribed to events for a previously shown notification is
     // being destroyed.  Does _not_ remove the notification if being shown, but detaches it from receiving events.
-    virtual void objectDestroyed(const WebNotification&) = 0;
+    virtual void objectDestroyed(const WebNotification&) { }
 
     // Checks the permission level for the given origin.
-    // FIXME: This should become abstract when the below is removed.
-    virtual Permission checkPermission(const WebURL& url)
-    {
-        return PermissionNotAllowed;
-    };
-
-    // Checks the permission level for the given URL. If the URL is being displayed in a document
-    // (as opposed to a worker or other ScriptExecutionContext), |document| will also be provided.
-    // FIXME: This method should be removed as clients don't need WebDocument anymore.
-    virtual Permission checkPermission(const WebURL& url, WebDocument* document)
-    {
-        return PermissionNotAllowed;
-    }
+    virtual Permission checkPermission(const WebURL&) { return PermissionNotAllowed; }
 
     // Requests permission for a given origin.  This operation is asynchronous and the callback provided
     // will be invoked when the permission decision is made.  Callback pointer must remain
     // valid until called.
-    // FIXME: This method should be removed when clients are moved to the below.
-    virtual void requestPermission(const WebString& origin, WebNotificationPermissionCallback* callback)
-    {
-        callback->permissionRequestComplete();
-    }
-    
-    // FIXME: This method should be abstract when the above is removed.
-    virtual void requestPermission(const WebSecurityOrigin& origin, WebNotificationPermissionCallback* callback)
-    {
-        callback->permissionRequestComplete();
-    }
+    virtual void requestPermission(const WebSecurityOrigin&, WebNotificationPermissionCallback*) { }
 };
 
 } // namespace WebKit

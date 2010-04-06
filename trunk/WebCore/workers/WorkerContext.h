@@ -93,7 +93,7 @@ namespace WebCore {
         DEFINE_ATTRIBUTE_EVENT_LISTENER(error);
 
         // WorkerUtils
-        virtual void importScripts(const Vector<String>& urls, const String& callerURL, int callerLine, ExceptionCode&);
+        virtual void importScripts(const Vector<String>& urls, ExceptionCode&);
         WorkerNavigator* navigator() const;
 
         // Timers
@@ -159,6 +159,7 @@ namespace WebCore {
         mutable RefPtr<NotificationCenter> m_notifications;
 #endif
         bool m_closing;
+        bool m_reportingException;
         EventTargetData m_eventTargetData;
     };
 

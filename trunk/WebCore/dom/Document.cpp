@@ -3074,10 +3074,9 @@ PassRefPtr<Event> Document::createEvent(const String& eventType, ExceptionCode& 
     else if (eventType == "TouchEvent")
         event = TouchEvent::create();
 #endif
-    if (event) {
-        event->setCreatedByDOM(true);
+    if (event)
         return event.release();
-    }
+
     ec = NOT_SUPPORTED_ERR;
     return 0;
 }
@@ -4203,7 +4202,17 @@ void Document::finishedParsing()
 {
     setParsing(false);
     dispatchEvent(Event::create(eventNames().DOMContentLoadedEvent, true, false));
+
     if (Frame* f = frame()) {
+        // FrameLoader::finishedParsing() might end up calling Document::implicitClose() if all
+        // resource loads are complete. HTMLObjectElements can start loading their resources from
+        // post attach callbacks triggered by recalcStyle().  This means if we parse out an <object>
+        // tag and then reach the end of the document without updating styles, we might not have yet
+        // started the resource load and might fire the window load event too early.  To avoid this
+        // we force the styles to be up to date before calling FrameLoader::finishedParsing().
+        // See https://bugs.webkit.org/show_bug.cgi?id=36864 starting around comment 35.
+        updateStyleIfNeeded();
+
         f->loader()->finishedParsing();
 
 #if ENABLE(INSPECTOR)
@@ -4223,13 +4232,15 @@ Vector<String> Document::formElementsState() const
     typedef ListHashSet<Element*>::const_iterator Iterator;
     Iterator end = m_formElementsWithState.end();
     for (Iterator it = m_formElementsWithState.begin(); it != end; ++it) {
-        Element* e = *it;
+        Element* elementWithState = *it;
         String value;
-        if (e->saveFormControlState(value)) {
-            stateVector.append(e->formControlName().string());
-            stateVector.append(e->formControlType().string());
-            stateVector.append(value);
-        }
+        if (!elementWithState->shouldSaveAndRestoreFormControlState())
+            continue;
+        if (!elementWithState->saveFormControlState(value))
+            continue;
+        stateVector.append(elementWithState->formControlName().string());
+        stateVector.append(elementWithState->formControlType().string());
+        stateVector.append(value);
     }
     return stateVector;
 }

@@ -10,6 +10,9 @@ set(ENABLE_ICONDATABASE ON CACHE BOOLEAN "Enable icon database support" FORCE)
 set(ENABLE_OFFLINE_WEB_APPLICATIONS ON CACHE BOOLEAN "Enable HTML5 offline web applications support" FORCE)
 set(ENABLE_OFFLINE_DYNAMIC_ENTRIES ON CACHE BOOLEAN "Enable HTML5 offline dynamic entries support" FORCE)
 
+set(ENABLE_FILE_READER ON CACHE BOOLEAN "Enable support for async read file operations" FORCE)
+set(ENABLE_FILE_WRITER ON CACHE BOOLEAN "Enable support for async write file operations" FORCE)
+
 set(ENABLE_GEOLOCATION OFF CACHE BOOLEAN "Enable geoposition support" FORCE)
 set(ENABLE_INSPECTOR ON CACHE BOOLEAN "Enable web inspector support" FORCE)
 

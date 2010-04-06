@@ -128,13 +128,14 @@ class WhatBroke(AbstractDeclarativeCommand):
         author_line = "\"%s\" <%s>" % (commit_info.author_name(), commit_info.author_email())
         print "  Author: %s" % (commit_info.author() or author_line)
         print "  Reviewer: %s" % (commit_info.reviewer() or commit_info.reviewer_text())
-        print "  Committer: %s" % commit_info.committer()
+        print "  Committer: %s" % (commit_info.committer() or commit_info.committer_email())
 
-    # FIXME: This is slightly different from Builder.suspect_revisions_for_green_to_red_transition
+    # FIXME: This is slightly different from Builder.blameworthy_revisions
     # due to needing to detect the "hit the limit" case an print a special message.
     def _print_blame_information_for_builder(self, builder_status, name_width, avoid_flakey_tests=True):
         builder = self.tool.buildbot.builder_with_name(builder_status["name"])
-        (last_green_build, first_red_build) = builder.find_green_to_red_transition(builder_status["build_number"])
+        red_build = builder.build(builder_status["build_number"])
+        (last_green_build, first_red_build) = builder.find_failure_transition(red_build)
         if not first_red_build:
             self._print_builder_line(builder.name(), name_width, "FAIL (error loading build information)")
             return

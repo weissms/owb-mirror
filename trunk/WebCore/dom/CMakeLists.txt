@@ -79,6 +79,7 @@ list(APPEND WEBCORE_SRC
     dom/TreeWalker.cpp
     dom/UIEvent.cpp
     dom/UIEventWithKeyState.cpp
+    dom/UserGestureIndicator.cpp
     dom/WebKitAnimationEvent.cpp
     dom/WebKitTransitionEvent.cpp
     dom/WheelEvent.cpp

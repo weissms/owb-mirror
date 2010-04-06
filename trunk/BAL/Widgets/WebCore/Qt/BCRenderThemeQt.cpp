@@ -45,7 +45,7 @@
 #include "HTMLMediaElement.h"
 #include "HTMLNames.h"
 #ifdef Q_WS_MAEMO_5
-#include "Maemo5webstyle.h"
+#include "Maemo5Webstyle.h"
 #endif
 #include "NotImplemented.h"
 #include "Page.h"

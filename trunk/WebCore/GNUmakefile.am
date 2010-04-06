@@ -473,6 +473,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSWebKitCSSMatrixConstructor.h \
 	WebCore/bindings/js/JSWebKitPointConstructor.cpp \
 	WebCore/bindings/js/JSWebKitPointConstructor.h \
+	WebCore/bindings/js/JSWorkerContextErrorHandler.cpp \
+	WebCore/bindings/js/JSWorkerContextErrorHandler.h \
 	WebCore/bindings/js/JSXMLHttpRequestConstructor.cpp \
 	WebCore/bindings/js/JSXMLHttpRequestConstructor.h \
 	WebCore/bindings/js/JSXMLHttpRequestCustom.cpp \
@@ -866,6 +868,8 @@ webcore_sources += \
 	WebCore/dom/UIEvent.h \
 	WebCore/dom/UIEventWithKeyState.cpp \
 	WebCore/dom/UIEventWithKeyState.h \
+	WebCore/dom/UserGestureIndicator.cpp \
+	WebCore/dom/UserGestureIndicator.h \
 	WebCore/dom/WebKitAnimationEvent.cpp \
 	WebCore/dom/WebKitAnimationEvent.h \
 	WebCore/dom/WebKitTransitionEvent.cpp \
@@ -1021,6 +1025,8 @@ webcore_sources += \
 	WebCore/html/File.h \
 	WebCore/html/FileList.cpp \
 	WebCore/html/FileList.h \
+	WebCore/html/FileThread.cpp \
+	WebCore/html/FileThread.h \
 	WebCore/html/FormDataList.cpp \
 	WebCore/html/FormDataList.h \
 	WebCore/html/HTMLAllCollection.cpp \
@@ -1721,6 +1727,7 @@ webcore_sources += \
 	WebCore/platform/text/StringHash.h \
 	WebCore/platform/text/StringImpl.cpp \
 	WebCore/platform/text/StringImpl.h \
+	WebCore/platform/text/SuffixTree.h \
 	WebCore/platform/text/TextBoundaries.h \
 	WebCore/platform/text/TextBoundaries.cpp \
 	WebCore/platform/text/TextBreakIterator.h \
@@ -3558,6 +3565,21 @@ FEATURE_DEFINES += ENABLE_BLOB_SLICE=1
 webcore_cppflags += -DENABLE_BLOB_SLICE=1
 endif  # END ENABLE_BLOB_SLICE
 
+# ---
+# FileReader support
+# ---
+if ENABLE_FILE_READER
+FEATURE_DEFINES += ENABLE_FILE_READER=1
+webcore_cppflags += -DENABLE_FILE_READER=1
+endif  # END ENABLE_FILE_READER
+
+# ---
+# FileWriter support
+# ---
+if ENABLE_FILE_WRITER
+FEATURE_DEFINES += ENABLE_FILE_WRITER=1
+webcore_cppflags += -DENABLE_FILE_WRITER=1
+endif  # END ENABLE_FILE_WRITER
 
 DerivedSources/CSSPropertyNames.h: $(WEBCORE_CSS_PROPERTY_NAMES) $(WebCore)/css/makeprop.pl
 	if sort $(WEBCORE_CSS_PROPERTY_NAMES) | uniq -d | grep -E '^[^#]'; then echo 'Duplicate value!'; exit 1; fi

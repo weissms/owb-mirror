@@ -33,12 +33,18 @@ from webkitpy.common.config.ports import WebKitPort
 from webkitpy.tool.bot.sheriff import Sheriff
 from webkitpy.tool.bot.sheriffircbot import SheriffIRCBot
 from webkitpy.tool.commands.queues import AbstractQueue
+from webkitpy.tool.commands.stepsequence import StepSequenceErrorHandler
 
-class SheriffBot(AbstractQueue):
+
+class SheriffBot(AbstractQueue, StepSequenceErrorHandler):
     name = "sheriff-bot"
+    watchers = AbstractQueue.watchers + [
+        "abarth@webkit.org",
+        "eric@webkit.org",
+    ]
 
-    def update(self):
-        self.tool.executive.run_and_throw_if_fail(WebKitPort.update_webkit_command(), quiet=True)
+    def _update(self):
+        self.run_webkit_patch(["update", "--force-clean", "--quiet"])
 
     # AbstractQueue methods
 
@@ -48,41 +54,49 @@ class SheriffBot(AbstractQueue):
         self._irc_bot = SheriffIRCBot(self.tool, self._sheriff)
         self.tool.ensure_irc_connected(self._irc_bot.irc_delegate())
 
-    def work_item_log_path(self, failure_info):
-        return os.path.join("%s-logs" % self.name, "%s.log" % failure_info["svn_revision"])
+    def work_item_log_path(self, new_failures):
+        return os.path.join("%s-logs" % self.name, "%s.log" % new_failures.keys()[0])
 
     def next_work_item(self):
         self._irc_bot.process_pending_messages()
-        self.update()
-        for svn_revision, builders in self.tool.buildbot.revisions_causing_failures().items():
+        self._update()
+        new_failures = {}
+        revisions_causing_failures = self.tool.buildbot.revisions_causing_failures()
+        for svn_revision, builders in revisions_causing_failures.items():
             if self.tool.status_server.svn_revision(svn_revision):
                 # FIXME: We should re-process the work item after some time delay.
                 # https://bugs.webkit.org/show_bug.cgi?id=36581
                 continue
-            return {
-                "svn_revision": svn_revision,
-                "builders": builders,
-                # FIXME: Sheriff._rollout_reason needs Build objects which we could pass here.
-            }
-        return None
+            new_failures[svn_revision] = builders
+        self._sheriff.provoke_flaky_builders(revisions_causing_failures)
+        return new_failures
 
-    def should_proceed_with_work_item(self, failure_info):
+    def should_proceed_with_work_item(self, new_failures):
         # Currently, we don't have any reasons not to proceed with work items.
         return True
 
-    def process_work_item(self, failure_info):
-        svn_revision = failure_info["svn_revision"]
-        builders = failure_info["builders"]
+    def process_work_item(self, new_failures):
+        blame_list = new_failures.keys()
+        for svn_revision, builders in new_failures.items():
+            commit_info = self.tool.checkout().commit_info_for_revision(svn_revision)
+            self._sheriff.post_irc_warning(commit_info, builders)
+            self._sheriff.post_blame_comment_on_bug(commit_info,
+                                                    builders,
+                                                    blame_list)
+            self._sheriff.post_automatic_rollout_patch(commit_info, builders)
 
-        self.update()
-        commit_info = self.tool.checkout().commit_info_for_revision(svn_revision)
-        self._sheriff.post_irc_warning(commit_info, builders)
-        self._sheriff.post_blame_comment_on_bug(commit_info, builders)
-        self._sheriff.post_automatic_rollout_patch(commit_info, builders)
-
-        for builder in builders:
-            self.tool.status_server.update_svn_revision(svn_revision, builder.name())
+            for builder in builders:
+                self.tool.status_server.update_svn_revision(svn_revision,
+                                                            builder.name())
         return True
 
-    def handle_unexpected_error(self, failure_info, message):
+    def handle_unexpected_error(self, new_failures, message):
         log(message)
+
+    # StepSequenceErrorHandler methods
+
+    @classmethod
+    def handle_script_error(cls, tool, state, script_error):
+        # Ideally we would post some information to IRC about what went wrong
+        # here, but we don't have the IRC password in the child process.
+        pass

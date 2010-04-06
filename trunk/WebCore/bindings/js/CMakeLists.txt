@@ -110,6 +110,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSWebGLUnsignedShortArrayCustom.cpp
     bindings/js/JSWebKitCSSMatrixConstructor.cpp
     bindings/js/JSWebKitPointConstructor.cpp
+    bindings/js/JSWorkerContextErrorHandler.cpp
     bindings/js/JSXMLHttpRequestConstructor.cpp
     bindings/js/JSXMLHttpRequestCustom.cpp
     bindings/js/JSXMLHttpRequestUploadCustom.cpp

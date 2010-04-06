@@ -363,6 +363,7 @@ SOURCES += \
     bindings/js/JSLazyEventListener.cpp \
     bindings/js/JSPluginElementFunctions.cpp \
     bindings/js/JSPopStateEventCustom.cpp \
+    bindings/js/JSWorkerContextErrorHandler.cpp \
     bindings/js/JavaScriptProfile.h \
     bindings/js/JavaScriptProfileNode.h \
     bindings/js/JavaScriptProfile.cpp \
@@ -538,6 +539,7 @@ SOURCES += \
     dom/TreeWalker.cpp \
     dom/UIEvent.cpp \
     dom/UIEventWithKeyState.cpp \
+    dom/UserGestureIndicator.cpp \
     dom/WebKitAnimationEvent.cpp \
     dom/WebKitTransitionEvent.cpp \
     dom/WheelEvent.cpp \
@@ -612,6 +614,7 @@ SOURCES += \
     html/DOMFormData.cpp \
     html/File.cpp \
     html/FileList.cpp \
+    html/FileThread.cpp \
     html/FormDataList.cpp \
     html/HTMLAllCollection.cpp \
     html/HTMLAnchorElement.cpp \
@@ -1069,7 +1072,7 @@ HEADERS += \
     bindings/js/JSWebKitPointConstructor.h \
     bindings/js/JSWorkerConstructor.h \
     bindings/js/JSWorkerContextBase.h \
-    bindings/js/JSWorkerContextBase.h \
+    bindings/js/JSWorkerContextErrorHandler.h \
     bindings/js/JSXMLHttpRequestConstructor.h \
     bindings/js/JSXSLTProcessorConstructor.h \
     bindings/js/ScheduledAction.h \
@@ -1249,6 +1252,7 @@ HEADERS += \
     dom/TreeWalker.h \
     dom/UIEvent.h \
     dom/UIEventWithKeyState.h \
+    dom/UserGestureIndicator.h \
     dom/WebKitAnimationEvent.h \
     dom/WebKitTransitionEvent.h \
     dom/WheelEvent.h \
@@ -1318,6 +1322,7 @@ HEADERS += \
     html/DOMFormData.h \
     html/File.h \
     html/FileList.h \
+    html/FileThread.h \
     html/FormDataList.h \
     html/HTMLAllCollection.h \
     html/HTMLAnchorElement.h \

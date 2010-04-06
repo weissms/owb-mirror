@@ -30,12 +30,18 @@ import os
 import unittest
 
 from webkitpy.common.net.buildbot import Builder
+from webkitpy.common.system.outputcapture import OutputCapture
 from webkitpy.thirdparty.mock import Mock
 from webkitpy.tool.bot.sheriff import Sheriff
 from webkitpy.tool.mocktool import MockTool, mock_builder
 
 
 class MockSheriffBot(object):
+    name = "mock-sheriff-bot"
+    watchers = [
+        "watcher@example.com",
+    ]
+
     def run_webkit_patch(self, args):
         return "Created bug https://bugs.webkit.org/show_bug.cgi?id=36936\n"
 
@@ -51,6 +57,38 @@ class SheriffTest(unittest.TestCase):
         self.assertEquals(sheriff._rollout_reason(builders), reason)
 
     def test_post_blame_comment_on_bug(self):
+        def run():
+            sheriff = Sheriff(MockTool(), MockSheriffBot())
+            builders = [
+                Builder("Foo", None),
+                Builder("Bar", None),
+            ]
+            commit_info = Mock()
+            commit_info.bug_id = lambda: None
+            commit_info.revision = lambda: 4321
+            # Should do nothing with no bug_id
+            sheriff.post_blame_comment_on_bug(commit_info, builders, [])
+            sheriff.post_blame_comment_on_bug(commit_info, builders, [2468, 5646])
+            # Should try to post a comment to the bug, but MockTool.bugs does nothing.
+            commit_info.bug_id = lambda: 1234
+            sheriff.post_blame_comment_on_bug(commit_info, builders, [])
+            sheriff.post_blame_comment_on_bug(commit_info, builders, [3432])
+            sheriff.post_blame_comment_on_bug(commit_info, builders, [841, 5646])
+
+        expected_stderr = u"MOCK bug comment: bug_id=1234, cc=['watcher@example.com']\n--- WebKitTools/Begin comment ---\\http://trac.webkit.org/changeset/4321 might have broken Foo and Bar\n--- WebKitTools/End comment ---\n\nMOCK bug comment: bug_id=1234, cc=['watcher@example.com']\n--- WebKitTools/Begin comment ---\\http://trac.webkit.org/changeset/4321 might have broken Foo and Bar\n--- WebKitTools/End comment ---\n\nMOCK bug comment: bug_id=1234, cc=['watcher@example.com']\n--- WebKitTools/Begin comment ---\\http://trac.webkit.org/changeset/4321 might have broken Foo and Bar\nThe following changes are on the blame list:\nhttp://trac.webkit.org/changeset/841\nhttp://trac.webkit.org/changeset/5646\n--- WebKitTools/End comment ---\n\n"
+        OutputCapture().assert_outputs(self, run, expected_stderr=expected_stderr)
+
+    def test_provoke_flaky_builders(self):
+        def run():
+            tool = MockTool()
+            tool.buildbot.light_tree_on_fire()
+            sheriff = Sheriff(tool, MockSheriffBot())
+            revisions_causing_failures = {}
+            sheriff.provoke_flaky_builders(revisions_causing_failures)
+        expected_stderr = "MOCK: force_build: name=Builder2, username=mock-sheriff-bot, comments=Probe for flakiness.\n"
+        OutputCapture().assert_outputs(self, run, expected_stderr=expected_stderr)
+
+    def test_post_blame_comment_on_bug(self):
         sheriff = Sheriff(MockTool(), MockSheriffBot())
         builders = [
             Builder("Foo", None),
@@ -59,8 +97,9 @@ class SheriffTest(unittest.TestCase):
         commit_info = Mock()
         commit_info.bug_id = lambda: None
         commit_info.revision = lambda: 4321
-        # Should do nothing with no bug_id
-        sheriff.post_blame_comment_on_bug(commit_info, builders)
-        # Should try to post a comment to the bug, but MockTool.bugs does nothing.
-        commit_info.bug_id = lambda: 1234
-        sheriff.post_blame_comment_on_bug(commit_info, builders)
+        commit_info.committer = lambda: None
+        commit_info.committer_email = lambda: "foo@example.com"
+        commit_info.reviewer = lambda: None
+        commit_info.author = lambda: None
+        sheriff.post_automatic_rollout_patch(commit_info, builders)
+

@@ -8,5 +8,6 @@ list(APPEND JSC_SRC
     API/JSObjectRef.cpp
     API/JSStringRef.cpp
     API/JSValueRef.cpp
+    API/JSWeakObjectMapRefPrivate.cpp
     API/OpaqueJSString.cpp
 )

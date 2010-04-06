@@ -39,6 +39,7 @@ import os
 import unittest
 
 import checker as style
+from webkitpy.style_references import parse_patch
 from webkitpy.style_references import LogTesting
 from webkitpy.style_references import TestLogStream
 from checker import _BASE_FILTER_RULES
@@ -58,6 +59,7 @@ from optparser import CommandOptionValues
 from processors.cpp import CppProcessor
 from processors.python import PythonProcessor
 from processors.text import TextProcessor
+from webkitpy.common.system.logtesting import LoggingTestCase
 
 
 class ConfigureLoggingTestBase(unittest.TestCase):
@@ -184,7 +186,7 @@ class GlobalVariablesTest(unittest.TestCase):
         # on valid arguments elsewhere.
         #
         # The default options are valid: no error or SystemExit.
-        parser.parse(args=[], found_checkout=True)
+        parser.parse(args=[])
 
     def test_path_rules_specifier(self):
         all_categories = self._all_categories()
@@ -535,7 +537,25 @@ class StyleCheckerTest(unittest.TestCase):
         self.assertEquals(style_checker.file_count, 0)
 
 
-class StyleCheckerCheckFileTest(unittest.TestCase):
+class StyleCheckerCheckFileBase(LoggingTestCase):
+
+    def setUp(self):
+        LoggingTestCase.setUp(self)
+        self.warning_messages = ""
+
+    def mock_stderr_write(self, warning_message):
+        self.warning_messages += warning_message
+
+    def _style_checker_configuration(self):
+        return StyleCheckerConfiguration(
+            filter_configuration=FilterConfiguration(),
+            max_reports_per_category={"whitespace/newline": 1},
+            min_confidence=3,
+            output_format="vs7",
+            stderr_write=self.mock_stderr_write)
+
+
+class StyleCheckerCheckFileTest(StyleCheckerCheckFileBase):
 
     """Test the check_file() method of the StyleChecker class.
 
@@ -561,20 +581,18 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
 
     """
     def setUp(self):
-        self._log = LogTesting.setUp(self)
+        StyleCheckerCheckFileBase.setUp(self)
         self.got_file_path = None
         self.got_handle_style_error = None
         self.got_processor = None
-        self.warning_messages = ""
-
-    def tearDown(self):
-        self._log.tearDown()
-
-    def mock_stderr_write(self, warning_message):
-        self.warning_messages += warning_message
 
     def mock_handle_style_error(self):
         pass
+
+    def mock_os_path_exists(self, path):
+        # We deliberately make it so that this method returns False unless
+        # the caller has made an effort to put "does_exist" in the path.
+        return path.find("does_exist") > -1
 
     def mock_process_file(self, processor, file_path, handle_style_error):
         """A mock _process_file().
@@ -603,25 +621,35 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
         # Confirm that the attributes are reset.
         self.assert_attributes(None, None, None, "")
 
-        configuration = StyleCheckerConfiguration(
-                            filter_configuration=FilterConfiguration(),
-                            max_reports_per_category={"whitespace/newline": 1},
-                            min_confidence=3,
-                            output_format="vs7",
-                            stderr_write=self.mock_stderr_write)
+        configuration = self._style_checker_configuration()
 
         style_checker = StyleChecker(configuration)
 
-        style_checker.check_file(file_path,
-                                 self.mock_handle_style_error,
-                                 self.mock_process_file)
+        style_checker.check_file(file_path=file_path,
+            mock_handle_style_error=self.mock_handle_style_error,
+            mock_os_path_exists=self.mock_os_path_exists,
+            mock_process_file=self.mock_process_file)
 
-        self.assertEquals(1, style_checker.file_count)
+        file_count = 1 if self.mock_os_path_exists(file_path) else 0
+
+        self.assertEquals(file_count, style_checker.file_count)
+
+    def test_check_file_does_not_exist(self):
+        file_path = "file_does_not_exist.txt"
+
+        # Confirm that the file does not exist.
+        self.assertFalse(self.mock_os_path_exists(file_path))
+
+        # Check the outcome.
+        self.call_check_file(file_path)
+        self.assert_attributes(None, None, None, "")
+        self.assertLog(['WARNING: Skipping non-existent file: '
+                        'file_does_not_exist.txt\n'])
 
     def test_check_file_on_skip_without_warning(self):
         """Test check_file() for a skipped-without-warning file."""
 
-        file_path = "LayoutTests/foo.txt"
+        file_path = "LayoutTests/does_exist/foo.txt"
 
         dispatcher = ProcessorDispatcher()
         # Confirm that the input file is truly a skipped-without-warning file.
@@ -634,7 +662,7 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
     def test_check_file_on_skip_with_warning(self):
         """Test check_file() for a skipped-with-warning file."""
 
-        file_path = "gtk2drawing.c"
+        file_path = "does_exist/gtk2drawing.c"
 
         dispatcher = ProcessorDispatcher()
         # Check that the input file is truly a skipped-with-warning file.
@@ -643,15 +671,15 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
         # Check the outcome.
         self.call_check_file(file_path)
         self.assert_attributes(None, None, None, "")
-        self._log.assertMessages(["WARNING: File exempt from style guide. "
-                                  'Skipping: "gtk2drawing.c"\n'])
+        self.assertLog(["WARNING: File exempt from style guide. "
+                        'Skipping: "does_exist/gtk2drawing.c"\n'])
 
     def test_check_file_on_non_skipped(self):
 
         # We use a C++ file since by using a CppProcessor, we can check
         # that all of the possible information is getting passed to
         # process_file (in particular, the min_confidence parameter).
-        file_base = "foo"
+        file_base = "foo_does_exist"
         file_extension = "cpp"
         file_path = file_base + "." + file_extension
 
@@ -668,6 +696,61 @@ class StyleCheckerCheckFileTest(unittest.TestCase):
                                self.mock_handle_style_error,
                                expected_processor,
                                "")
+
+
+class StyleCheckerCheckPatchTest(StyleCheckerCheckFileBase):
+
+    """Test the check_patch() method of the StyleChecker class.
+
+    Internally, the check_patch() method calls StyleChecker.check_file() for
+    each file that appears in the patch string.  This class passes a mock
+    check_file() method to check_patch() to facilitate unit-testing.  The
+    "got_*" attributes of this class are the parameters that check_patch()
+    passed to check_file().  (We test only a single call.)  These attributes
+    let us check that check_patch() is calling check_file() correctly.
+
+    Attributes:
+      got_file_path: The value that check_patch() passed as the file_path
+                     parameter to the mock_check_file() function.
+      got_line_numbers: The value that check_patch() passed as the line_numbers
+                        parameter to the mock_check_file() function.
+
+    """
+
+    _file_path = "__init__.py"
+
+    # The modified line_numbers array for this patch is: [2].
+    _patch_string = """diff --git a/__init__.py b/__init__.py
+index ef65bee..e3db70e 100644
+--- WebKitTools/a/__init__.py
++++ WebKitTools/b/__init__.py
+@@ -1,1 +1,2 @@
+ # Required for Python to search this directory for module files
++# New line
+"""
+
+    def setUp(self):
+        StyleCheckerCheckFileBase.setUp(self)
+        self._got_file_path = None
+        self._got_line_numbers = None
+
+    def _mock_check_file(self, file_path, line_numbers):
+        self._got_file_path = file_path
+        self._got_line_numbers = line_numbers
+
+    def test_check_patch(self):
+        patch_files = parse_patch(self._patch_string)
+        diff = patch_files[self._file_path]
+
+        configuration = self._style_checker_configuration()
+
+        style_checker = StyleChecker(configuration)
+
+        style_checker.check_patch(patch_string=self._patch_string,
+                                  mock_check_file=self._mock_check_file)
+
+        self.assertEquals(self._got_file_path, "__init__.py")
+        self.assertEquals(self._got_line_numbers, set([2]))
 
 
 class StyleCheckerCheckPathsTest(unittest.TestCase):
@@ -716,9 +799,3 @@ class StyleCheckerCheckPathsTest(unittest.TestCase):
                            os.path.join("dir_path1", "file1"),
                            os.path.join("dir_path1", "file2"),
                            os.path.join("dir_path2", "file3")])
-
-
-if __name__ == '__main__':
-    import sys
-
-    unittest.main()

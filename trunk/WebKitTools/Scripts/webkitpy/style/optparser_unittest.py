@@ -24,23 +24,11 @@
 
 import unittest
 
-from optparser import _create_usage
-from optparser import ArgumentParser
-from optparser import ArgumentPrinter
-from optparser import CommandOptionValues as ProcessorOptions
-from optparser import DefaultCommandOptionValues
-from webkitpy.style_references import LogTesting
-
-
-class CreateUsageTest(unittest.TestCase):
-
-    """Tests the _create_usage() function."""
-
-    def test_create_usage(self):
-        default_options = DefaultCommandOptionValues(min_confidence=3,
-                                                     output_format="vs7")
-        # Exercise the code path to make sure the function does not error out.
-        _create_usage(default_options)
+from webkitpy.common.system.logtesting import LoggingTestCase
+from webkitpy.style.optparser import ArgumentParser
+from webkitpy.style.optparser import ArgumentPrinter
+from webkitpy.style.optparser import CommandOptionValues as ProcessorOptions
+from webkitpy.style.optparser import DefaultCommandOptionValues
 
 
 class ArgumentPrinterTest(unittest.TestCase):
@@ -72,21 +60,21 @@ class ArgumentPrinterTest(unittest.TestCase):
                           self._printer.to_flag_string(options))
 
 
-class ArgumentParserTest(unittest.TestCase):
+class ArgumentParserTest(LoggingTestCase):
 
     """Test the ArgumentParser class."""
 
-    def setUp(self):
-        self._log = LogTesting.setUp(self)
+    class _MockStdErr(object):
 
-    def tearDown(self):
-        self._log.tearDown()
+        def write(self, message):
+            # We do not want the usage string or style categories
+            # to print during unit tests, so print nothing.
+            return
 
-    # We will put the tests for found_scm False in a common location.
-    def _parse(self, args, found_scm=True):
+    def _parse(self, args):
         """Call a test parser.parse()."""
         parser = self._create_parser()
-        return parser.parse(args, found_scm)
+        return parser.parse(args)
 
     def _create_defaults(self):
         """Return a DefaultCommandOptionValues instance for testing."""
@@ -96,18 +84,17 @@ class ArgumentParserTest(unittest.TestCase):
 
     def _create_parser(self):
         """Return an ArgumentParser instance for testing."""
-        def stderr_write(message):
-            # We do not want the usage string or style categories
-            # to print during unit tests, so print nothing.
-            return
-
         default_options = self._create_defaults()
 
         all_categories = ["build" ,"whitespace"]
+
+        mock_stderr = self._MockStdErr()
+
         return ArgumentParser(all_categories=all_categories,
                               base_filter_rules=[],
                               default_options=default_options,
-                              stderr_write=stderr_write)
+                              mock_stderr=mock_stderr,
+                              usage="test usage")
 
     def test_parse_documentation(self):
         parse = self._parse
@@ -125,29 +112,39 @@ class ArgumentParserTest(unittest.TestCase):
 
         # Pass an unsupported argument.
         self.assertRaises(SystemExit, parse, ['--bad'])
+        self.assertLog(['ERROR: no such option: --bad\n'])
 
-        self.assertRaises(ValueError, parse, ['--min-confidence=bad'])
-        self.assertRaises(ValueError, parse, ['--min-confidence=0'])
-        self.assertRaises(ValueError, parse, ['--min-confidence=6'])
+        self.assertRaises(SystemExit, parse, ['--git-diff=aa..bb'])
+        self.assertLog(['ERROR: invalid --git-commit option: '
+                        'option does not support ranges "..": aa..bb\n'])
+
+        self.assertRaises(SystemExit, parse, ['--min-confidence=bad'])
+        self.assertLog(['ERROR: option --min-confidence: '
+                        "invalid integer value: 'bad'\n"])
+        self.assertRaises(SystemExit, parse, ['--min-confidence=0'])
+        self.assertLog(['ERROR: option --min-confidence: invalid integer: 0: '
+                        'value must be between 1 and 5\n'])
+        self.assertRaises(SystemExit, parse, ['--min-confidence=6'])
+        self.assertLog(['ERROR: option --min-confidence: invalid integer: 6: '
+                        'value must be between 1 and 5\n'])
         parse(['--min-confidence=1']) # works
         parse(['--min-confidence=5']) # works
 
-        self.assertRaises(ValueError, parse, ['--output=bad'])
+        self.assertRaises(SystemExit, parse, ['--output=bad'])
+        self.assertLog(['ERROR: option --output-format: invalid choice: '
+                        "'bad' (choose from 'emacs', 'vs7')\n"])
         parse(['--output=vs7']) # works
 
         # Pass a filter rule not beginning with + or -.
-        self.assertRaises(ValueError, parse, ['--filter=build'])
+        self.assertRaises(SystemExit, parse, ['--filter=build'])
+        self.assertLog(['ERROR: Invalid filter rule "build": '
+                        'every rule must start with + or -.\n'])
         parse(['--filter=+build']) # works
         # Pass files and git-commit at the same time.
-        self.assertRaises(SystemExit, parse, ['--git-commit=', 'file.txt'])
-
-        # Paths must be passed when found_scm is False.
-        self.assertRaises(SystemExit, parse, [], found_scm=False)
-        messages = ["ERROR: WebKit checkout not found: You must run this "
-                    "script from inside a WebKit checkout if you are not "
-                    "passing specific paths to check.\n"]
-        self._log.assertMessages(messages)
-        self.assertRaises(SystemExit, parse, ['--verbose=3'], found_scm=False)
+        self.assertRaises(SystemExit, parse, ['--git-commit=committish',
+                                              'file.txt'])
+        self.assertLog(['ERROR: You cannot provide both paths and '
+                        'a git commit at the same time.\n'])
 
     def test_parse_default_arguments(self):
         parse = self._parse
@@ -170,7 +167,13 @@ class ArgumentParserTest(unittest.TestCase):
         self.assertEquals(options.min_confidence, 4)
         (files, options) = parse(['--output=emacs'])
         self.assertEquals(options.output_format, 'emacs')
+        (files, options) = parse(['-g', 'commit'])
+        self.assertEquals(options.git_commit, 'commit')
         (files, options) = parse(['--git-commit=commit'])
+        self.assertEquals(options.git_commit, 'commit')
+        (files, options) = parse(['--git-diff=commit'])
+        self.assertEquals(options.git_commit, 'commit')
+        (files, options) = parse(['--git-since=commit'])
         self.assertEquals(options.git_commit, 'commit')
         (files, options) = parse(['--verbose'])
         self.assertEquals(options.is_verbose, True)

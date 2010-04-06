@@ -1,3 +1,181 @@
+2010-04-06  Oliver Hunt  <oliver@apple.com>
+
+        And another one.
+
+        * JavaScriptCore.vcproj/jsc/jscCommon.vsprops:
+
+2010-04-05  Oliver Hunt  <oliver@apple.com>
+
+        And another build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCoreGenerated.make:
+
+2010-04-05  Oliver Hunt  <oliver@apple.com>
+
+        Build fix
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+
+2010-04-05  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Support weak maps in JSC
+        https://bugs.webkit.org/show_bug.cgi?id=37132
+
+        Expose an API to allow creation of a map for storing
+        weak JS references.
+
+        * API/JSWeakObjectMapRefInternal.h: Added.
+        (OpaqueJSWeakObjectMap::create):
+        (OpaqueJSWeakObjectMap::map):
+        (OpaqueJSWeakObjectMap::~OpaqueJSWeakObjectMap):
+        (OpaqueJSWeakObjectMap::OpaqueJSWeakObjectMap):
+        * API/JSWeakObjectMapRefPrivate.cpp: Added.
+        * API/JSWeakObjectMapRefPrivate.h: Added.
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/JSGlobalObject.h:
+        (JSC::JSGlobalObject::registerWeakMap):
+        (JSC::JSGlobalObject::deregisterWeakMap):
+
+2010-04-05  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Symbian] Consolidate Symbian WINSCW environment configuration
+        https://bugs.webkit.org/show_bug.cgi?id=37100
+
+        Move the "undefinition" of WIN32 and _WIN32 from WebCore/config.h
+        to JavaScriptCore/wtf/Platform.h as it is not specific to WebCore.
+
+        PLATFORM(WIN) and OS(WIN) no longer needs to be undefined as
+        undefining WIN32 takes care of it.
+
+        * wtf/Platform.h:
+
+2010-04-03  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37068
+        Change UString to use a 0 rep for null strings instead of a null object.
+
+        No performance impact.
+
+        * JavaScriptCore.exp:
+        * runtime/InternalFunction.cpp:
+        (JSC::InternalFunction::InternalFunction):
+        * runtime/JSString.h:
+        (JSC::RopeBuilder::JSString):
+        * runtime/UString.cpp:
+        (JSC::initializeUString):
+        * runtime/UString.h:
+        (JSC::UString::UString):
+        (JSC::UString::data):
+        (JSC::UString::size):
+        (JSC::UString::isNull):
+        (JSC::UString::isEmpty):
+        (JSC::UString::cost):
+
+2010-04-03  Balazs Kelemen  <kb@inf.u-szeged.hu>
+
+        Reviewed by Oliver Hunt.
+
+        Fix uninitalised members in CallLinkInfo and BytecodeGenerator.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36816
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::CodeBlock):
+        * bytecode/CodeBlock.h:
+        (JSC::CallLinkInfo::CallLinkInfo):
+
+2010-04-03  yael aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Enable HTMLProgressElement for Safari on OSX
+        https://bugs.webkit.org/show_bug.cgi?id=36961
+
+        * Configurations/FeatureDefines.xcconfig:
+
+2010-04-02  Ruben Van Boxem  <vanboxem.ruben@gmail.com>
+
+        Reviewed by Eric Seidel.
+
+        Mingw-w64 fixes for JavaScriptCore
+        https://bugs.webkit.org/show_bug.cgi?id=35607
+
+        * runtime/Collector.cpp: use the msvc code for mingw-w64 (but not mingw-w32)
+        (JSC::Heap::allocateBlock):
+        (JSC::Heap::freeBlockPtr):
+        (JSC::currentThreadStackBase):
+        (JSC::currentThreadStackBase):
+        * wtf/Platform.h: added COMPILER(MINGW64) check to differentiate between mingw.org and mingw-w64 functions
+
+2010-04-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Build fix: updated the .def file.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-04-02  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Inlined toThisString and toThisJSString to avoid virtual function call overhead
+        https://bugs.webkit.org/show_bug.cgi?id=37039
+        
+        Maybe a 1% speedup on iBench JS.
+
+        * JavaScriptCore.exp: New exports.
+
+        * runtime/JSCell.cpp:
+        * runtime/JSCell.h:
+        * runtime/JSNumberCell.cpp:
+        * runtime/JSNumberCell.h:
+        * runtime/JSString.cpp:
+        * runtime/JSString.h:
+        * runtime/JSValue.h:
+        * runtime/JSZombie.h:
+        (JSC::JSZombie::toThisObject): Nixed the old virtual-type implementation.
+
+        * runtime/JSObject.h:
+        (JSC::JSValue::toThisString):
+        (JSC::JSValue::toThisJSString): Added the inlined implementation.
+
+2010-04-02  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Beef up documentation for ASSERT* and CRASH macros a bit.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36527
+
+        * wtf/Assertions.h:
+
+2010-04-02  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed, minor build fix.
+
+        Change the order of the member initialisation list
+        in constructor to match declaration order
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::Heap):
+
+2010-04-01  Kinuko Yasuda  <kinuko@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Add FileThread for async file operation support in FileReader and FileWriter
+        https://bugs.webkit.org/show_bug.cgi?id=36896
+
+        Add ENABLE_FILE_READER and ENABLE_FILE_WRITER flags.
+
+        * Configurations/FeatureDefines.xcconfig:
+
 2010-04-01  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by NOBODY (windows build fix pt II).

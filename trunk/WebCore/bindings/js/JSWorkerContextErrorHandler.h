@@ -28,25 +28,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "V8Screen.h"
+#ifndef JSWorkerContextErrorHandler_h
+#define JSWorkerContextErrorHandler_h
 
-#include "V8DOMWindow.h"
-#include "V8DOMWrapper.h"
+#include "JSEventListener.h"
 
 namespace WebCore {
 
-v8::Handle<v8::Value> toV8(Screen* impl)
-{
-    if (!impl)
-        return v8::Null();
-    v8::Handle<v8::Object> wrapper = getDOMObjectMap().get(impl);
-    if (wrapper.IsEmpty()) {
-        wrapper = V8Screen::wrap(impl);
-        if (!wrapper.IsEmpty())
-            V8DOMWrapper::setHiddenWindowReference(impl->frame(), V8DOMWindow::screenIndex, wrapper);
+class JSWorkerContextErrorHandler : public JSEventListener {
+public:
+    static PassRefPtr<JSWorkerContextErrorHandler> create(JSC::JSObject* listener, JSC::JSObject* wrapper, bool isAttribute, DOMWrapperWorld* isolatedWorld)
+    {
+        return adoptRef(new JSWorkerContextErrorHandler(listener, wrapper, isAttribute, isolatedWorld));
     }
-    return wrapper;
+
+    virtual ~JSWorkerContextErrorHandler();
+
+private:
+    JSWorkerContextErrorHandler(JSC::JSObject* function, JSC::JSObject* wrapper, bool isAttribute, DOMWrapperWorld* isolatedWorld);
+    virtual void handleEvent(ScriptExecutionContext*, Event*);
+};
+
+// Creates a JS EventListener for "onerror" event handler in worker context. It has custom implementation because
+// unlike other event listeners it accepts three parameters.
+inline PassRefPtr<JSWorkerContextErrorHandler> createJSWorkerContextErrorHandler(JSC::ExecState* exec, JSC::JSValue listener, JSC::JSObject* wrapper)
+{
+    if (!listener.isObject())
+        return 0;
+
+    return JSWorkerContextErrorHandler::create(asObject(listener), wrapper, true, currentWorld(exec));
 }
 
 } // namespace WebCore
+
+#endif // JSWorkerContextErrorHandler_h

@@ -29,25 +29,38 @@
  */
 
 #include "config.h"
-#include "V8Navigator.h"
 
-#include "RuntimeEnabledFeatures.h"
-#include "V8DOMWindow.h"
-#include "V8DOMWrapper.h"
+#if ENABLE(WORKERS)
+
+#include "V8WorkerContextErrorHandler.h"
+
+#include "ErrorEvent.h"
+#include "V8Binding.h"
 
 namespace WebCore {
 
-v8::Handle<v8::Value> toV8(Navigator* impl)
+V8WorkerContextErrorHandler::V8WorkerContextErrorHandler(v8::Local<v8::Object> listener, bool isInline, const WorldContextHandle& worldContext)
+    : V8WorkerContextEventListener(listener, isInline, worldContext)
 {
-    if (!impl)
-        return v8::Null();
-    v8::Handle<v8::Object> wrapper = getDOMObjectMap().get(impl);
-    if (wrapper.IsEmpty()) {
-        wrapper = V8Navigator::wrap(impl);
-        if (!wrapper.IsEmpty())
-            V8DOMWrapper::setHiddenWindowReference(impl->frame(), V8DOMWindow::navigatorIndex, wrapper);
+}
+
+v8::Local<v8::Value> V8WorkerContextErrorHandler::callListenerFunction(ScriptExecutionContext* context, v8::Handle<v8::Value> jsEvent, Event* event)
+{
+    ASSERT(event->isErrorEvent());
+    v8::Local<v8::Object> listener = getListenerObject(context);
+    v8::Local<v8::Value> returnValue;
+    if (!listener.IsEmpty() && listener->IsFunction()) {
+        ErrorEvent* errorEvent = static_cast<ErrorEvent*>(event);
+        v8::Local<v8::Function> callFunction = v8::Local<v8::Function>::Cast(listener);
+        v8::Local<v8::Object> thisValue = v8::Context::GetCurrent()->Global();
+        v8::Handle<v8::Value> parameters[3] = { v8String(errorEvent->message()), v8String(errorEvent->filename()), v8::Integer::New(errorEvent->lineno()) };
+        returnValue = callFunction->Call(thisValue, 3, parameters);
+        if (!returnValue.IsEmpty() && returnValue->IsBoolean() && !returnValue->BooleanValue())
+            event->preventDefault();
     }
-    return wrapper;
+    return returnValue;
 }
 
 } // namespace WebCore
+
+#endif // WORKERS

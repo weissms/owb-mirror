@@ -34,42 +34,73 @@ from webkitpy.thirdparty.BeautifulSoup import BeautifulSoup
 
 
 class BuilderTest(unittest.TestCase):
-
-    def setUp(self):
-        self.buildbot = BuildBot()
-        self.builder = Builder("Test Builder", self.buildbot)
+    def _install_fetch_build(self, failure):
         def _mock_fetch_build(build_number):
-            return Build(
+            build = Build(
                 builder=self.builder,
                 build_number=build_number,
                 revision=build_number + 1000,
                 is_green=build_number < 4
             )
+            build._layout_test_results = LayoutTestResults(
+                "http://buildbot.example.com/foo", {
+                    LayoutTestResults.fail_key: failure(build_number),
+                })
+            return build
         self.builder._fetch_build = _mock_fetch_build
 
-    def test_find_green_to_red_transition(self):
-        (green_build, red_build) = self.builder.find_green_to_red_transition(10)
+    def setUp(self):
+        self.buildbot = BuildBot()
+        self.builder = Builder("Test Builder", self.buildbot)
+        self._install_fetch_build(lambda build_number: ["test1", "test2"])
+
+    def test_find_failure_transition(self):
+        (green_build, red_build) = self.builder.find_failure_transition(self.builder.build(10))
         self.assertEqual(green_build.revision(), 1003)
         self.assertEqual(red_build.revision(), 1004)
 
-        (green_build, red_build) = self.builder.find_green_to_red_transition(10, look_back_limit=2)
+        (green_build, red_build) = self.builder.find_failure_transition(self.builder.build(10), look_back_limit=2)
         self.assertEqual(green_build, None)
         self.assertEqual(red_build.revision(), 1008)
 
     def test_none_build(self):
         self.builder._fetch_build = lambda build_number: None
-        (green_build, red_build) = self.builder.find_green_to_red_transition(10)
+        (green_build, red_build) = self.builder.find_failure_transition(self.builder.build(10))
         self.assertEqual(green_build, None)
         self.assertEqual(red_build, None)
 
-    def test_suspect_revisions_for_green_to_red_transition(self):
-        self.assertEqual(self.builder.suspect_revisions_for_green_to_red_transition(10), [1004])
-        self.assertEqual(self.builder.suspect_revisions_for_green_to_red_transition(10, look_back_limit=2), [])
+    def test_flaky_tests(self):
+        self._install_fetch_build(lambda build_number: ["test1"] if build_number % 2 else ["test2"])
+        (green_build, red_build) = self.builder.find_failure_transition(self.builder.build(10))
+        self.assertEqual(green_build.revision(), 1009)
+        self.assertEqual(red_build.revision(), 1010)
+
+    def test_failure_and_flaky(self):
+        self._install_fetch_build(lambda build_number: ["test1", "test2"] if build_number % 2 else ["test2"])
+        (green_build, red_build) = self.builder.find_failure_transition(self.builder.build(10))
+        self.assertEqual(green_build.revision(), 1003)
+        self.assertEqual(red_build.revision(), 1004)
+
+    def test_no_results(self):
+        self._install_fetch_build(lambda build_number: ["test1", "test2"] if build_number % 2 else ["test2"])
+        (green_build, red_build) = self.builder.find_failure_transition(self.builder.build(10))
+        self.assertEqual(green_build.revision(), 1003)
+        self.assertEqual(red_build.revision(), 1004)
+
+    def test_failure_after_flaky(self):
+        self._install_fetch_build(lambda build_number: ["test1", "test2"] if build_number > 6 else ["test3"])
+        (green_build, red_build) = self.builder.find_failure_transition(self.builder.build(10))
+        self.assertEqual(green_build.revision(), 1006)
+        self.assertEqual(red_build.revision(), 1007)
+
+    def test_blameworthy_revisions(self):
+        self.assertEqual(self.builder.blameworthy_revisions(10), [1004])
+        self.assertEqual(self.builder.blameworthy_revisions(10, look_back_limit=2), [])
         # Flakey test avoidance requires at least 2 red builds:
-        self.assertEqual(self.builder.suspect_revisions_for_green_to_red_transition(4), [])
-        self.assertEqual(self.builder.suspect_revisions_for_green_to_red_transition(4, avoid_flakey_tests=False), [1004])
+        self.assertEqual(self.builder.blameworthy_revisions(4), [])
+        self.assertEqual(self.builder.blameworthy_revisions(4, avoid_flakey_tests=False), [1004])
         # Green builder:
-        self.assertEqual(self.builder.suspect_revisions_for_green_to_red_transition(3), [])
+        self.assertEqual(self.builder.blameworthy_revisions(3), [])
 
     def test_build_caching(self):
         self.assertEqual(self.builder.build(10), self.builder.build(10))
@@ -207,38 +238,40 @@ class BuildBotTest(unittest.TestCase):
 
         # For complete testing, this list should match the list of builders at build.webkit.org:
         example_builders = [
-            { 'name': u'Tiger Intel Release', },
-            { 'name': u'Leopard Intel Release (Build)', },
-            { 'name': u'Leopard Intel Release (Tests)', },
-            { 'name': u'Leopard Intel Debug (Build)', },
-            { 'name': u'Leopard Intel Debug (Tests)', },
-            { 'name': u'SnowLeopard Intel Release (Build)', },
-            { 'name': u'SnowLeopard Intel Release (Tests)', },
-            { 'name': u'SnowLeopard Intel Leaks', },
-            { 'name': u'Windows Release (Build)', },
-            { 'name': u'Windows Release (Tests)', },
-            { 'name': u'Windows Debug (Build)', },
-            { 'name': u'Windows Debug (Tests)', },
-            { 'name': u'Qt Linux Release', },
-            { 'name': u'Gtk Linux Release', },
-            { 'name': u'Gtk Linux 32-bit Debug', },
-            { 'name': u'Gtk Linux 64-bit Debug', },
-            { 'name': u'Chromium Linux Release', },
-            { 'name': u'Chromium Mac Release', },
-            { 'name': u'Chromium Win Release', },
+            {'name': u'Tiger Intel Release', },
+            {'name': u'Leopard Intel Release (Build)', },
+            {'name': u'Leopard Intel Release (Tests)', },
+            {'name': u'Leopard Intel Debug (Build)', },
+            {'name': u'Leopard Intel Debug (Tests)', },
+            {'name': u'SnowLeopard Intel Release (Build)', },
+            {'name': u'SnowLeopard Intel Release (Tests)', },
+            {'name': u'SnowLeopard Intel Leaks', },
+            {'name': u'Windows Release (Build)', },
+            {'name': u'Windows Release (Tests)', },
+            {'name': u'Windows Debug (Build)', },
+            {'name': u'Windows Debug (Tests)', },
+            {'name': u'Qt Linux Release', },
+            {'name': u'Gtk Linux Release', },
+            {'name': u'Gtk Linux 32-bit Debug', },
+            {'name': u'Gtk Linux 64-bit Debug', },
+            {'name': u'Chromium Linux Release', },
+            {'name': u'Chromium Mac Release', },
+            {'name': u'Chromium Win Release', },
         ]
-        name_regexps = ["SnowLeopard.*Build", "Leopard", "Windows.*Build", "Chromium"]
+        name_regexps = ['SnowLeopard.*Build', 'SnowLeopard.*Test', 'Leopard', 'Tiger', 'Windows.*Build', 'Chromium']
         expected_builders = [
-            { 'name': u'Leopard Intel Release (Build)', },
-            { 'name': u'Leopard Intel Release (Tests)', },
-            { 'name': u'Leopard Intel Debug (Build)', },
-            { 'name': u'Leopard Intel Debug (Tests)', },
-            { 'name': u'SnowLeopard Intel Release (Build)', },
-            { 'name': u'Windows Release (Build)', },
-            { 'name': u'Windows Debug (Build)', },
-            { 'name': u'Chromium Linux Release', },
-            { 'name': u'Chromium Mac Release', },
-            { 'name': u'Chromium Win Release', },
+            {'name': u'Tiger Intel Release', },
+            {'name': u'Leopard Intel Release (Build)', },
+            {'name': u'Leopard Intel Release (Tests)', },
+            {'name': u'Leopard Intel Debug (Build)', },
+            {'name': u'Leopard Intel Debug (Tests)', },
+            {'name': u'SnowLeopard Intel Release (Build)', },
+            {'name': u'SnowLeopard Intel Release (Tests)', },
+            {'name': u'Windows Release (Build)', },
+            {'name': u'Windows Debug (Build)', },
+            {'name': u'Chromium Linux Release', },
+            {'name': u'Chromium Mac Release', },
+            {'name': u'Chromium Win Release', },
         ]
 
         # This test should probably be updated if the default regexp list changes

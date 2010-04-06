@@ -25680,6 +25680,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\platform\text\SuffixTree.h"
+					>
+				</File>
+				<File
 					RelativePath="..\platform\graphics\StringTruncator.cpp"
 					>
 				</File>
@@ -29481,6 +29485,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\dom\UserGestureIndicator.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\UserGestureIndicator.h"
+				>
+			</File>
+			<File
 				RelativePath="..\dom\WebKitAnimationEvent.cpp"
 				>
 			</File>
@@ -30222,6 +30234,14 @@
 			</File>
 			<File
 				RelativePath="..\html\FileList.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileThread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileThread.h"
 				>
 			</File>
 			<File
@@ -40042,6 +40062,61 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSWorkerContextErrorHandler.cpp" >
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Internal|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_Cairo|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_All|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\bindings\js\JSWorkerContextErrorHandler.h"
+					>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSXMLHttpRequestConstructor.cpp"

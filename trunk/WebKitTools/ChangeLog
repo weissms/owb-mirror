@@ -1,3 +1,682 @@
+2010-04-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Turns out commit_info.committer() can be None
+        https://bugs.webkit.org/show_bug.cgi?id=37106
+
+        When the committer isn't in committers.py, the committer() property on
+        commit_info can be None.  We need to handle that case gracefully.
+
+        * Scripts/webkitpy/common/checkout/commitinfo.py:
+        * Scripts/webkitpy/tool/bot/sheriff.py:
+        * Scripts/webkitpy/tool/bot/sheriff_unittest.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+
+2010-04-06  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] [Symbian] Build fix for Dumprendertree if Qt printing is not supported
+        https://bugs.webkit.org/show_bug.cgi?id=37082
+
+        Use the QT_NO_PRINTER guard to flag QPrinter dependent code.
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::DumpRenderTree::dryRunPrint):
+
+2010-04-05  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        SheriffBot should force_build builders that are idle and have failed exactly once
+        https://bugs.webkit.org/show_bug.cgi?id=37059
+
+        We can get into a deadlocked state where the commit-queue is stopped
+        because the builders are red but the SheriffBot hasn't taken action
+        because the builder has failed only once.  The SheriffBot should force
+        build idle builders that have failed exactly once to either turn the
+        tree green again (if the test was flaky) or trigger the "failed twice"
+        remedies (IRC and bug posts).
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/tool/bot/sheriff.py:
+        * Scripts/webkitpy/tool/bot/sheriff_unittest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+
+2010-04-05  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Fixed check-webkit-style issue where the script was prematurely
+        exiting when encountering deleted files in patches.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37122
+
+        * Scripts/webkitpy/style/checker.py:
+          - Changed non-existent file message from ERROR to WARN.
+          - StyleChecker.check_file() no longer raises an exception when
+            a file is not found.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated unit tests as necessary.
+
+2010-04-05  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        SheriffBot should include blamelist when posting to bugs
+        https://bugs.webkit.org/show_bug.cgi?id=37113
+
+        When posting on bugs, we should include the full list of SVN revisions
+        that caused the regression to folks have a better sense of whether they
+        are to blame.
+
+        * Scripts/webkitpy/tool/bot/sheriff.py:
+        * Scripts/webkitpy/tool/bot/sheriff_unittest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot_unittest.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+
+2010-04-05  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed after discussion with Adam, Darin, and Eric.
+
+        Deleted the auto-install directory since it is no longer needed in
+        source control (it is auto-generated).
+
+        Also added webkitpy/thirdparty/autoinstalled to webkitpy/thirdparty's
+        svn:ignore property.
+
+        * Scripts/webkitpy/thirdparty/autoinstalled: Removed.
+
+2010-04-05  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Test case for <http://webkit.org/b/37115> / <rdar://problem/7829331>.
+        REGRESSION(r56989): Crash in Mail in WebCore::Position::isCandidate when deleting block using block deletion UI
+
+        Add a JavaScript hook in DRT to call through to WebView's -setEditable:.  This is required in order to reproduce
+        the crash.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (setWebViewEditableCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::setWebViewEditable):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::setWebViewEditable):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::setWebViewEditable):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::setWebViewEditable):
+        (LayoutTestController::layerTreeAsText):
+
+2010-04-05  Darin Adler  <darin@apple.com>
+
+        Ignore more files the Python tools strew about the working directory.
+
+        * Scripts/webkitpy: Added property svn:ignore.
+        * Scripts/webkitpy/common: Added property svn:ignore.
+        * Scripts/webkitpy/common/checkout: Added property svn:ignore.
+        * Scripts/webkitpy/common/config: Added property svn:ignore.
+        * Scripts/webkitpy/common/net: Added property svn:ignore.
+        * Scripts/webkitpy/common/thread: Added property svn:ignore.
+        * Scripts/webkitpy/python24: Added property svn:ignore.
+        * Scripts/webkitpy/thirdparty/autoinstalled: Modified property svn:ignore.
+        * Scripts/webkitpy/tool/bot: Added property svn:ignore.
+
+2010-04-05  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Add Vitaly Repeshko as a committer.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-05  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.  Update kenne's IRC nick to his registered nick.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-05  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        assorted helper functions and cleanup of git utilities
+        https://bugs.webkit.org/show_bug.cgi?id=37103
+
+        * Scripts/webkitpy/common/checkout/scm.py:
+        No code currently uses the optional dry_run argument. So removing it.
+        Change all uses of "trunk" to read the correct value out of the git config.
+        Made the dcommit call actually get called when dry_run==true.
+        * Scripts/webkitpy/common/checkout/scm_unittest.py:
+        * Scripts/webkitpy/common/net/credentials.py:
+        Move the git config call into scm.
+        * Scripts/webkitpy/common/net/credentials_unittest.py:
+        * Scripts/webkitpy/common/system/executive.py:
+        If return_exit_code==true, don't error out, just return the exit_code.
+
+2010-04-05  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        prepare-ChangeLog should take a merge-base for which git branch to diff against.
+        https://bugs.webkit.org/show_bug.cgi?id=36394
+
+        * Scripts/prepare-ChangeLog:
+
+2010-04-05  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Removed the PatchStyleErrorHandler class and incorporated its
+        functionality into the DefaultStyleErrorHandler class.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37067
+
+        * Scripts/webkitpy/style/checker.py:
+          - In the StyleChecker class:
+            - Added a line_number parameter to the check_file() method.
+            - Renamed the handle_style_error parameter to
+              mock_handle_style_error to be consistent with the other mock_*
+              parameter names.
+            - Added a mock_check_file parameter to the check_patch() method
+              to facilitate unit testing the changes in this patch.
+            - Rewrote the check_patch() method with the patch-parsing logic
+              taken from the PatchStyleErrorHandler class.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Added a StyleCheckerCheckFileBase class and sub-classed the
+            existing StyleCheckerCheckFileTest class from it.
+          - Added a StyleCheckerCheckPatchTest class to unit-test the
+            rewritten check_patch() method.
+          - Removed the vestigial __main__ code at the bottom of the file.
+            This is left over from when check-webkit-style was implemented
+            as a module and a wrapper module.
+
+        * Scripts/webkitpy/style/error_handlers.py:
+          - Added an optional line_numbers parameter to the
+            DefaultStyleErrorHandler class constructor and adjusted the
+            __call__() method as necessary.
+          - Removed the PatchStyleErrorHandler class.
+
+        * Scripts/webkitpy/style/error_handlers_unittest.py:
+          - Removed the PatchStyleErrorHandlerTest class which unit-tested
+            the PatchStyleErrorHandler class which is being removed in this
+            patch.
+          - Added a test_line_numbers() test method to the
+            DefaultStyleErrorHandlerTest class to test use of the
+            DefaultStyleErrorHandler's new line_numbers attribute.
+
+2010-04-05  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Tighten SheriffBot's flaky test detector
+        https://bugs.webkit.org/show_bug.cgi?id=37063
+
+        Instead of just looking for two sequential red builds, look for two
+        sequential failures of the same test.  This should reduce sheriffbot
+        false positive substantially.
+
+        I'm landing this change unreviewed because I've noticed SheriffBot
+        triggering a lot more false positives now that we've expanded the set
+        of core builders.  I've tried to take Eric's comments on Bug 37063 into
+        account.  I'm happy to iterate on this patch tomorrow once Eric wakes
+        up.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/common/net/buildbot_unittest.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+
+2010-04-04  John Gregg  <johnnyg@google.com>
+
+        Unreviewed, add myself to the committers list.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-04  Robert Hogan  <robert@webkit.org>
+
+        Unreviewed, add myself to the committers list.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-04  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Unreviewed, adding my IRC nickname to committers.py
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-04  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Refactored check-webkit-style's option-parsing code.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37064
+
+        * Scripts/check-webkit-style:
+          - Moved the "WebKit checkout not found" check from
+            ArgumentParser.parse() to the calling code.
+          - Moved the --git-commit argument validation from the calling
+            code to ArgumentParser.parse().
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Updated a unit test as necessary.
+
+        * Scripts/webkitpy/style/optparser.py:
+          - Renamed ArgumentParser._exit_with_help() to _parse_error()
+            and made its error_message parameter required.
+          - Removed the found_checkout parameter from ArgumentParser.parse().
+          - Removed the "WebKit checkout not found" check and moved it
+            to the calling code.
+          - Added --git-commit argument checking.
+
+        * Scripts/webkitpy/style/optparser_unittest.py:
+          - Adjusted the import statements to be fully qualified.
+          - Changed the ArgumentParserTest class to inherit from
+            LoggingTestCase, and updated the class as necessary.
+          - Added a unit-test for the --git-commit validation.
+          - Added unit tests for the --git-diff and --git-since variants
+            of --git-commit.
+
+2010-04-03  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        The check-webkit-style script now logs an ERROR and exits when
+        encountering a file path that does not exist.  Previously, it failed
+        silently on such paths.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36957
+
+        * Scripts/webkitpy/common/system/logtesting.py:
+          - Added a FIXME to rename the LoggingTestCase class to
+            LoggingTestCaseBase.
+
+        * Scripts/webkitpy/style/checker.py:
+          - In the StyleChecker.check_file() method:
+            - Added a mock_os_path_exists parameter.
+            - Renamed the process_file parameter to mock_process_file.
+            - Added logic to log an error and exist if the given path does
+              not exist.
+
+        * Scripts/webkitpy/style/checker_unittest.py:
+          - Refactored the StyleCheckerCheckFileTest class slightly to
+            inherit from LoggingTestCase.
+          - Added a test method to unit-test the case of a file that
+            does not exist.
+          - Adjusted the other test methods as necessary.
+
+2010-04-03  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add Tiger Bot to the list of "core builders" (builders which block the commit-queue when red)
+        https://bugs.webkit.org/show_bug.cgi?id=33289
+
+        Add Tiger and SnowLeopard Tests to the core builders.  This is a bit of
+        an experiment now that the bots are green.  Hopefully we can keep them
+        on the list and have the tree stay greener.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+
+2010-04-02  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Have Eric and Adam watch the SheriffBot
+        https://bugs.webkit.org/show_bug.cgi?id=37054
+
+        * Scripts/webkitpy/tool/bot/sheriff.py:
+        * Scripts/webkitpy/tool/bot/sheriff_unittest.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+
+2010-04-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        commit-queue should ignore builders when landing rollouts
+        https://bugs.webkit.org/show_bug.cgi?id=37051
+
+        When we moved the "builders are red" check into the master process, we
+        forgot about rollouts.  I thought we had a test covering this case, but
+        looking at the test, it was a bit too loose.  I added a new test and
+        introduced some new logging technology into MockTool to make the test
+        tighter.
+
+        * Scripts/webkitpy/tool/commands/queues.py:
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+
+2010-04-02  David Levin  <levin@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        sherrifbot should ensure that the rollout reason doesn't start with - (and fix webkit-patch upload).
+        https://bugs.webkit.org/show_bug.cgi?id=37030
+
+        * Scripts/webkitpy/tool/bot/sheriff.py: Ensure that the rollout reason doesn't
+          start with -.
+        * Scripts/webkitpy/tool/bot/sheriffircbot_unittest.py: A test with a rollout
+          reason which starts with -.
+        * Scripts/webkitpy/tool/steps/createbug.py: Fix webkit-patch upload.
+
+2010-04-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Fixed check-webkit-style to recognize the short form of the
+        --verbose option, as stated in --help.
+
+        * Scripts/check-webkit-style:
+          - Tweaked one line.
+
+2010-04-02  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix for DumpRenderTree after addition of layerTreeAsText.
+
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::layerTreeAsText):
+
+2010-04-02  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Accept XHTML-MP content type as XHTML content
+        https://bugs.webkit.org/show_bug.cgi?id=34262
+
+        Register xhtmlmp file extension as the new type
+        for XHTML-MP test content.
+
+        * Scripts/run-webkit-tests:
+        * Scripts/webkitpy/layout_tests/layout_package/test_files.py:
+        * Scripts/webkitpy/layout_tests/port/lighttpd.conf:
+
+2010-04-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        create-rollout doesn't fill out ChangeLog
+        https://bugs.webkit.org/show_bug.cgi?id=37010
+
+        The contract between apply_reverse_diff and PrepareChangeLogForRevert
+        was unclear.  I broke filling out the ChangeLog during rollout earlier
+        when I changed apply_reverse_diff to revert the ChangeLogs because
+        PrepareChangeLogForRevert thought that it was supposed to do that.
+        I've now taught PrepareChangeLogsForRevert the new contract.
+
+        It's unclear to me how to test this change because it's essentially an
+        integration issue that requires the file system.  At some point we
+        should think about a testing strategy for integration.  As the system
+        becomes larger, we're running into more of these issues.
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/tool/steps/preparechangelogforrevert.py:
+
+2010-04-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add cr-win-ews to QueueStatusServer
+        https://bugs.webkit.org/show_bug.cgi?id=37004
+
+        * QueueStatusServer/model/queues.py:
+        * QueueStatusServer/templates/dashboard.html:
+        * QueueStatusServer/templates/statusbubble.html:
+
+2010-04-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Unit-test networktransaction.py's log messages, and add a base
+        class to make unit-testing log messages even easier.
+        
+        https://bugs.webkit.org/show_bug.cgi?id=36958
+
+        The purpose of this patch is also to provide a mini-tutorial on
+        how to unit-test Python logging.py messages.
+
+        * Scripts/webkitpy/common/net/networktransaction_unittest.py:
+          - Unit-tested the log messages in test_retry().
+
+        * Scripts/webkitpy/common/system/logtesting.py:
+          - Adjusted the LogTesting class by moving the code that clears
+            the array of log messages into a finally block.  This prevents
+            redundant AssertionErrors from getting rendered to the screen
+            while running unit tests.
+          - Added a LoggingTestCase class so the setUp() and tearDown()
+            methods do not need to be implemented in order to test logging.
+            Rather, TestCase classes can simply inherit from this class.
+
+2010-04-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Re-wrote check-webkit-style's argument parsing code to use
+        Python's optparser module and more uniform error-handling logic.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34676
+
+        * Scripts/webkitpy/style/optparser.py:
+          - Removed "option help" from check-webkit-style's usage string
+            since that is provided separately by the OptionParser class.
+          - Also changed the usage string from a function to a constant
+            string _USAGE.
+          - Added an _EPILOG string which renders after OptionParser's
+            usage string and option help.
+          - In the ArgumentParser class:
+            - Changed the constructor's stderr_write parameter to a
+              mock_stderr since the OptionParser accepts a sys.stderr
+              substitute rather than a sys.stderr.write substitute.
+            - Changed the constructor to set a _parser data attribute with
+              an OptionParser instance.
+            - Added a _create_option_parser() method which instantiates
+              the OptionParser.
+            - Updated _exit_with_help() to interact with the OptionParser's
+              help method.
+            - Updated the parse() method as necessary.  Also changed the
+              raising of ValueErrors to calls to _exit_with_help().
+
+        * Scripts/webkitpy/style/optparser_unittest.py:
+          - Removed the CreateUsageTest class since the create_usage method
+            was replaced by a constant string.
+          - Added a _MockStdErr class to the ArgumentParserTest class.
+          - Updated the unit tests as necessary.
+
+
+2010-04-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        The master commit-queue process should take responsibility for checking that the builders are green
+        https://bugs.webkit.org/show_bug.cgi?id=37009
+
+        We had a failure where the child process noticed that the builders were
+        red.  We've always had this race condition, but the new optimistic
+        design made it easier to trigger.
+
+        * Scripts/webkitpy/tool/commands/queues.py:
+
+2010-04-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Tweak rollout changelog to pass ValidateReviewer check
+        https://bugs.webkit.org/show_bug.cgi?id=37019
+
+        We need to use the magic word "unreviewed" to make the commit-queue
+        happy when landing rollouts.
+
+        * Scripts/webkitpy/common/checkout/changelog.py:
+        * Scripts/webkitpy/common/checkout/changelog_unittest.py:
+
+2010-04-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Removed duplicate ChangeLog entry.
+
+2010-04-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Rubber-stamped by Eric Seidel.
+
+        To the Python 2.4 error message, added a link to the wiki page
+        that contains instructions on how to upgrade.
+
+        * Scripts/test-webkitpy:
+          - Eliminated a use of the ternary operator in configure_logging()
+            to let the version warning display in case of Python 2.4.
+
+        * Scripts/webkitpy/python24/versioning.py:
+          - Added this link to the error text:
+            http://trac.webkit.org/wiki/PythonGuidelines
+
+        * Scripts/webkitpy/python24/versioning_unittest.py:
+          - Updated unit test text.
+
+2010-04-02  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Record the IRC nick of folks who request rollouts
+        https://bugs.webkit.org/show_bug.cgi?id=36999
+
+        * Scripts/webkitpy/common/net/irc/ircbot.py:
+        * Scripts/webkitpy/tool/bot/irc_command.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot.py:
+        * Scripts/webkitpy/tool/bot/sheriffircbot_unittest.py:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Add cr-win-ews
+        https://bugs.webkit.org/show_bug.cgi?id=36974
+
+        Adds support for an Early Warning System for Chromium on Linux.  The
+        interface to the Chromium port is the same on every platform, so we
+        don't need to create a new Port object for this queue.
+
+        * Scripts/webkitpy/tool/commands/earlywarningsystem.py:
+        * Scripts/webkitpy/tool/commands/earlywarningsystem_unittest.py:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Using a failure exit code when failing to load a required import
+        https://bugs.webkit.org/show_bug.cgi?id=37000
+
+        Well spotted by Mark Rowe.
+
+        * Scripts/webkitpy/common/system/user.py:
+
+2010-04-01  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Rewrote the revision (r56942) to disable the 79 character line
+        length limit Python/PEP8 style check.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33639#c39
+
+        This rewrite puts the disabling not in the PythonProcessor but
+        in the calling code's default filter rule configuration.  This
+        allows the user to check line-length style from the command-line
+        if desired.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added "-pep8/E501" to the _BASE_FILTER_RULES configuration
+            variable to disable the line-length check.
+          - Added "-pep8/E501" to the list of recognized style categories
+            to permit the category to be checked from the command line.
+
+        * Scripts/webkitpy/style/processors/python.py:
+          - Reverted r56942: http://trac.webkit.org/changeset/56942
+
+2010-04-01  Kinuko Yasuda  <kinuko@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Add FileThread for async file operation support in FileReader and FileWriter
+        https://bugs.webkit.org/show_bug.cgi?id=36896
+
+        Add options to enable FILE_READER and FILE_WRITER support.
+
+        * Scripts/build-webkit:
+
+2010-04-01  Kent Tamura  <tkent@chromium.org>
+
+        Unreviewed. Add missing license header.
+
+        * DumpRenderTree/chromium/TestShellMac.mm:
+
+2010-04-01  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Improve the error handling in rollout a bit
+        https://bugs.webkit.org/show_bug.cgi?id=36995
+
+        This patch does a few things to make the error handling in rollout a
+        bit more robust.
+
+        * Scripts/webkitpy/common/checkout/api.py:
+            The old logic here was wrong.  We don't want to resolve the
+            ChangeLogs (that would remove the old ChangeLog entry).  Instead,
+            we want to revert the ChangeLogs so we can fill them with the new
+            message.
+        * Scripts/webkitpy/tool/commands/download_unittest.py:
+            Update test expectations because we're using a different mock object.
+        * Scripts/webkitpy/tool/commands/download.py:
+            - Added an update command to make updating from the SheriffBot more
+              robust.
+            - Now that we have CommitInfo, we can automatically CC the
+              responsible parties on the bug we create.
+            - Re-ordered the steps in create-rollout.  Our original thinking
+              was that we always wanted to create the bug, but that's not
+              really true given how things appear to be playing out.  If we
+              fail to apply the reverse diff, we don't want to create the bug.
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+            - Use the new, more robust update command.
+        * Scripts/webkitpy/tool/steps/createbug.py:
+            Allow commands to pre-load who they want to be CCed on a new bug.
+
+2010-04-01  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add TestShell and WebViewHost class, main(), and so on
+        https://bugs.webkit.org/show_bug.cgi?id=36814
+
+        This change introduces:
+        - WebViewHost class
+          It's an implementation of some delegates required by Chromium
+          WebKit API, and manages painting of a WebView. It's base on
+          src/webkit/tools/test_shell/test_webview_delegate.{cc,h} of
+          Chromium rev.40492.
+        - TestShell class
+          The TestShell instance holds global states of DumpRenderTree process.
+          Unlike TestShell class of Chromium test_shell, TestShell instance is
+          created just once.
+        - DumpRenderTree.cpp
+          The program entry.
+
+        * DumpRenderTree/chromium/DumpRenderTree.cpp: Added.
+        * DumpRenderTree/chromium/TestShell.cpp: Added.
+        * DumpRenderTree/chromium/TestShell.h: Added.
+        * DumpRenderTree/chromium/TestShellMac.mm: Added.
+        * DumpRenderTree/chromium/WebViewHost.cpp: Added.
+        * DumpRenderTree/chromium/WebViewHost.h: Added.
+        * DumpRenderTree/chromium/config.h: Added.
+
 2010-04-01  David Levin  <levin@chromium.org>
 
         Reviewed by Adam Barth.

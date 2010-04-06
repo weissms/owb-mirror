@@ -211,9 +211,7 @@ static void initializeSupportedNonImageMimeTypes()
 #endif
         "application/xml",
         "application/xhtml+xml",
-#if ENABLE(XHTMLMP)
         "application/vnd.wap.xhtml+xml",
-#endif
         "application/rss+xml",
         "application/atom+xml",
 #if ENABLE(WIDGET_ENGINE)

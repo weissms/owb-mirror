@@ -1143,7 +1143,7 @@ void Position::getInlineBoxAndOffset(EAffinity affinity, TextDirection primaryDi
 TextDirection Position::primaryDirection() const
 {
     TextDirection primaryDirection = LTR;
-    for (const RenderObject* r = node()->renderer(); r; r = r->parent()) {
+    for (const RenderObject* r = m_anchorNode->renderer(); r; r = r->parent()) {
         if (r->isBlockFlow()) {
             primaryDirection = r->style()->direction();
             break;

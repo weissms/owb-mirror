@@ -205,10 +205,19 @@ class CommitQueue(AbstractPatchQueue, StepSequenceErrorHandler):
 
     def _land(self, patch, first_run=False):
         try:
+            # We need to check the builders, unless we're trying to land a
+            # rollout (in which case the builders are probably red.)
+            if not patch.is_rollout() and not self._builders_are_green():
+                # We return true here because we want to return to the main
+                # QueueEngine loop as quickly as possible.
+                return True
             args = [
                 "land-attachment",
                 "--force-clean",
                 "--non-interactive",
+                # The master process is responsible for checking the status
+                # of the builders (see above call to _builders_are_green).
+                "--ignore-builders",
                 "--build-style=both",
                 "--quiet",
                 patch.id()
@@ -224,10 +233,6 @@ class CommitQueue(AbstractPatchQueue, StepSequenceErrorHandler):
                 # know we're testing the same revision that we successfully
                 # built and tested.
                 args.append("--no-update")
-            if patch.is_rollout():
-                # We need to ignore the builders when landing a rollout
-                # because they're probably red.
-                args.append("--ignore-builders")
             self.run_webkit_patch(args)
             self._did_pass(patch)
             return True

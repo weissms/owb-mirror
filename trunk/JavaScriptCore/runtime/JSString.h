@@ -116,6 +116,7 @@ namespace JSC {
             , m_value(value)
             , m_fiberCount(0)
         {
+            ASSERT(!m_value.isNull());
             Heap::heap(this)->reportExtraMemoryCost(value.cost());
         }
 
@@ -126,6 +127,7 @@ namespace JSC {
             , m_value(value)
             , m_fiberCount(0)
         {
+            ASSERT(!m_value.isNull());
         }
         JSString(JSGlobalData* globalData, PassRefPtr<UString::Rep> value, HasOtherOwnerType)
             : JSCell(globalData->stringStructure.get())
@@ -133,6 +135,7 @@ namespace JSC {
             , m_value(value)
             , m_fiberCount(0)
         {
+            ASSERT(!m_value.isNull());
         }
         JSString(JSGlobalData* globalData, PassRefPtr<Rope> rope)
             : JSCell(globalData->stringStructure.get())
@@ -202,6 +205,7 @@ namespace JSC {
             , m_value(value)
             , m_fiberCount(0)
         {
+            ASSERT(!m_value.isNull());
             // nasty hack because we can't union non-POD types
             m_other.m_finalizerCallback = finalizer;
             m_other.m_finalizerContext = context;
@@ -297,8 +301,6 @@ namespace JSC {
         virtual UString toString(ExecState*) const;
 
         virtual JSObject* toThisObject(ExecState*) const;
-        virtual UString toThisString(ExecState*) const;
-        virtual JSString* toThisJSString(ExecState*);
 
         // Actually getPropertySlot, not getOwnPropertySlot (see JSCell).
         virtual bool getOwnPropertySlot(ExecState*, const Identifier& propertyName, PropertySlot&);
@@ -484,11 +486,6 @@ namespace JSC {
     inline bool isJSString(JSGlobalData* globalData, JSValue v) { return v.isCell() && v.asCell()->vptr() == globalData->jsStringVPtr; }
 
     // --- JavaScriptCore/JSValue inlines ----------------------------
-
-    inline JSString* JSValue::toThisJSString(ExecState* exec)
-    {
-        return isCell() ? asCell()->toThisJSString(exec) : jsString(exec, toString(exec));
-    }
 
     inline UString JSValue::toString(ExecState* exec) const
     {

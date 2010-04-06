@@ -1,3 +1,169 @@
+2010-04-06  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37111
+        <rdar://problem/7790327> Draw replacement text when plug-in host crashes
+
+        * src/LocalizedStrings.cpp: (WebCore::crashedPluginText): Added a stub string for plug-in
+        failure.
+
+2010-04-04  Pavel Feldman  <pfeldman@chromium.org>
+
+        Not reviewed. Rolling out chromium changes r57028 and r57032 
+        for breaking chromium layout tests.
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::startDragging):
+        * src/DragClientImpl.cpp:
+        (WebKit::DragClientImpl::startDrag):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::startDragging):
+        * src/WebViewImpl.h:
+
+2010-04-03  Darin Fisher  <darin@chromium.org>
+
+        Add default implementations of WebNotificationPresenter methods to
+        repair the downstream Chromium build.
+
+        * public/WebNotificationPresenter.h:
+        (WebKit::WebNotificationPresenter::show):
+        (WebKit::WebNotificationPresenter::cancel):
+        (WebKit::WebNotificationPresenter::objectDestroyed):
+        (WebKit::WebNotificationPresenter::checkPermission):
+        (WebKit::WebNotificationPresenter::requestPermission):
+
+2010-04-02  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Nate Chapin.
+
+        Set the close policy used by the DatabaseCloseTask at this callsite to
+        RemoveDatabaseFromContext. This restores its behavior to what it was prior to
+        r56293.
+        https://bugs.webkit.org/show_bug.cgi?id=37037
+
+        * src/WebDatabase.cpp:
+        (WebKit::WebDatabase::closeDatabaseImmediately):
+
+2010-04-02  Evan Stade  <estade@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        [chromium] need DragImage implementation
+        https://bugs.webkit.org/show_bug.cgi?id=35811
+
+        Use the DragImageRef that the DragController passes to us.
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::startDragging):
+        * src/DragClientImpl.cpp:
+        (WebKit::DragClientImpl::startDrag):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::startDragging):
+        * src/WebViewImpl.h:
+
+2010-04-02  Rafael Weinstein  <rafaelw@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Clean up unused calls after changes to checkPermission and requestPermission argument lists.
+
+        * public/WebNotificationPresenter.h:
+        * src/NotificationPresenterImpl.cpp:
+        (WebKit::NotificationPresenterImpl::checkPermission):
+        (WebKit::NotificationPresenterImpl::requestPermission):
+
+2010-04-02  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Eric Seidel.
+
+        Implement and test new framebuffer object attachment behavior.
+        https://bugs.webkit.org/show_bug.cgi?id=35611
+
+        Test: fast/canvas/webgl/framebuffer-object-attachment.html
+
+        * src/WebGraphicsContext3DDefaultImpl.cpp: Map to correct DEPTH_STENCIL format.
+        (WebKit::WebGraphicsContext3DDefaultImpl::framebufferRenderbuffer):
+        (WebKit::WebGraphicsContext3DDefaultImpl::getFramebufferAttachmentParameteriv):
+        (WebKit::WebGraphicsContext3DDefaultImpl::renderbufferStorage):
+
+2010-04-02  Jay Civelli  <jcivelli@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        The popup type (select or suggestion) is now passed to the
+        WebClient::createPopupMenu() method. This is required for
+        Chromium on Linux to make the select popups work correctly.
+        https://bugs.webkit.org/show_bug.cgi?id=37013
+
+        * WebKit.gyp:
+        * public/WebPopupType.h: Added.
+        (WebKit::):
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createPopupMenu):
+        * src/ChromeClientImpl.cpp:
+        (WebCore::convertPopupType):
+        (WebKit::ChromeClientImpl::popupOpened):
+
+2010-04-02  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Implement InspectorFrontendClient in Chromium and remove all custom bindings for the host methods from WebDevToolsFrontendImpl. 
+
+        https://bugs.webkit.org/show_bug.cgi?id=36817
+
+        * WebKit.gyp:
+        * src/InspectorFrontendClientImpl.cpp: Added.
+        (WebKit::InspectorFrontendClientImpl::InspectorFrontendClientImpl):
+        (WebKit::InspectorFrontendClientImpl::~InspectorFrontendClientImpl):
+        (WebKit::InspectorFrontendClientImpl::windowObjectCleared):
+        (WebKit::InspectorFrontendClientImpl::frontendLoaded):
+        (WebKit::InspectorFrontendClientImpl::moveWindowBy):
+        (WebKit::InspectorFrontendClientImpl::localizedStringsURL):
+        (WebKit::InspectorFrontendClientImpl::hiddenPanels):
+        (WebKit::InspectorFrontendClientImpl::bringToFront):
+        (WebKit::InspectorFrontendClientImpl::closeWindow):
+        (WebKit::InspectorFrontendClientImpl::canAttachWindow):
+        (WebKit::InspectorFrontendClientImpl::attachWindow):
+        (WebKit::InspectorFrontendClientImpl::detachWindow):
+        (WebKit::InspectorFrontendClientImpl::changeAttachedWindowHeight):
+        (WebKit::InspectorFrontendClientImpl::inspectedURLChanged):
+        * src/InspectorFrontendClientImpl.h: Added.
+        * src/WebDevToolsFrontendImpl.cpp:
+        (WebKit::WebDevToolsFrontendImpl::WebDevToolsFrontendImpl):
+        (WebKit::WebDevToolsFrontendImpl::~WebDevToolsFrontendImpl):
+        (WebKit::WebDevToolsFrontendImpl::frontendLoaded):
+        * src/WebDevToolsFrontendImpl.h:
+        * src/js/DebuggerAgent.js:
+        (devtools.DebuggerAgent.prototype.doHandleBacktraceResponse_):
+        * src/js/DevTools.js:
+        ():
+
+2010-04-01  Jay Civelli  <jcivelli@google.com>
+
+        Reviewed by David Levin.
+
+        Adds a method to WebFrame to execute JavaScript and get the value
+        it evaluates to.
+        https://bugs.webkit.org/show_bug.cgi?id=36907
+
+        * public/WebFrame.h:
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::executeScriptAndReturnValue):
+        * src/WebFrameImpl.h:
+
+2010-04-01  Kinuko Yasuda  <kinuko@chromium.org>
+
+        Reviewed by Dmitry Titov.
+
+        Add FileThread for async file operation support in FileReader and FileWriter
+        https://bugs.webkit.org/show_bug.cgi?id=36896
+
+        Add ENABLE_FILE_READER and ENABLE_FILE_WRITER flags.
+
+        * features.gypi:
+
 2010-04-01  Finnur Thorarinsson  <finnur.webkit@gmail.com>
 
         Reviewed by Eric Seidel.

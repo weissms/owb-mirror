@@ -521,6 +521,7 @@ BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuilder.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringHash.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringImpl.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringImpl.h
+BAL/Internationalization/WebCore/WK WebCore/platform/text/SuffixTree.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextBoundaries.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextBreakIterator.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextCodec.cpp

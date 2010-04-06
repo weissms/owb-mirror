@@ -46,12 +46,6 @@
 #include "WebGLTexture.h"
 #include "WebGLShader.h"
 #include "WebGLUniformLocation.h"
-#include "HTMLCanvasElement.h"
-#include "HTMLImageElement.h"
-#include "ImageBuffer.h"
-#include "NotImplemented.h"
-#include "RenderBox.h"
-#include "RenderLayer.h"
 
 #include <wtf/ByteArray.h>
 
@@ -108,9 +102,10 @@ WebGLRenderingContext::~WebGLRenderingContext()
 void WebGLRenderingContext::markContextChanged()
 {
 #if USE(ACCELERATED_COMPOSITING)
-    if (canvas()->renderBox() && canvas()->renderBox()->hasLayer() && canvas()->renderBox()->layer()->hasAcceleratedCompositing()) {
-        canvas()->renderBox()->layer()->rendererContentChanged();
-    } else {
+    RenderBox* renderBox = canvas()->renderBox();
+    if (renderBox && renderBox->hasLayer() && renderBox->layer()->hasAcceleratedCompositing())
+        renderBox->layer()->rendererContentChanged();
+    else {
 #endif
         if (!m_markedCanvasDirty) {
             // Make sure the canvas's image buffer is allocated.
@@ -142,8 +137,9 @@ void WebGLRenderingContext::reshape(int width, int height)
 {
     if (m_needsUpdate) {
 #if USE(ACCELERATED_COMPOSITING)
-        if (canvas()->renderBox() && canvas()->renderBox()->hasLayer())
-            canvas()->renderBox()->layer()->rendererContentChanged();
+        RenderBox* renderBox = canvas()->renderBox();
+        if (renderBox && renderBox->hasLayer())
+            renderBox->layer()->rendererContentChanged();
 #endif
         m_needsUpdate = false;
     }
@@ -790,6 +786,45 @@ void WebGLRenderingContext::framebufferRenderbuffer(unsigned long target, unsign
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
+    if (buffer->object()) {
+        bool isConflicted = false;
+        bool isDepthOrStencil = true;
+        switch (attachment) {
+        case GraphicsContext3D::DEPTH_ATTACHMENT:
+            if (m_framebufferBinding->isDepthStencilAttached() || m_framebufferBinding->isStencilAttached())
+                isConflicted = true;
+            if (buffer->getInternalformat() != GraphicsContext3D::DEPTH_COMPONENT16)
+                isConflicted = true;
+            break;
+        case GraphicsContext3D::STENCIL_ATTACHMENT:
+            if (m_framebufferBinding->isDepthStencilAttached() || m_framebufferBinding->isDepthAttached())
+                isConflicted = true;
+            if (buffer->getInternalformat() != GraphicsContext3D::STENCIL_INDEX8)
+                isConflicted = true;
+            break;
+        case GraphicsContext3D::DEPTH_STENCIL_ATTACHMENT:
+            if (m_framebufferBinding->isDepthAttached() || m_framebufferBinding->isStencilAttached())
+                isConflicted = true;
+            if (buffer->getInternalformat() != GraphicsContext3D::DEPTH_STENCIL)
+                isConflicted = true;
+            break;
+        default:
+            isDepthOrStencil = false;
+        }
+        if (isConflicted) {
+            m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
+            return;
+        }
+        if (isDepthOrStencil)
+            m_framebufferBinding->setIsAttached(attachment, true);
+    } else { // Detach
+        switch (attachment) {
+        case GraphicsContext3D::DEPTH_ATTACHMENT:
+        case GraphicsContext3D::STENCIL_ATTACHMENT:
+        case GraphicsContext3D::DEPTH_STENCIL_ATTACHMENT:
+            m_framebufferBinding->setIsAttached(attachment, false);
+        }
+    }
     m_context->framebufferRenderbuffer(target, attachment, renderbuffertarget, buffer);
     cleanupAfterGraphicsCall(false);
 }
@@ -897,7 +932,8 @@ WebGLGetInfo WebGLRenderingContext::getFramebufferAttachmentParameter(unsigned l
     if (target != GraphicsContext3D::FRAMEBUFFER
         || (attachment != GraphicsContext3D::COLOR_ATTACHMENT0
             && attachment != GraphicsContext3D::DEPTH_ATTACHMENT
-            && attachment != GraphicsContext3D::STENCIL_ATTACHMENT)
+            && attachment != GraphicsContext3D::STENCIL_ATTACHMENT
+            && attachment != GraphicsContext3D::DEPTH_STENCIL_ATTACHMENT)
         || (pname != GraphicsContext3D::FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE
             && pname != GraphicsContext3D::FRAMEBUFFER_ATTACHMENT_OBJECT_NAME
             && pname != GraphicsContext3D::FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL
@@ -1176,8 +1212,11 @@ WebGLGetInfo WebGLRenderingContext::getRenderbufferParameter(unsigned long targe
         m_context->getRenderbufferParameteriv(target, pname, &value);
         return WebGLGetInfo(static_cast<long>(value));
     case GraphicsContext3D::RENDERBUFFER_INTERNAL_FORMAT:
-        m_context->getRenderbufferParameteriv(target, pname, &value);
-        return WebGLGetInfo(static_cast<unsigned long>(value));
+        if (!m_renderbufferBinding) {
+            m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
+            return WebGLGetInfo();
+        }
+        return WebGLGetInfo(m_renderbufferBinding->getInternalformat());
     default:
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_ENUM);
         return WebGLGetInfo();
@@ -1559,8 +1598,21 @@ void WebGLRenderingContext::releaseShaderCompiler()
 
 void WebGLRenderingContext::renderbufferStorage(unsigned long target, unsigned long internalformat, unsigned long width, unsigned long height)
 {
-    m_context->renderbufferStorage(target, internalformat, width, height);
-    cleanupAfterGraphicsCall(false);
+    switch (internalformat) {
+    case GraphicsContext3D::DEPTH_COMPONENT16:
+    case GraphicsContext3D::RGBA4:
+    case GraphicsContext3D::RGB5_A1:
+    case GraphicsContext3D::RGB565:
+    case GraphicsContext3D::STENCIL_INDEX8:
+    case GraphicsContext3D::DEPTH_STENCIL:
+        m_context->renderbufferStorage(target, internalformat, width, height);
+        if (m_renderbufferBinding)
+            m_renderbufferBinding->setInternalformat(internalformat);
+        cleanupAfterGraphicsCall(false);
+        break;
+    default:
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_ENUM);
+    }
 }
 
 void WebGLRenderingContext::sampleCoverage(double value, bool invert)
@@ -1791,7 +1843,12 @@ void WebGLRenderingContext::texSubImage2D(unsigned target, unsigned level, unsig
 void WebGLRenderingContext::uniform1f(const WebGLUniformLocation* location, float x, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1803,7 +1860,12 @@ void WebGLRenderingContext::uniform1f(const WebGLUniformLocation* location, floa
 void WebGLRenderingContext::uniform1fv(const WebGLUniformLocation* location, WebGLFloatArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1819,7 +1881,12 @@ void WebGLRenderingContext::uniform1fv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform1fv(const WebGLUniformLocation* location, float* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1835,7 +1902,12 @@ void WebGLRenderingContext::uniform1fv(const WebGLUniformLocation* location, flo
 void WebGLRenderingContext::uniform1i(const WebGLUniformLocation* location, int x, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1847,7 +1919,12 @@ void WebGLRenderingContext::uniform1i(const WebGLUniformLocation* location, int 
 void WebGLRenderingContext::uniform1iv(const WebGLUniformLocation* location, WebGLIntArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1863,7 +1940,12 @@ void WebGLRenderingContext::uniform1iv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform1iv(const WebGLUniformLocation* location, int* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1879,7 +1961,12 @@ void WebGLRenderingContext::uniform1iv(const WebGLUniformLocation* location, int
 void WebGLRenderingContext::uniform2f(const WebGLUniformLocation* location, float x, float y, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1891,7 +1978,12 @@ void WebGLRenderingContext::uniform2f(const WebGLUniformLocation* location, floa
 void WebGLRenderingContext::uniform2fv(const WebGLUniformLocation* location, WebGLFloatArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1908,7 +2000,12 @@ void WebGLRenderingContext::uniform2fv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform2fv(const WebGLUniformLocation* location, float* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1925,7 +2022,12 @@ void WebGLRenderingContext::uniform2fv(const WebGLUniformLocation* location, flo
 void WebGLRenderingContext::uniform2i(const WebGLUniformLocation* location, int x, int y, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1937,7 +2039,12 @@ void WebGLRenderingContext::uniform2i(const WebGLUniformLocation* location, int 
 void WebGLRenderingContext::uniform2iv(const WebGLUniformLocation* location, WebGLIntArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1954,7 +2061,12 @@ void WebGLRenderingContext::uniform2iv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform2iv(const WebGLUniformLocation* location, int* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1971,7 +2083,12 @@ void WebGLRenderingContext::uniform2iv(const WebGLUniformLocation* location, int
 void WebGLRenderingContext::uniform3f(const WebGLUniformLocation* location, float x, float y, float z, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -1983,7 +2100,12 @@ void WebGLRenderingContext::uniform3f(const WebGLUniformLocation* location, floa
 void WebGLRenderingContext::uniform3fv(const WebGLUniformLocation* location, WebGLFloatArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2000,7 +2122,12 @@ void WebGLRenderingContext::uniform3fv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform3fv(const WebGLUniformLocation* location, float* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2017,7 +2144,12 @@ void WebGLRenderingContext::uniform3fv(const WebGLUniformLocation* location, flo
 void WebGLRenderingContext::uniform3i(const WebGLUniformLocation* location, int x, int y, int z, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2029,7 +2161,12 @@ void WebGLRenderingContext::uniform3i(const WebGLUniformLocation* location, int 
 void WebGLRenderingContext::uniform3iv(const WebGLUniformLocation* location, WebGLIntArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2046,7 +2183,12 @@ void WebGLRenderingContext::uniform3iv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform3iv(const WebGLUniformLocation* location, int* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2063,7 +2205,12 @@ void WebGLRenderingContext::uniform3iv(const WebGLUniformLocation* location, int
 void WebGLRenderingContext::uniform4f(const WebGLUniformLocation* location, float x, float y, float z, float w, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2075,7 +2222,12 @@ void WebGLRenderingContext::uniform4f(const WebGLUniformLocation* location, floa
 void WebGLRenderingContext::uniform4fv(const WebGLUniformLocation* location, WebGLFloatArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2092,7 +2244,12 @@ void WebGLRenderingContext::uniform4fv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform4fv(const WebGLUniformLocation* location, float* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2109,7 +2266,12 @@ void WebGLRenderingContext::uniform4fv(const WebGLUniformLocation* location, flo
 void WebGLRenderingContext::uniform4i(const WebGLUniformLocation* location, int x, int y, int z, int w, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2121,7 +2283,12 @@ void WebGLRenderingContext::uniform4i(const WebGLUniformLocation* location, int 
 void WebGLRenderingContext::uniform4iv(const WebGLUniformLocation* location, WebGLIntArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2138,7 +2305,12 @@ void WebGLRenderingContext::uniform4iv(const WebGLUniformLocation* location, Web
 void WebGLRenderingContext::uniform4iv(const WebGLUniformLocation* location, int* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2155,7 +2327,12 @@ void WebGLRenderingContext::uniform4iv(const WebGLUniformLocation* location, int
 void WebGLRenderingContext::uniformMatrix2fv(const WebGLUniformLocation* location, bool transpose, WebGLFloatArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2172,7 +2349,12 @@ void WebGLRenderingContext::uniformMatrix2fv(const WebGLUniformLocation* locatio
 void WebGLRenderingContext::uniformMatrix2fv(const WebGLUniformLocation* location, bool transpose, float* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2189,7 +2371,12 @@ void WebGLRenderingContext::uniformMatrix2fv(const WebGLUniformLocation* locatio
 void WebGLRenderingContext::uniformMatrix3fv(const WebGLUniformLocation* location, bool transpose, WebGLFloatArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2206,7 +2393,12 @@ void WebGLRenderingContext::uniformMatrix3fv(const WebGLUniformLocation* locatio
 void WebGLRenderingContext::uniformMatrix3fv(const WebGLUniformLocation* location, bool transpose, float* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2223,7 +2415,12 @@ void WebGLRenderingContext::uniformMatrix3fv(const WebGLUniformLocation* locatio
 void WebGLRenderingContext::uniformMatrix4fv(const WebGLUniformLocation* location, bool transpose, WebGLFloatArray* v, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }
@@ -2240,7 +2437,12 @@ void WebGLRenderingContext::uniformMatrix4fv(const WebGLUniformLocation* locatio
 void WebGLRenderingContext::uniformMatrix4fv(const WebGLUniformLocation* location, bool transpose, float* v, int size, ExceptionCode& ec)
 {
     UNUSED_PARAM(ec);
-    if (!location || location->program() != m_currentProgram) {
+    if (!location) {
+        m_context->synthesizeGLError(GraphicsContext3D::INVALID_VALUE);
+        return;
+    }
+
+    if (location->program() != m_currentProgram) {
         m_context->synthesizeGLError(GraphicsContext3D::INVALID_OPERATION);
         return;
     }

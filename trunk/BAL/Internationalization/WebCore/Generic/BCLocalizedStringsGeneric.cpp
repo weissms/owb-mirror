@@ -531,6 +531,11 @@ String missingPluginText()
     return String::fromUTF8("Label text to be used when a plugin is missing"); 
 }
 
+String crashedPluginText()
+{
+    return String::fromUTF8("Label text to be used if plugin host process has crashed");
+}
+
 #if ENABLE(CEHTML)
 
 String opCodeElementReplacementText(int keyCode)

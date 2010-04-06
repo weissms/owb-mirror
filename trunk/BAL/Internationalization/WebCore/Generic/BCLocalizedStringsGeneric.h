@@ -126,6 +126,7 @@ namespace WebCore {
     String validationMessageStepMismatchText();
 
     String missingPluginText();
+    String crashedPluginText();
     
 #if ENABLE(CEHTML)
     String opCodeElementReplacementText(int);

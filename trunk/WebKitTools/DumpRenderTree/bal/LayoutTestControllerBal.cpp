@@ -595,3 +595,7 @@ JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
     return textValueJS;
 }
 
+void LayoutTestController::setWebViewEditable(bool)
+{
+    // FIXME: implement
+}

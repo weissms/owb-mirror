@@ -656,7 +656,8 @@ void Element::updateAfterAttributeChanged(Attribute* attr)
     } else if (attrName == aria_labelAttr || attrName == aria_labeledbyAttr || attrName == altAttr || attrName == titleAttr) {
         // If the content of an element changes due to an attribute change, notify accessibility.
         document()->axObjectCache()->contentChanged(renderer());
-    }
+    } else if (attrName == aria_selectedAttr)
+        document()->axObjectCache()->selectedChildrenChanged(renderer());
 #endif
 }
     

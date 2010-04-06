@@ -36,7 +36,6 @@ import os.path
 import sys
 
 from error_handlers import DefaultStyleErrorHandler
-from error_handlers import PatchStyleErrorHandler
 from filter import FilterConfiguration
 from optparser import ArgumentParser
 from optparser import DefaultCommandOptionValues
@@ -90,6 +89,16 @@ _BASE_FILTER_RULES = [
     '-whitespace/blank_line',
     '-whitespace/end_of_line',
     '-whitespace/labels',
+    # List Python pep8 categories last.
+    #
+    # Because much of WebKit's Python code base does not abide by the
+    # PEP8 79 character limit, we ignore the 79-character-limit category
+    # pep8/E501 for now.
+    #
+    # FIXME: Consider bringing WebKit's Python code base into conformance
+    #        with the 79 character limit, or some higher limit that is
+    #        agreeable to the WebKit project.
+    '-pep8/E501',
     ]
 
 
@@ -191,7 +200,7 @@ def _all_categories():
     #        now we add only the categories needed for the unit tests
     #        (which validate the consistency of the configuration
     #        settings against the known categories, etc).
-    categories = categories.union(["pep8/W191", "pep8/W291"])
+    categories = categories.union(["pep8/W191", "pep8/W291", "pep8/E501"])
 
     return categories
 
@@ -626,31 +635,53 @@ class StyleChecker(object):
                 file_path = os.path.join(dir_path, file_name)
                 check_file(file_path)
 
-    def check_file(self, file_path, handle_style_error=None, process_file=None):
+    def check_file(self, file_path, line_numbers=None,
+                   mock_handle_style_error=None,
+                   mock_os_path_exists=None,
+                   mock_process_file=None):
         """Check style in the given file.
 
         Args:
           file_path: The path of the file to process.  If possible, the path
                      should be relative to the source root.  Otherwise,
                      path-specific logic may not behave as expected.
-          handle_style_error: The function to call when a style error
-                              occurs. This parameter is meant for internal
-                              use within this class. Defaults to a
-                              DefaultStyleErrorHandler instance.
-          process_file: The function to call to process the file. This
-                        parameter should be used only for unit tests.
-                        Defaults to the file processing method of this class.
+          line_numbers: An array of line numbers of the lines for which
+                        style errors should be reported, or None if errors
+                        for all lines should be reported.  Normally, this
+                        array contains the line numbers corresponding to the
+                        modified lines of a patch.
+          mock_handle_style_error: A unit-testing replacement for the function
+                                   to call when a style error occurs. Defaults
+                                   to a DefaultStyleErrorHandler instance.
+          mock_os_path_exists: A unit-test replacement for os.path.exists.
+                               This parameter should only be used for unit
+                               tests.
+          mock_process_file: The function to call to process the file. This
+                             parameter should be used only for unit tests.
+                             Defaults to the file processing method of this
+                             class.
 
         """
-        _log.debug("Checking: " + file_path)
-        if handle_style_error is None:
+        if mock_handle_style_error is None:
+            increment = self._increment_error_count
             handle_style_error = DefaultStyleErrorHandler(
                                      configuration=self._configuration,
                                      file_path=file_path,
-                                     increment_error_count=
-                                         self._increment_error_count)
-        if process_file is None:
-            process_file = self._process_file
+                                     increment_error_count=increment,
+                                     line_numbers=line_numbers)
+        else:
+            handle_style_error = mock_handle_style_error
+
+        os_path_exists = (os.path.exists if mock_os_path_exists is None else
+                          mock_os_path_exists)
+        process_file = (self._process_file if mock_process_file is None else
+                        mock_process_file)
+
+        if not os_path_exists(file_path):
+            _log.warn("Skipping non-existent file: %s" % file_path)
+            return
+
+        _log.debug("Checking: " + file_path)
 
         self.file_count += 1
 
@@ -672,23 +703,35 @@ class StyleChecker(object):
                        % file_path)
             return
 
-
         _log.debug("Using class: " + processor.__class__.__name__)
 
         process_file(processor, file_path, handle_style_error)
 
-    def check_patch(self, patch_string):
+    # FIXME: Eliminate this method and move its logic to style/main.py.
+    #        Calls to check_patch() can be replaced by appropriate calls
+    #        to check_file() using the optional line_numbers parameter.
+    def check_patch(self, patch_string, mock_check_file=None):
         """Check style in the given patch.
 
         Args:
           patch_string: A string that is a patch string.
 
         """
-        patch_files = parse_patch(patch_string)
-        for file_path, diff in patch_files.iteritems():
-            style_error_handler = PatchStyleErrorHandler(diff,
-                                      file_path,
-                                      self._configuration,
-                                      self._increment_error_count)
+        check_file = (self.check_file if mock_check_file is None else
+                      mock_check_file)
 
-            self.check_file(file_path, style_error_handler)
+        patch_files = parse_patch(patch_string)
+
+        # The diff variable is a DiffFile instance.
+        for file_path, diff in patch_files.iteritems():
+            line_numbers = set()
+            for line in diff.lines:
+                # When deleted line is not set, it means that
+                # the line is newly added (or modified).
+                if not line[0]:
+                    line_numbers.add(line[1])
+
+            _log.debug('Found %s modified lines in patch for: %s'
+                       % (len(line_numbers), file_path))
+
+            check_file(file_path=file_path, line_numbers=line_numbers)
