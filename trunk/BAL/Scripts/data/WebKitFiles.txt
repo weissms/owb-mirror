@@ -77,6 +77,7 @@ WebCore/page/Navigator.cpp
 WebCore/page/Page.cpp
 WebCore/page/Settings.cpp
 WebCore/page/gtk/FrameGtk.cpp BAL/Widgets/WebCore/Gtk/BCFrameGtk.cpp
+WebCore/platform/Arena.h BAL/Memory/WebCore/WK/BCArenaWK.h
 WebCore/platform/ContextMenu.cpp BAL/Widgets/WebCore/WK/BCContextMenuWK.cpp
 WebCore/platform/KURL.cpp BAL/Types/WebCore/WK/BCKURLWK.cpp
 WebCore/platform/LocalizedStrings.h BAL/Internationalization/WebCore/WK/BCLocalizedStringsWK.h
