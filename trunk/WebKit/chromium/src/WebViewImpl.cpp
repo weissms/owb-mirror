@@ -87,6 +87,7 @@
 #include "WebDevToolsAgentPrivate.h"
 #include "WebDragData.h"
 #include "WebFrameImpl.h"
+#include "WebImage.h"
 #include "WebInputEvent.h"
 #include "WebInputEventConversion.h"
 #include "WebMediaPlayerAction.h"
@@ -941,11 +942,11 @@ void WebViewImpl::paint(WebCanvas* canvas, const WebRect& rect)
         updateRootLayerContents(rect);
 
         // Composite everything into the canvas that's passed to us.
-        SkIRect canvasIRect;
-        canvasIRect.set(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-        SkRect canvasRect;
-        canvasRect.set(canvasIRect);
-        m_layerRenderer->drawLayersInCanvas(static_cast<skia::PlatformCanvas*>(canvas), canvasRect);
+#if PLATFORM(SKIA)
+        m_layerRenderer->drawLayersInCanvas(static_cast<skia::PlatformCanvas*>(canvas), IntRect(rect));
+#elif PLATFORM(CG)
+#error "Need to implement CG version"
+#endif
     }
 #endif
 }
@@ -1932,15 +1933,16 @@ bool WebViewImpl::navigationPolicyFromMouseEvent(unsigned short button,
     return true;
 }
 
-void WebViewImpl::startDragging(const WebPoint& eventPos,
-                                const WebDragData& dragData,
-                                WebDragOperationsMask mask)
+void WebViewImpl::startDragging(const WebDragData& dragData,
+                                WebDragOperationsMask mask,
+                                const WebImage& dragImage,
+                                const WebPoint& dragImageOffset)
 {
     if (!m_client)
         return;
     ASSERT(!m_doingDragAndDrop);
     m_doingDragAndDrop = true;
-    m_client->startDragging(eventPos, dragData, mask);
+    m_client->startDragging(dragData, mask, dragImage, dragImageOffset);
 }
 
 void WebViewImpl::setCurrentHistoryItem(HistoryItem* item)
@@ -2040,7 +2042,7 @@ void WebViewImpl::setAcceleratedCompositing(bool accelerated)
         return;
 
     if (accelerated) {
-        m_layerRenderer = LayerRendererSkia::create();
+        m_layerRenderer = LayerRendererChromium::create();
         if (m_layerRenderer)
             m_isAcceleratedCompositing = true;
     } else {
@@ -2065,17 +2067,15 @@ void WebViewImpl::updateRootLayerContents(const WebRect& rect)
     SkIRect scrollFrame;
     scrollFrame.set(view->scrollX(), view->scrollY(), view->layoutWidth() + view->scrollX(), view->layoutHeight() + view->scrollY());
     m_layerRenderer->setScrollFrame(scrollFrame);
-    LayerSkia* rootLayer = m_layerRenderer->rootLayer();
+    LayerChromium* rootLayer = m_layerRenderer->rootLayer();
     if (rootLayer) {
-        SkIRect rootLayerBounds;
         IntRect visibleRect = view->visibleContentRect(true);
 
         // Set the backing store size used by the root layer to be the size of the visible
         // area. Note that the root layer bounds could be larger than the backing store size,
         // but there's no reason to waste memory by allocating backing store larger than the
         // visible portion.
-        rootLayerBounds.set(0, 0, visibleRect.width(), visibleRect.height());
-        rootLayer->setBackingStoreRect(rootLayerBounds);
+        rootLayer->setBackingStoreRect(IntSize(visibleRect.width(), visibleRect.height()));
         GraphicsContext* rootLayerContext = rootLayer->graphicsContext();
         rootLayerContext->save();
 

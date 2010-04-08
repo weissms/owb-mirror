@@ -1,18 +1,18 @@
 /*
- * Copyright (C) 2006, 2009 Apple Inc. All rights reserved.
+ * Copyright (C) 2010 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  *
  * 1.  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer. 
+ *     notice, this list of conditions and the following disclaimer.
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution. 
- * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+ *     documentation and/or other materials provided with the distribution.
+ * 3.  Neither the name of Google Inc. ("Google") nor the names of
  *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission. 
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -26,33 +26,22 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "GlyphWidthMap.h"
+#ifndef Terminator_h
+#define Terminator_h
 
-namespace WebCore {
+namespace JSC {
 
-GlyphWidthMap::GlyphWidthPage* GlyphWidthMap::locatePageSlowCase(unsigned pageNumber)
-{
-    GlyphWidthPage* page;
-    if (pageNumber == 0) {
-        ASSERT(!m_filledPrimaryPage);
-        page = &m_primaryPage;
-        m_filledPrimaryPage = true;
-    } else {
-        if (m_pages) {
-            if ((page = m_pages->get(pageNumber)))
-                return page;
-        } else
-            m_pages.set(new HashMap<int, GlyphWidthPage*>);
-        page = new GlyphWidthPage;
-        m_pages->set(pageNumber, page);
-    }
+class Terminator {
+public:
+    Terminator() : m_shouldTerminate(false) { }
 
-    // Fill in the whole page with the unknown glyph width value.
-    for (unsigned i = 0; i < GlyphWidthPage::size; i++)
-        page->setWidthForIndex(i, cGlyphWidthUnknown);
+    void terminateSoon() { m_shouldTerminate = true; }
+    bool shouldTerminate() const { return m_shouldTerminate; }
 
-    return page;
-}
+private:
+    bool m_shouldTerminate;
+};
 
-}
+} // namespace JSC
+
+#endif // Terminator_h

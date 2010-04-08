@@ -60,6 +60,10 @@
 #include "NotificationCenter.h"
 #endif
 
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
+#endif
+
 namespace WebCore {
 
 WorkerContext::WorkerContext(const KURL& url, const String& userAgent, WorkerThread* thread)
@@ -156,18 +160,6 @@ bool WorkerContext::hasPendingActivity() const
     return false;
 }
 
-void WorkerContext::resourceRetrievedByXMLHttpRequest(unsigned long, const ScriptString&)
-{
-    // FIXME: The implementation is pending the fixes in https://bugs.webkit.org/show_bug.cgi?id=23175
-    notImplemented();
-}
-
-void WorkerContext::scriptImported(unsigned long, const String&)
-{
-    // FIXME: The implementation is pending the fixes in https://bugs.webkit.org/show_bug.cgi?id=23175
-    notImplemented();
-}
-
 void WorkerContext::postTask(PassOwnPtr<Task> task)
 {
     thread()->runLoop().postTask(task);
@@ -218,7 +210,10 @@ void WorkerContext::importScripts(const Vector<String>& urls, ExceptionCode& ec)
             return;
         }
 
-        scriptExecutionContext()->scriptImported(scriptLoader.identifier(), scriptLoader.script());
+#if ENABLE(INSPECTOR)
+        if (InspectorController* inspector = scriptExecutionContext()->inspectorController())
+            inspector->scriptImported(scriptLoader.identifier(), scriptLoader.script());
+#endif
 
         ScriptValue exception;
         m_script->evaluate(ScriptSourceCode(scriptLoader.script(), *it), &exception);
@@ -245,9 +240,9 @@ void WorkerContext::reportException(const String& errorMessage, int lineNumber, 
         thread()->workerReportingProxy().postExceptionToWorkerObject(errorMessage, lineNumber, sourceURL);
 }
 
-void WorkerContext::addMessage(MessageDestination destination, MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
+void WorkerContext::addMessage(MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
 {
-    thread()->workerReportingProxy().postConsoleMessageToWorkerObject(destination, source, type, level, message, lineNumber, sourceURL);
+    thread()->workerReportingProxy().postConsoleMessageToWorkerObject(source, type, level, message, lineNumber, sourceURL);
 }
 
 #if ENABLE(NOTIFICATIONS)

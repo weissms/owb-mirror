@@ -90,9 +90,11 @@ void SimpleFontData::determinePitch()
     m_treatAsFixedPitch = m_platformData.isFixedPitch();
 }
 
-float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
+GlyphMetrics SimpleFontData::platformMetricsForGlyph(Glyph glyph, GlyphMetricsMode /* metricsMode */) const
 {
-    return m_spaceWidth;
+    GlyphMetrics metrics;
+    metrics.horizontalAdvance = m_spaceWidth;
+    return metrics;
 }
 
 void SimpleFontData::setFont(BalFont* cr) const

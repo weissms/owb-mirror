@@ -1,3 +1,112 @@
+2010-04-08  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        Vector<UString> makes many needless calls to UString::UString and UString::~UString
+
+        Add a VectorTrait<UString> specialisation to allow vector to simply memset/memcpy
+        data around.  Only difference from the VectorTrait<RefPtr<T> > traits is the inability
+        to use memset to initialize data.
+
+        * runtime/UString.h:
+        (WTF::):
+
+2010-04-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Beat gcc with a clue bat -- force inlining of refIfNotNull and derefIfNotNull
+
+        * wtf/PassRefPtr.h:
+
+2010-04-07  Kwang Yul Seo  <skyul@company100.net>
+
+        Reviewed by Darin Adler.
+
+        Replace isprint with isASCIIPrintable
+        https://bugs.webkit.org/show_bug.cgi?id=37223
+
+        WebKit does not use functions in <ctype.h> as they are dependent on the current
+        locale. Use the equivalent functions in <wtf/ASCIICType.h>. isASCIIPrintable
+        replaces isprint.
+
+        * pcre/pcre_exec.cpp:
+        (pchars):
+
+2010-04-07  Enrica Casucci  <enrica@apple.com>
+
+        Reviewed by Darin Adler.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37219
+        
+        This change disables text caret for the iPhone platflorm.
+        
+        * wtf/Platform.h: Disabled text caret for iPhone.
+
+2010-04-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        REGRESSION: Worker termination via JS timeout may cause worker tests like fast/workers/worker-terminate.html fail.
+        https://bugs.webkit.org/show_bug.cgi?id=36646
+
+        Add a new exception type for forcibly terminating a JavaScript stack.
+        The new exception functions similarly to the
+        InterruptedExecutionException but is conceptually different because
+        execution is terminated instead of just interrupted.
+
+        * GNUmakefile.am:
+            - Added new Terminator.h file.
+        * JavaScriptCore.gypi:
+            - Added new Terminator.h file.
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+            - Added new Terminator.h file.
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+            - Added new Terminator.h file.
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::throwException):
+            - Fully unwind the stack for TerminatedExecutionException.
+        (JSC::Interpreter::privateExecute):
+            - Check if we've been terminated at the same time we check if we've
+              timed out.
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+            - Check if we've been terminated at the same time we check if we've
+              timed out.
+        * runtime/Completion.cpp:
+            - Some exceptions define special completion types so that calls can
+              see why we terminated evaluation.
+        (JSC::evaluate):
+        * runtime/Completion.h:
+            - Define a new completion type for termination.
+        (JSC::):
+        * runtime/ExceptionHelpers.cpp:
+            - Define TerminatedExecutionException and refactor pseudo-RTTI
+              virtual function to be more semantic.
+        (JSC::InterruptedExecutionError::exceptionType):
+        (JSC::TerminatedExecutionError::TerminatedExecutionError):
+        (JSC::TerminatedExecutionError::exceptionType):
+        (JSC::TerminatedExecutionError::toString):
+        (JSC::createTerminatedExecutionException):
+        * runtime/ExceptionHelpers.h:
+            - Entry point for generating a TerminatedExecutionException.
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+            - Add a Terminator object that can be used to asynchronously
+              terminate a JavaScript execution stack.
+        * runtime/JSGlobalData.h:
+        * runtime/JSObject.h:
+        (JSC::JSObject::exceptionType):
+            - Define that, by default, thrown objects have a normal exception
+              type.
+        * runtime/Terminator.h: Added.
+            - Added a new controller object that can be used to terminate
+              execution asynchronously.  This object is more or less a
+              glorified bool.
+        (JSC::Terminator::Terminator):
+        (JSC::Terminator::termianteSoon):
+        (JSC::Terminator::shouldTerminate):
+
 2010-04-06  Oliver Hunt  <oliver@apple.com>
 
         And another one.

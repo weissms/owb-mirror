@@ -4677,49 +4677,15 @@ void Document::parseDNSPrefetchControlHeader(const String& dnsPrefetchControl)
 void Document::reportException(const String& errorMessage, int lineNumber, const String& sourceURL)
 {
 #if ENABLE(INSPECTOR)
+    addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, errorMessage, lineNumber, sourceURL);
+#endif
+}
+
+void Document::addMessage(MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
+{
+#if ENABLE(INSPECTOR)
     if (DOMWindow* window = domWindow())
-        window->console()->addMessage(JSMessageSource, LogMessageType, ErrorMessageLevel, errorMessage, lineNumber, sourceURL);
-#endif
-}
-
-void Document::addMessage(MessageDestination destination, MessageSource source, MessageType type, MessageLevel level, const String& message, unsigned lineNumber, const String& sourceURL)
-{
-#if ENABLE(INSPECTOR)
-    switch (destination) {
-    case InspectorControllerDestination:
-        if (page())
-            page()->inspectorController()->addMessageToConsole(source, type, level, message, lineNumber, sourceURL);
-        return;
-    case ConsoleDestination:
-        if (DOMWindow* window = domWindow())
-            window->console()->addMessage(source, type, level, message, lineNumber, sourceURL);
-        return;
-    }
-    ASSERT_NOT_REACHED();
-#endif
-}
-
-void Document::resourceRetrievedByXMLHttpRequest(unsigned long identifier, const ScriptString& sourceString)
-{
-#if ENABLE(INSPECTOR)
-    if (page())
-        page()->inspectorController()->resourceRetrievedByXMLHttpRequest(identifier, sourceString);
-#endif
-    Frame* frame = this->frame();
-    if (frame) {
-        FrameLoader* frameLoader = frame->loader();
-        frameLoader->notifier()->didLoadResourceByXMLHttpRequest(identifier, sourceString);
-    }
-}
-
-void Document::scriptImported(unsigned long identifier, const String& sourceString)
-{
-#if ENABLE(INSPECTOR)
-    if (page())
-        page()->inspectorController()->scriptImported(identifier, sourceString);
-#else
-    UNUSED_PARAM(identifier);
-    UNUSED_PARAM(sourceString);
+        window->console()->addMessage(source, type, level, message, lineNumber, sourceURL);
 #endif
 }
 

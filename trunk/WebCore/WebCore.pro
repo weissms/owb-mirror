@@ -614,6 +614,7 @@ SOURCES += \
     html/DOMFormData.cpp \
     html/File.cpp \
     html/FileList.cpp \
+    html/FileStream.cpp \
     html/FileThread.cpp \
     html/FormDataList.cpp \
     html/HTMLAllCollection.cpp \
@@ -1083,6 +1084,7 @@ HEADERS += \
     bindings/js/ScriptController.h \
     bindings/js/ScriptEventListener.h \
     bindings/js/ScriptFunctionCall.h \
+    bindings/js/ScriptGCEvent.h \
     bindings/js/ScriptObject.h \
     bindings/js/ScriptSourceCode.h \
     bindings/js/ScriptSourceProvider.h \
@@ -1322,6 +1324,8 @@ HEADERS += \
     html/DOMFormData.h \
     html/File.h \
     html/FileList.h \
+    html/FileStream.h \
+    html/FileStreamClient.h \
     html/FileThread.h \
     html/FormDataList.h \
     html/HTMLAllCollection.h \
@@ -1429,6 +1433,7 @@ HEADERS += \
     inspector/InspectorResource.h \
     inspector/InspectorTimelineAgent.h \
     inspector/JavaScriptCallFrame.h \
+    inspector/ScriptGCEventListener.h \
     inspector/TimelineRecordFactory.h \
     loader/appcache/ApplicationCacheGroup.h \
     loader/appcache/ApplicationCacheHost.h \
@@ -2851,7 +2856,7 @@ include($$PWD/../WebKit/qt/Api/headers.pri)
 HEADERS += $$WEBKIT_API_HEADERS
 
 !CONFIG(QTDIR_build) {
-    exists(../include/QtWebKit/classheaders.pri):include(../include/QtWebKit/classheaders.pri)
+    exists($$OUTPUT_DIR/include/QtWebKit/classheaders.pri): include($$OUTPUT_DIR/include/QtWebKit/classheaders.pri)
     WEBKIT_INSTALL_HEADERS = $$WEBKIT_API_HEADERS $$WEBKIT_CLASS_HEADERS
 
     !symbian {

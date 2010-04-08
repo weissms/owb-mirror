@@ -32,6 +32,12 @@
 #define ENABLE_NETSCAPE_PLUGIN_API 1
 #endif
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
+#define WebCGFloat float
+#else
+#define WebCGFloat CGFloat
+#endif
+
 @class DOMDocumentFragment;
 @class DOMNode;
 @class DOMRange;
@@ -124,7 +130,13 @@
 // directly, this method must be called before paginating, or the computed height might be incorrect.
 // Typically this would be called from inside an override of -[NSView knowsPageRange:].
 - (void)_layoutForPrinting;
+- (WebCGFloat)_adjustedBottomOfPageWithTop:(WebCGFloat)top bottom:(WebCGFloat)bottom limit:(WebCGFloat)bottomLimit;
+- (BOOL)_isInPrintMode;
+- (BOOL)_beginPrintModeWithPageWidth:(float)pageWidth shrinkToFit:(BOOL)shrinkToFit;
+- (void)_endPrintMode;
 
 - (BOOL)_canSmartReplaceWithPasteboard:(NSPasteboard *)pasteboard;
 
 @end
+
+#undef WebCGFloat

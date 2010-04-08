@@ -169,6 +169,7 @@ WebCore/workers/AbstractWorker.cpp
 WebCore/workers/Worker.cpp
 WebCore/workers/WorkerContext.cpp
 WebCore/workers/WorkerContext.h
+WebCore/workers/WorkerMessagingProxy.cpp
 WebCore/workers/WorkerThread.cpp
 WebCore/xml/XMLHttpRequest.cpp
 WebCore/xml/XSLStyleSheetLibxslt.cpp

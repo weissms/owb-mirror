@@ -22776,11 +22776,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\platform\graphics\GlyphWidthMap.cpp"
+					RelativePath="..\platform\graphics\GlyphMetricsMap.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\platform\graphics\GlyphWidthMap.h"
+					RelativePath="..\platform\graphics\GlyphMetricsMap.h"
 					>
 				</File>
 				<File
@@ -30234,6 +30234,18 @@
 			</File>
 			<File
 				RelativePath="..\html\FileList.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileStream.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileStreamClient.h"
 				>
 			</File>
 			<File

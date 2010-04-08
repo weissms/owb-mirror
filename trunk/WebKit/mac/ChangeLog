@@ -1,3 +1,88 @@
+2010-04-08  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        Refactor WebHTMLView printing code and add private methods to enter and exit printing mode.
+        https://bugs.webkit.org/show_bug.cgi?id=37246
+
+        * Misc/WebNSPrintOperationExtras.h: Declared -_web_availablePaperWidth and -_web_availablePaperHeight.
+        * Misc/WebNSPrintOperationExtras.m:
+        (-[NSPrintOperation _web_availablePaperWidth]): Turned -[WebHTMLView _availablePaperWidthForPrintOperation:]
+        into this method.
+        (-[NSPrintOperation _web_availablePaperHeight]): Turned -[WebHTMLView _calculatePrintHeight] into this
+        method.
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _isInPrintMode]): Added this accessor.
+        (-[WebHTMLView _beginPrintModeWithPageWidth:shrinkToFit:]): Added. Moved the code from -knowsPageRange: that
+        computes the layout widths and enters printing mode into this private method.
+        (-[WebHTMLView _endPrintMode]): New private method (the old -_endPrintMode has been renamed).
+        (-[WebHTMLView _scaleFactorForPrintOperation:]): Use -[NSPrintOperation _web_availablePaperWidth].
+        (-[WebHTMLView _endPrintModeAndRestoreWindowAutodisplay]): Renamed -_endPrintMode to this, changed it to call
+        _endPrintMode.
+        (-[WebHTMLView _delayedEndPrintMode:]): Updated for rename.
+        (-[WebHTMLView knowsPageRange:]): Use -_beginPrintModeWithPageWidth:shrintToFit:,
+        -[NSPrintOperation _web_availablePaperWidth], and -[NSPrintOperation _web_availablePaperHeight]. Updated for
+        rename.
+        (-[WebHTMLView beginDocument]): Updated for rename.
+        (-[WebHTMLView endDocument]): Ditto.
+        * WebView/WebHTMLViewPrivate.h: Declared new private methods -_isInPrintMode,
+        -_beginPrintModeWithPageWidth:shrinkToFit: and -_endPrintMode.
+
+2010-04-07  Andrey Kosyakov  <caseq@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        Removed redundant FrameLoaderClient::dispatchDidLoadResourceByXMLHttpRequest()
+        https://bugs.webkit.org/show_bug.cgi?id=36949
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+
+2010-04-06  Dan Bernstein  <mitz@apple.com>
+
+        Tiger build fix after r57184.
+
+        * WebView/WebHTMLViewPrivate.h:
+
+2010-04-06  Dan Bernstein  <mitz@apple.com>
+
+        Tiger build fix after r57184.
+
+        * WebView/WebHTMLViewPrivate.h:
+
+2010-04-06  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed.
+
+        Speculative build fix for Tiger.
+
+        * WebView/WebHTMLViewPrivate.h:
+
+2010-04-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Sam Weinig and Anders Carlsson.
+
+        Expose WebHTMLView’s page breaking logic as SPI.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _adjustedBottomOfPageWithTop:bottom:limit:]): Factored out of -adjustPageHeightNew:top:bottom:limit:
+        (-[WebHTMLView adjustPageHeightNew:top:bottom:limit:]): Call -_adjustedBottomOfPageWithTop:bottom:limit:
+        * WebView/WebHTMLViewPrivate.h: Declared -_adjustedBottomOfPageWithTop:bottom:limit:
+
+2010-04-06  Mark Rowe  <mrowe@apple.com>
+
+        Add an #if in order to make Tiger happy.
+
+        * WebView/WebViewData.mm:
+        (-[WebViewPrivate init]):
+
+2010-04-06  Mark Rowe  <mrowe@apple.com>
+
+        Build fix.
+
+        * WebView/WebViewData.mm:
+        (-[WebViewPrivate init]): Use objc_collectingEnabled like we do elsewhere in WebKit.
+
 2010-04-06  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Adele Peterson.

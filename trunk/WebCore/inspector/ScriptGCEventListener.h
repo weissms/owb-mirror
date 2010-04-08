@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2008, 2009, Google Inc. All rights reserved.
- * 
+ * Copyright (C) 2010 Google Inc. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above
@@ -14,7 +14,7 @@
  *     * Neither the name of Google Inc. nor the names of its
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -28,46 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
-#include "DragImage.h"
+#ifndef ScriptGCEventListener_h
+#define ScriptGCEventListener_h
 
-#include "NotImplemented.h"
+#if ENABLE(INSPECTOR)
 
 namespace WebCore {
 
-IntSize dragImageSize(DragImageRef image)
+class ScriptGCEventListener
 {
-    notImplemented();
-    return IntSize();
-}
-
-void deleteDragImage(DragImageRef image)
-{
-    notImplemented();
-}
-
-DragImageRef scaleDragImage(DragImageRef image, FloatSize scale)
-{
-    notImplemented();
-    return 0;
-}
-    
-DragImageRef dissolveDragImageToFraction(DragImageRef image, float)
-{
-    notImplemented();
-    return image;
-}
-        
-DragImageRef createDragImageFromImage(Image* img)
-{    
-    notImplemented();
-    return 0;
-}
-    
-DragImageRef createDragImageIconForCachedImage(CachedImage*)
-{
-    notImplemented();
-    return 0;     
-}
+public:
+    virtual void didGC(double startTime, double endTime, size_t collectedBytes) = 0;
+    virtual ~ScriptGCEventListener(){}
+};
     
 } // namespace WebCore
+
+#endif // !ENABLE(INSPECTOR)
+#endif // !defined(ScriptGCEventListener_h)

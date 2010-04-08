@@ -113,8 +113,8 @@ BAL/Skeletons/Fonts	WebCore/platform/graphics/FontSelector.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/FontSmoothingMode.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/FontTraitsMask.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphBuffer.h
+BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphMetricsMap.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphPageTreeNode.h
-BAL/Skeletons/Fonts	WebCore/platform/graphics/GlyphWidthMap.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/SegmentedFontData.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/SimpleFontData.h
 BAL/Skeletons/Fonts	WebCore/platform/graphics/StringTruncator.h
@@ -163,10 +163,10 @@ BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontSelector.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontSmoothingMode.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/FontTraitsMask.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphBuffer.h
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphMetricsMap.cpp
+BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphMetricsMap.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphPageTreeNode.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphPageTreeNode.h
-BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphWidthMap.cpp
-BAL/Fonts/WebCore/WK	WebCore/platform/graphics/GlyphWidthMap.h
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SegmentedFontData.h
 BAL/Fonts/WebCore/WK    WebCore/platform/graphics/SegmentedFontData.cpp
 BAL/Fonts/WebCore/WK	WebCore/platform/graphics/SimpleFontData.cpp

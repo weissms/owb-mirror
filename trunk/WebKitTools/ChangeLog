@@ -1,3 +1,212 @@
+2010-04-08  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Rename target to configuration in new-run-webkit-tests to match the rest of WebKit
+        https://bugs.webkit.org/show_bug.cgi?id=37251
+
+        The rest of our tools call --debug or --release the configuration.
+        It's confusing to call it target in this script.
+
+        * Scripts/webkitpy/layout_tests/driver_test.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_shell_thread.py:
+        * Scripts/webkitpy/layout_tests/port/base.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_linux.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/layout_tests/rebaseline_chromium_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/test_types/fuzzy_image_diff.py:
+        * Scripts/webkitpy/layout_tests/test_types/image_diff.py:
+        * Scripts/webkitpy/layout_tests/test_types/test_type_base.py:
+        * Scripts/webkitpy/layout_tests/test_types/text_diff.py:
+
+2010-04-07  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove depricated op.popen2 call in new-run-webkit-tests
+        https://bugs.webkit.org/show_bug.cgi?id=37249
+
+        Python complains that this API is depricated.  We already solved this
+        problem in executive.py.
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+
+2010-04-07  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests crashes when run on a 64-bit machine
+        https://bugs.webkit.org/show_bug.cgi?id=37248
+
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+         - The code was trying to always run the 32-bit intel version
+           of the DumpRenderTree binary.  DRT does not build 32-bit on 64-bit
+           machines so that makes no sense.  This may have made sense for test_shell
+           at some point, but I think we should just remove this for DRT.
+
+2010-04-07  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        WebKit Apache configs only listen on IPv4 addresses, causing random timeouts
+        https://bugs.webkit.org/show_bug.cgi?id=37104
+
+        Add warnings that the partial support for specifying what port numbers
+        apache should bind to is even more broken after this fix.
+
+        * Scripts/run-webkit-httpd:
+        * Scripts/run-webkit-tests:
+
+2010-04-07  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        LayoutTestController::m_handlesAuthenticationChallenges isn't initialized
+        https://bugs.webkit.org/show_bug.cgi?id=37190
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+
+2010-03-31  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add webkit-patch command to crawl buildbot history and find when tests
+        started to fail.
+        https://bugs.webkit.org/show_bug.cgi?id=36911
+
+        This is a very bare-bones implementation, which works, but isn't pretty.
+        We will need further re-factoring and improvement to this code, but
+        after long discussions with Adam, I think it's best that we land this
+        and iterate from there.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+         - Add revision_build_pairs_with_results for cleaner code and possible
+           optimization of this command.
+         - Return None if a build number can't be found for a revision in
+           build_for_revision
+         - Separate out suspect_revisions_for_transition for re-use by
+           FailureReason
+         - Add LayoutTestResults.failing_tests() and make our parsing code
+           explict about what tables it accepts.
+        * Scripts/webkitpy/tool/commands/queries.py:
+         - Move _print_blame_information_for_commit out of WhatBroke for re-use
+           by FailureReason.
+         - Add FailureReason command which can crawl a given builder and explain
+           why it is currently red on a per-test basis.
+
+2010-04-06  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add DumpRenderTree.gyp, and some small fixes
+        https://bugs.webkit.org/show_bug.cgi?id=37137
+
+        - Add DumpRenderTree.gyp
+        - Remove some dependencies to base/string_util.h,
+          base/compiler_specific.h, base/file_path.h, base/file_util.h,
+          base/message_loop.h, base/sys_string_conversions.h,
+
+        * DumpRenderTree/DumpRenderTree.gyp/DumpRenderTree.gyp: Added.
+        * DumpRenderTree/chromium/CppVariant.cpp:
+        (CppVariant::toStringVector):
+        * DumpRenderTree/chromium/EventSender.cpp:
+        (EventSender::EventSender):
+        (EventSender::keyDown):
+        (EventSender::scheduleAsynchronousClick):
+        (EventSender::beginDragWithFiles):
+        * DumpRenderTree/chromium/LayoutTestController.cpp:
+        (LayoutTestController::setUserStyleSheetLocation):
+        (LayoutTestController::pathToLocalResource):
+        * DumpRenderTree/chromium/TextInputController.cpp:
+        (TextInputController::markedRange):
+        (TextInputController::selectedRange):
+
+2010-04-06  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Write stack traces into the results directory for new-run-webkit-tests,
+        instead of writing them alongside the test file.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36504
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_shell_thread.py:
+
+2010-04-06  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed build fix.
+
+        Enable pixel tests by default in new-run-webkit-tests unless
+        explicitly set by the port or by the command line. This was broken in
+        the fix for bug 36801 (rev. 57173).
+
+        https://bugs.webkit.org/show_bug.cgi?id=37184
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-04-06  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Disable pixel tests on the mac port by default.
+
+        Also, revamp the way we check for pixel tests being enabled or
+        disabled. We now look for options.pixel_tests instead of
+        options.no_pixel_tests, and we have the "--pixel-tests" (force enable)
+        and "--no-pixel-tests" (force disable) flags.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36801
+
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations.py:
+        * Scripts/webkitpy/layout_tests/layout_package/test_expectations_test.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-04-06  Diego Gonzalez  <diego.gonzalez@openbossa.org>
+
+        Reviewed by Laszlo Gombos.
+
+        [Qt] Added the iPhone and iPad latest user agent in QtLauncher UA switcher
+        https://bugs.webkit.org/show_bug.cgi?id=37159
+
+        * QtLauncher/useragentlist.txt:
+
+2010-04-06  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Add current user-agent string for Symbian for QtLauncher
+        https://bugs.webkit.org/show_bug.cgi?id=37131
+
+        * QtLauncher/useragentlist.txt:
+
+2010-04-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Explain how to handle rollout patches
+        https://bugs.webkit.org/show_bug.cgi?id=37139
+
+        We need to set expectations for how long landing rollout patches with
+        the commit-queue takes.  The commit-queue is optimized for safety, not
+        performance.  Also, give folks an alternative way to land patches
+        quickly.
+
+        In addition, improve our testing of add_patch_to_bug by having
+        MockBugzilla log.  This caused me to tighten a bunch of tests and
+        notice that one of our tests wasn't being run.
+
+        * Scripts/webkitpy/tool/commands/download_unittest.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/postdiffforrevert.py:
+
 2010-04-06  Adam Barth  <abarth@webkit.org>
 
         Reviewed by Eric Seidel.

@@ -59,6 +59,11 @@ class MacPort(base.Port):
         base.Port.__init__(self, port_name, options)
         self._cached_build_root = None
 
+        # FIXME: disable pixel tests until they are run by default on the
+        # build machines.
+        if options and options.pixel_tests is None:
+            options.pixel_tests = False
+
     def baseline_path(self):
         return self._webkit_baseline_path(self._name)
 
@@ -75,7 +80,7 @@ class MacPort(base.Port):
 
     def check_build(self, needs_http):
         build_drt_command = [self.script_path("build-dumprendertree")]
-        if self._options.target == "Debug":
+        if self._options.configuration == "Debug":
             build_drt_command.append('--debug')
         if executive.run_command(build_drt_command, return_exit_code=True):
             return False
@@ -160,7 +165,7 @@ class MacPort(base.Port):
         return result
 
     def num_cores(self):
-        ncores = int(os.popen2("sysctl -n hw.ncpu")[1].read())
+        ncores = int(executive.run_command(["sysctl", "-n", "hw.ncpu"]))
         # FIXME: new-run-webkit-tests is unstable running more than four
         # threads in parallel.
         # See https://bugs.webkit.org/show_bug.cgi?id=36622
@@ -314,7 +319,7 @@ class MacPort(base.Port):
             self._cached_build_root = executive.run_command(
                 [self.script_path("webkit-build-directory"),
                  "--top-level"]).rstrip()
-        return os.path.join(self._cached_build_root, self._options.target,
+        return os.path.join(self._cached_build_root, self._options.configuration,
                             *comps)
 
     def _kill_process(self, pid):
@@ -401,7 +406,7 @@ class MacDriver(base.Driver):
             # about it anyway.
             cmd += self._options.wrapper.split()
 
-        cmd += ['arch', '-i386', port._path_to_driver(), '-']
+        cmd += [port._path_to_driver(), '-']
 
         if image_path:
             cmd.append('--pixel-tests')

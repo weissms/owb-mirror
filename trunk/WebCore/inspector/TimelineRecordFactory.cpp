@@ -51,11 +51,20 @@ ScriptObject TimelineRecordFactory::createGenericRecord(InspectorFrontend* front
 
     String sourceName;
     int sourceLineNumber;
-    if (ScriptCallStack::callLocation(&sourceName, &sourceLineNumber) && sourceName != "undefined") {
+    String functionName;
+    if (ScriptCallStack::callLocation(&sourceName, &sourceLineNumber, &functionName) && sourceName != "undefined") {
         record.set("callerScriptName", sourceName);
         record.set("callerScriptLine", sourceLineNumber);
+        record.set("callerFunctionName", functionName);
     }
     return record;
+}
+
+ScriptObject TimelineRecordFactory::createGCEventData(InspectorFrontend* frontend, const size_t usedHeapSizeDelta)
+{
+    ScriptObject data = frontend->newScriptObject();
+    data.set("usedHeapSizeDelta", usedHeapSizeDelta);
+    return data;
 }
 
 ScriptObject TimelineRecordFactory::createFunctionCallData(InspectorFrontend* frontend, const String& scriptName, int scriptLine)

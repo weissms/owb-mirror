@@ -1,3 +1,187 @@
+2010-04-08  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        Chromium: support themes in devtools window.
+
+        https://bugs.webkit.org/attachment.cgi?bugid=37216
+
+        * WebKit.gypi:
+        * src/js/DevTools.js:
+        (WebInspector.setToolbarColors):
+        (WebInspector.resetToolbarColors):
+        * src/js/Images/segmentChromium2.png: Added.
+        * src/js/Images/segmentHoverChromium2.png: Added.
+        * src/js/Images/segmentSelectedChromium2.png: Added.
+        * src/js/Images/statusbarBackgroundChromium2.png: Added.
+        * src/js/Images/statusbarMenuButtonChromium2.png: Added.
+
+2010-04-07  Andrey Kosyakov  <caseq@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        Removed inspector methods from ScriptExecutionContext and derived classes.
+        Removed MessageDestination parameter from console-related calls (we now always
+        log to the same destination(s)).
+        Removed redundant FrameLoaderClient::dispatchDidLoadResourceByXMLHttpRequest()
+        https://bugs.webkit.org/show_bug.cgi?id=36949
+
+        * public/WebCommonWorkerClient.h:
+        (WebKit::WebCommonWorkerClient::postConsoleMessageToWorkerObject):
+        * src/FrameLoaderClientImpl.cpp:
+        * src/FrameLoaderClientImpl.h:
+        * src/WebWorkerBase.cpp:
+        (WebKit::WebWorkerBase::postConsoleMessageToWorkerObject):
+        (WebKit::WebWorkerBase::postConsoleMessageTask):
+        * src/WebWorkerBase.h:
+        * src/WebWorkerClientImpl.cpp:
+        (WebKit::WebWorkerClientImpl::postConsoleMessageToWorkerObject):
+        (WebKit::WebWorkerClientImpl::postConsoleMessageToWorkerObjectTask):
+        * src/WebWorkerClientImpl.h:
+
+2010-04-07  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] WebIDBDatabaseError::assign doesn't work correctly
+        https://bugs.webkit.org/show_bug.cgi?id=37209
+
+        * src/WebIDBDatabaseError.cpp:
+        (WebKit::WebIDBDatabaseError::assign):
+
+2010-04-07  Dawit Alemayehu  <adawit@kde.org>
+
+        Reviewed by Simon Hausmann.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36827
+
+        Updated the WebCore::shouldTreatAsAttachement function call with the
+        new more generic replacement WebCore::contentDispositionType.
+
+        See comments 39-42 in https://bugs.webkit.org/show_bug.cgi?id=36395
+
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchDecidePolicyForMIMEType):
+
+2010-04-07  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Add createApplicationCacheHost to WebFrameClient so
+        the ApplicationCacheHost has access to its frame.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36882
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::createApplicationCacheHost):
+        * src/ApplicationCacheHostInternal.h:
+        (WebCore::ApplicationCacheHostInternal::ApplicationCacheHostInternal):
+
+2010-04-06  Nicolas Weber  <thakis@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Use drag images on OS X as well.
+        https://bugs.webkit.org/show_bug.cgi?id=37069
+
+        * src/DragClientImpl.cpp:
+        (WebKit::DragClientImpl::startDrag):
+
+2010-04-06  Vangelis Kokkevis  <vangelis@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Changing references to Graphics Layer related classes from *Skia to *Chromium.
+        https://bugs.webkit.org/show_bug.cgi?id=37116
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::paint):
+        (WebKit::WebViewImpl::setAcceleratedCompositing):
+        (WebKit::WebViewImpl::updateRootLayerContents):
+        * src/WebViewImpl.h:
+
+2010-04-06  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [Chromium] Implement WebInputElement::maxLength.
+        https://bugs.webkit.org/show_bug.cgi?id=37172
+
+        * public/WebInputElement.h:
+        * src/WebInputElement.cpp:
+        (WebKit::WebInputElement::maxLength):
+
+2010-04-06  Evan Stade  <estade@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] need DragImage implementation
+        https://bugs.webkit.org/show_bug.cgi?id=35811
+
+        Basic implementation using SkBitmap. Transformations are not supported
+        yet. No implementation for mac.
+
+        This was previously committed but rolled back for breaking layout
+        tests.
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::startDragging):
+        * src/DragClientImpl.cpp:
+        (WebKit::DragClientImpl::startDrag): new: check for null dragImage.
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::startDragging):
+        * src/WebViewImpl.h:
+
+2010-04-06  James Hawkins  <jhawkins@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [Chromium] Move the getElementsByTagName from WebDocument to WebNode.
+        https://bugs.webkit.org/show_bug.cgi?id=37161
+
+        * public/WebDocument.h:
+        * public/WebNode.h:
+        * src/WebDocument.cpp:
+        * src/WebNode.cpp:
+        (WebKit::WebNode::getElementsByTagName):
+
+2010-04-06  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Unreviewed build fix for Chromium DEPS.
+
+        * DEPS:
+
+2010-04-06  Ilya Tikhonovsky  <loislo@chromium.org>
+
+        Unreviewed: build fix.
+
+        * DEPS:
+
+2010-04-06  Mattias Nissler  <mnissler@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Handle docking requests from the developer tools and forward them to
+        WebDevToolsFrontendClient.
+        https://bugs.webkit.org/show_bug.cgi?id=36944
+
+        * public/WebDevToolsFrontendClient.h:
+        (WebKit::WebDevToolsFrontendClient::requestDockWindow):
+        * src/WebDevToolsFrontendImpl.cpp:
+        (WebKit::WebDevToolsFrontendImpl::WebDevToolsFrontendImpl):
+        (WebKit::WebDevToolsFrontendImpl::jsRequestAttachWindow):
+        * src/WebDevToolsFrontendImpl.h:
+
+2010-04-06  Andrey Kosyakov  <caseq@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        Fixed logging of unhndled worker exceptions.
+        https://bugs.webkit.org/show_bug.cgi?id=37143
+
+        * src/WebWorkerClientImpl.cpp:
+        (WebKit::WebWorkerClientImpl::postExceptionToWorkerObject):
+
 2010-04-06  Alexey Proskuryakov  <ap@apple.com>
 
         Reviewed by Darin Adler.

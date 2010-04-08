@@ -74,6 +74,7 @@ class SuggestionsPopupMenuClient;
 class WebAccessibilityObject;
 class WebDevToolsAgentPrivate;
 class WebFrameImpl;
+class WebImage;
 class WebKeyboardEvent;
 class WebMouseEvent;
 class WebMouseWheelEvent;
@@ -274,9 +275,10 @@ public:
 
     // Start a system drag and drop operation.
     void startDragging(
-        const WebPoint& eventPos,
         const WebDragData& dragData,
-        WebDragOperationsMask dragSourceOperationMask);
+        WebDragOperationsMask mask,
+        const WebImage& dragImage,
+        const WebPoint& dragImageOffset);
 
     void suggestionsPopupDidHide()
     {
@@ -489,7 +491,7 @@ private:
     bool m_haveMouseCapture;
 
 #if USE(ACCELERATED_COMPOSITING)
-    OwnPtr<WebCore::LayerRendererSkia> m_layerRenderer;
+    OwnPtr<WebCore::LayerRendererChromium> m_layerRenderer;
     bool m_isAcceleratedCompositing;
 #endif
     static const WebInputEvent* m_currentInputEvent;

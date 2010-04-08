@@ -347,7 +347,7 @@ class TestRunner:
 
             self._expectations = self.parse_expectations(
                 self._port.test_platform_name(),
-                self._options.target == 'Debug')
+                self._options.configuration == 'Debug')
 
             self._test_files = set(files)
             self._test_files_list = files
@@ -480,7 +480,7 @@ class TestRunner:
         shell_args = []
         test_args = test_type_base.TestArguments()
         png_path = None
-        if not self._options.no_pixel_tests:
+        if self._options.pixel_tests:
             png_path = os.path.join(self._options.results_directory,
                                     "png_result%s.png" % index)
             shell_args.append("--pixel-tests=" + png_path)
@@ -698,8 +698,8 @@ class TestRunner:
             try:
                 (test, fail_list) = self._result_queue.get_nowait()
                 result = test_failures.determine_result_type(fail_list)
-                expected = self._expectations.matches_an_expected_result(test, 
-                    result, self._options.no_pixel_tests)
+                expected = self._expectations.matches_an_expected_result(test,
+                    result, self._options.pixel_tests)
                 result_summary.add(test, fail_list, result, expected)
                 if (LOG_DETAILED_PROGRESS in self._options.log and
                     (self._options.experimental_fully_parallel or
@@ -1387,13 +1387,14 @@ def main(options, args):
     logging.basicConfig(level=log_level, format=log_fmt, datefmt=log_datefmt,
                         stream=meter)
 
-    if not options.target:
-        if options.debug:
-            options.target = "Debug"
-        else:
-            options.target = "Release"
+    if not options.configuration:
+        options.configuration = "Release"
+        # FIXME: We should detect from set-webkit-configuration.
 
     port_obj = port.get(options.platform, options)
+
+    if options.pixel_tests is None:
+        options.pixel_tests = True
 
     if not options.use_apache:
         options.use_apache = sys.platform in ('darwin', 'linux2')
@@ -1428,7 +1429,7 @@ def main(options, args):
     write("Running %s test_shells in parallel" % options.num_test_shells)
 
     if not options.time_out_ms:
-        if options.target == "Debug":
+        if options.configuration == "Debug":
             options.time_out_ms = str(2 * TestRunner.DEFAULT_TEST_TIMEOUT_MS)
         else:
             options.time_out_ms = str(TestRunner.DEFAULT_TEST_TIMEOUT_MS)
@@ -1457,8 +1458,9 @@ def main(options, args):
     test_runner.gather_file_paths(paths)
 
     if options.lint_test_files:
-        # Creating the expecations for each platform/target pair does all the
-        # test list parsing and ensures it's correct syntax (e.g. no dupes).
+        # Creating the expecations for each platform/configuration pair does
+        # all the test list parsing and ensures it's correct syntax (e.g. no
+        # dupes).
         for platform in port_obj.test_platform_names():
             test_runner.parse_expectations(platform, is_debug_mode=True)
             test_runner.parse_expectations(platform, is_debug_mode=False)
@@ -1472,14 +1474,16 @@ def main(options, args):
     write("Placing test results in %s" % options.results_directory)
     if options.new_baseline:
         write("Placing new baselines in %s" % port_obj.baseline_path())
-    write("Using %s build" % options.target)
-    if options.no_pixel_tests:
-        write("Not running pixel tests")
+    write("Using %s build" % options.configuration)
+    if options.pixel_tests:
+        write("Pixel tests enabled")
+    else:
+        write("Pixel tests disabled")
     write("")
 
     meter.update("Parsing expectations ...")
     test_runner.parse_expectations(port_obj.test_platform_name(),
-                                   options.target == 'Debug')
+                                   options.configuration == 'Debug')
 
     meter.update("Checking build ...")
     if not port_obj.check_build(test_runner.needs_http()):
@@ -1501,7 +1505,7 @@ def main(options, args):
     port_obj.setup_test_run()
 
     test_runner.add_test_type(text_diff.TestTextDiff)
-    if not options.no_pixel_tests:
+    if options.pixel_tests:
         test_runner.add_test_type(image_diff.ImageDiff)
         if options.fuzzy_pixel_tests:
             test_runner.add_test_type(fuzzy_image_diff.FuzzyImageDiff)
@@ -1519,8 +1523,11 @@ def parse_args(args=None):
 
     Returns a tuple of options, args from optparse"""
     option_parser = optparse.OptionParser()
-    option_parser.add_option("", "--no-pixel-tests", action="store_true",
-                             default=False,
+    option_parser.add_option("", "--pixel-tests'", action="store_true",
+                             dest="pixel_tests",
+                             help="enable pixel-to-pixel PNG comparisons")
+    option_parser.add_option("", "--no-pixel-tests", action="store_false",
+                             dest="pixel_tests",
                              help="disable pixel-to-pixel PNG comparisons")
     option_parser.add_option("", "--fuzzy-pixel-tests", action="store_true",
                              default=False,
@@ -1562,17 +1569,17 @@ def parse_args(args=None):
     option_parser.add_option("", "--run-singly", action="store_true",
                              default=False,
                              help="run a separate test_shell for each test")
-    option_parser.add_option("", "--debug", action="store_true", default=False,
-                             help="use the debug binary instead of the release"
-                                  " binary")
     option_parser.add_option("", "--num-slow-tests-to-log", default=50,
                              help="Number of slow tests whose timings "
                                   "to print.")
     option_parser.add_option("", "--platform",
                              help="Override the platform for expected results")
-    option_parser.add_option("", "--target", default="",
-                             help="Set the build target configuration "
-                                  "(overrides --debug)")
+    option_parser.add_option('--debug', action='store_const', const='Debug',
+                             dest="configuration",
+                             help='Set the configuration to Debug')
+    option_parser.add_option('--release', action='store_const', const='Release',
+                             dest="configuration",
+                             help='Set the configuration to Release')
     option_parser.add_option("", "--log", action="store",
                              default="detailed-progress,unexpected",
                              help="log various types of data. The param should"

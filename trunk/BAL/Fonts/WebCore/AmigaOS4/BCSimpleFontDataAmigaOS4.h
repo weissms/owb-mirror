@@ -25,8 +25,8 @@
 
 #include "FontData.h"
 #include "FontPlatformData.h"
+#include "GlyphMetricsMap.h"
 #include "GlyphPageTreeNode.h"
-#include "GlyphWidthMap.h"
 #include <wtf/OwnPtr.h>
 
 #define DOUBLE_FROM_26_6(t) ((double)(t) / 64.0)
@@ -37,9 +37,9 @@ class FontDescription;
 class FontPlatformData;
 class SharedBuffer;
 class SVGFontData;
-class WidthMap;
 
 enum Pitch { UnknownPitch, FixedPitch, VariablePitch };
+enum GlyphMetricsMode { GlyphBoundingBox, GlyphWidthOnly };
 
 class SimpleFontData : public FontData {
 public:
@@ -60,8 +60,9 @@ public:
     float xHeight() const { return m_xHeight; }
     unsigned unitsPerEm() const { return m_unitsPerEm; }
 
-    float widthForGlyph(Glyph) const;
-    float platformWidthForGlyph(Glyph) const;
+    float widthForGlyph(Glyph glyph) const { return metricsForGlyph(glyph, GlyphWidthOnly).horizontalAdvance; }
+    GlyphMetrics metricsForGlyph(Glyph, GlyphMetricsMode = GlyphBoundingBox) const;
+    GlyphMetrics platformMetricsForGlyph(Glyph, GlyphMetricsMode) const;
 
     float spaceWidth() const { return m_spaceWidth; }
     float adjustedSpaceWidth() const { return m_adjustedSpaceWidth; }
@@ -111,7 +112,7 @@ public:
 
     FontPlatformData m_platformData;
 
-    mutable GlyphWidthMap m_glyphToWidthMap;
+    mutable GlyphMetricsMap m_glyphToMetricsMap;
 
     bool m_treatAsFixedPitch;
 
@@ -131,18 +132,17 @@ public:
     mutable SimpleFontData* m_smallCapsFontData;
 };
 
-ALWAYS_INLINE float SimpleFontData::widthForGlyph(Glyph glyph) const
+ALWAYS_INLINE GlyphMetrics SimpleFontData::metricsForGlyph(Glyph glyph, GlyphMetricsMode metricsMode) const
 {
-    float width = m_glyphToWidthMap.widthForGlyph(glyph);
-    if (width != cGlyphWidthUnknown)
-        return width;
+    GlyphMetrics metrics = m_glyphToMetricsMap.metricsForGlyph(glyph);
+    if ((metricsMode == GlyphWidthOnly && metrics.horizontalAdvance != cGlyphSizeUnknown) || (metricsMode == GlyphBoundingBox && metrics.boundingBox.width() != cGlyphSizeUnknown))
+        return metrics;
 
-    width = platformWidthForGlyph(glyph);
-    m_glyphToWidthMap.setWidthForGlyph(glyph, width);
+    metrics = platformMetricsForGlyph(glyph, metricsMode);
+    m_glyphToMetricsMap.setMetricsForGlyph(glyph, metrics);
 
-    return width;
+    return metrics;
 }
-
 
 } // namespace WebCore
 

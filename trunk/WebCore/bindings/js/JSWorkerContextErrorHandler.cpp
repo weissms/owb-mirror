@@ -113,4 +113,4 @@ void JSWorkerContextErrorHandler::handleEvent(ScriptExecutionContext* scriptExec
 
 } // namespace WebCore
 
-#endif  // ENABLE(WORKERS)
+#endif // ENABLE(WORKERS)

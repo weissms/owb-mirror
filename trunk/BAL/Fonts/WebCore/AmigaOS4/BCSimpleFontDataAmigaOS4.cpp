@@ -181,13 +181,19 @@ void SimpleFontData::determinePitch()
 
 float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
 {
-    if (32 == glyph)
-        return m_spaceWidth;
+    GlyphMetrics metrics;
+
+    if (32 == glyph) {
+        metrics.horizontalAdvance = m_spaceWidth;
+        return metrics;
+    }
 
     OutlineFont* face = m_platformData.m_face;
 
-    if (!face)
-        return m_spaceWidth;
+    if (!face) {
+        metrics.horizontalAdvance = m_spaceWidth;
+        return metrics;
+    }
 
     if (!IDiskfont->ESetInfo(&face->olf_EEngine,
                              OT_GlyphCode, glyph,
@@ -257,10 +263,14 @@ float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
              IDiskfont->EReleaseInfo(&face->olf_EEngine, OT_WidthList, widthlist, TAG_END);
         }
 
-        if (width > 0.1)
-           return (int)(width * amigaConfig.fontXDPI / 72);
+        if (width > 0.1) {
+           metrics.horizontalAdvance = (int)(width * amigaConfig.fontXDPI / 72);
+           return metrics;
+        }
     }
-    return m_spaceWidth;
+    
+    metrics.horizontalAdvance = m_spaceWidth;
+    return metrics;
 }
 
 void SimpleFontData::setFont(BalFont* cr) const

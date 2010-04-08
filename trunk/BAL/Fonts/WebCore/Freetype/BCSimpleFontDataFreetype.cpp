@@ -116,15 +116,20 @@ void SimpleFontData::determinePitch()
     m_treatAsFixedPitch = m_platformData.isFixedPitch();
 }
 
-float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
+GlyphMetrics SimpleFontData::platformMetricsForGlyph(Glyph glyph, GlyphMetricsMode /* metricsMode */) const
 {
+    GlyphMetrics metrics;
     FT_Face face = m_platformData.m_face;
     if (FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT)) {
-        return m_spaceWidth;
+        metrics.horizontalAdvance = m_spaceWidth;
     }
-    if (face->glyph->advance.x)
-        return DOUBLE_FROM_26_6(face->glyph->advance.x);
-    return m_spaceWidth;
+    else if (face->glyph->advance.x) {
+        metrics.horizontalAdvance = DOUBLE_FROM_26_6(face->glyph->advance.x);
+    }
+    else {
+        metrics.horizontalAdvance = m_spaceWidth;
+    }
+    return metrics;
 }
 
 void SimpleFontData::setFont(BalFont* cr) const

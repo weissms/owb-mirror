@@ -33,13 +33,14 @@
 
 #if ENABLE(FILE_WRITER) || ENABLE(FILE_READER)
 
-#include "FileSystem.h"
 #include <wtf/MessageQueue.h>
 #include <wtf/PassOwnPtr.h>
 #include <wtf/PassRefPtr.h>
 #include <wtf/Threading.h>
 
 namespace WebCore {
+
+class FileStream;
 
 class FileThread : public ThreadSafeShared<FileThread> {
 public:
@@ -53,14 +54,14 @@ public:
     public:
         virtual ~Task() { }
         virtual void performTask() = 0;
-        PlatformFileHandle fileHandle() const { return m_handle; }
+        FileStream* stream() const { return m_stream; }
     protected:
-        Task(PlatformFileHandle handle) : m_handle(handle) { }
-        const PlatformFileHandle m_handle;
+        Task(FileStream* stream) : m_stream(stream) { }
+        FileStream* m_stream;
     };
 
     void postTask(PassOwnPtr<Task> task);
-    void removeTask(PlatformFileHandle);
+    void unscheduleTasks(const FileStream*);
 
 private:
     FileThread();
