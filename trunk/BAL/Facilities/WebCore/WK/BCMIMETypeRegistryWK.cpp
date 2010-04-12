@@ -228,8 +228,6 @@ static void initializeSupportedNonImageMimeTypes()
         // Note: ADDING a new type here will probably render it as HTML. This can
         // result in cross-site scripting.
     };
-    COMPILE_ASSERT(sizeof(types) / sizeof(types[0]) <= 16,
-                   nonimage_mime_types_must_be_less_than_or_equal_to_16);
 
     for (size_t i = 0; i < sizeof(types)/sizeof(types[0]); ++i)
         supportedNonImageMIMETypes->add(types[i]);
