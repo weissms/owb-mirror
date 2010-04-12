@@ -173,6 +173,12 @@ void LayoutTestController::keepWebHistory()
     history->setOptionalSharedHistory(sharedHistory.get());
 }
 
+JSValueRef LayoutTestController::computedStyleIncludingVisitedInfo(JSContextRef context, JSValueRef value)
+{
+    // FIXME: Implement this.
+    return JSValueMakeUndefined(context);
+}
+
 JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
 {
     COMPtr<IWebFramePrivate> framePrivate(Query, frame);
@@ -984,6 +990,11 @@ void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, J
         return;
 
     webView->whiteListAccessFromOrigin(bstrT(sourceOrigin).GetBSTR(), bstrT(destinationProtocol).GetBSTR(), bstrT(destinationHost).GetBSTR(), allowDestinationSubdomains);
+}
+
+void LayoutTestController::setScrollbarPolicy(JSStringRef orientation, JSStringRef policy)
+{
+    // FIXME: implement
 }
 
 void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)

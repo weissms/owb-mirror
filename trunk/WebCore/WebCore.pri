@@ -56,6 +56,7 @@ contains(DEFINES, ENABLE_SINGLE_THREADED=1) {
 !contains(DEFINES, ENABLE_SANDBOX=.): DEFINES += ENABLE_SANDBOX=1
 !contains(DEFINES, ENABLE_PROGRESS_TAG=.): DEFINES += ENABLE_PROGRESS_TAG=1
 !contains(DEFINES, ENABLE_BLOB_SLICE=.): DEFINES += ENABLE_BLOB_SLICE=0
+!contains(DEFINES, ENABLE_NOTIFICATIONS=.): DEFINES += ENABLE_NOTIFICATIONS=1
 
 greaterThan(QT_MINOR_VERSION, 5) {
     !contains(DEFINES, ENABLE_3D_RENDERING=.): DEFINES += ENABLE_3D_RENDERING=1
@@ -157,6 +158,7 @@ contains(DEFINES, ENABLE_OFFLINE_WEB_APPLICATIONS=1): FEATURE_DEFINES_JAVASCRIPT
 contains(DEFINES, ENABLE_WEB_SOCKETS=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_WEB_SOCKETS=1
 contains(DEFINES, ENABLE_TOUCH_EVENTS=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_TOUCH_EVENTS=1
 contains(DEFINES, ENABLE_TILED_BACKING_STORE=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_TILED_BACKING_STORE=1
+contains(DEFINES, ENABLE_NOTIFICATIONS=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_NOTIFICATIONS=1
 
 
 ## Derived source generators
@@ -401,6 +403,8 @@ IDL_BINDINGS += \
     inspector/InspectorFrontendHost.idl \
     inspector/JavaScriptCallFrame.idl \
     loader/appcache/DOMApplicationCache.idl \
+    notifications/Notification.idl \
+    notifications/NotificationCenter.idl \
     page/BarInfo.idl \
     page/Console.idl \
     page/Coordinates.idl \
@@ -698,7 +702,7 @@ addExtraCompiler(colordata)
 stylesheets.wkScript = $$PWD/css/make-css-file-arrays.pl
 stylesheets.output = $${WC_GENERATED_SOURCES_DIR}/UserAgentStyleSheetsData.cpp
 stylesheets.input = stylesheets.wkScript
-stylesheets.commands = perl $$stylesheets.wkScript --preprocessor \"$${QMAKE_MOC} -E\" $${WC_GENERATED_SOURCES_DIR}/UserAgentStyleSheets.h ${QMAKE_FILE_OUT} $$STYLESHEETS_EMBED
+stylesheets.commands = perl $$stylesheets.wkScript $${WC_GENERATED_SOURCES_DIR}/UserAgentStyleSheets.h ${QMAKE_FILE_OUT} $$STYLESHEETS_EMBED
 stylesheets.depends = $$STYLESHEETS_EMBED
 stylesheets.clean = ${QMAKE_FILE_OUT} ${QMAKE_VAR_WC_GENERATED_SOURCES_DIR}/UserAgentStyleSheets.h
 addExtraCompiler(stylesheets, $${WC_GENERATED_SOURCES_DIR}/UserAgentStyleSheets.h)

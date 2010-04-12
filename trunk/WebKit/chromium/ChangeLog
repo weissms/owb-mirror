@@ -1,3 +1,182 @@
+2010-04-12  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r57468.
+        http://trac.webkit.org/changeset/57468
+        https://bugs.webkit.org/show_bug.cgi?id=37433
+
+        Broke the world...  Must have applied the patch wrong
+        (Requested by abarth on #webkit).
+
+        * src/ContextMenuClientImpl.cpp:
+        (WebKit::ContextMenuClientImpl::getCustomMenuFromDefaultItems):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::finishedLoading):
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::encoding):
+        (WebKit::WebFrameImpl::commitDocumentData):
+        * src/WebPageSerializerImpl.cpp:
+        (WebKit::WebPageSerializerImpl::preActionBeforeSerializeOpenTag):
+        (WebKit::WebPageSerializerImpl::serialize):
+        * src/WebSearchableFormData.cpp:
+        (WebCore::GetFormEncoding):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::pageEncoding):
+
+2010-04-11  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Factor DocumentWriter out of FrameLoader
+        https://bugs.webkit.org/show_bug.cgi?id=37175
+
+        Update these callsites because the method moved to DocumentWriter.
+
+        * src/ContextMenuClientImpl.cpp:
+        (WebKit::ContextMenuClientImpl::getCustomMenuFromDefaultItems):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::finishedLoading):
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::encoding):
+        (WebKit::WebFrameImpl::commitDocumentData):
+        * src/WebPageSerializerImpl.cpp:
+        (WebKit::WebPageSerializerImpl::preActionBeforeSerializeOpenTag):
+        (WebKit::WebPageSerializerImpl::serialize):
+        * src/WebSearchableFormData.cpp:
+        (WebCore::GetFormEncoding):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::pageEncoding):
+
+2010-04-11  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r57460.
+        http://trac.webkit.org/changeset/57460
+        https://bugs.webkit.org/show_bug.cgi?id=37424
+
+        broke chromium builders (Requested by tony^work on #webkit).
+
+        * DEPS:
+        * gyp_webkit:
+
+2010-04-11  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] update chromium DEPS for upstream compile
+        https://bugs.webkit.org/show_bug.cgi?id=36578
+
+        * DEPS:
+        * gyp_webkit: Add DumpRenderTree.gyp so we generate xcode projects for DRT.
+
+2010-04-10  Vangelis Kokkevis  <vangelis@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Include file change as a result of renaming LayerRenderSkia.h to LayerRenderChromium.h
+        https://bugs.webkit.org/show_bug.cgi?id=37231
+
+        * src/WebViewImpl.h:
+
+2010-04-10  Rafael Weinstein  <rafaelw@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Cleanup after chromium breakage. All interface methods are
+        returned to being abstract.
+
+        * public/WebNotificationPresenter.h:
+
+2010-04-09  Evan Stade  <estade@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        [chromium] Linux: respect the scale factor during printing
+        https://bugs.webkit.org/show_bug.cgi?id=37168
+
+        Chromium doesn't support testing .pdfs from printing at the moment, so
+        this change is not covered by any tests.
+
+        * src/WebFrameImpl.cpp:
+        (WebKit::ChromePrintContext::spoolPage):
+
+2010-04-09  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove applicationID() from WebDocument as it is Chromium-specific.
+        https://bugs.webkit.org/show_bug.cgi?id=37350
+
+        * public/WebDocument.h:
+        * src/WebDocument.cpp:
+
+2010-04-09  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Move the IDB::open ExceptionCode paramter to be last
+        https://bugs.webkit.org/show_bug.cgi?id=37277
+
+        Move the ExceptionCode paramter to the last position in 
+        IndexedDatabaseRequest::open and friends.  It should definitely
+        go after the callbacks to keep the parameters that come directly
+        from javascript together.  And having output parameters appear
+        last is done often in the code base, so it makes sense to push
+        it past the Frame* param as well.
+
+        * public/WebIndexedDatabase.h:
+        * src/IndexedDatabaseProxy.cpp:
+        (WebCore::IndexedDatabaseProxy::open):
+        * src/IndexedDatabaseProxy.h:
+        * src/WebIndexedDatabaseImpl.cpp:
+        (WebKit::WebIndexedDatabaseImpl::open):
+        * src/WebIndexedDatabaseImpl.h:
+
+2010-04-09  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Complete move of createApplicationCacheHost from WebKitClient to WebFrameClient.
+        https://bugs.webkit.org/show_bug.cgi?id=37330
+
+        * public/WebApplicationCacheHost.h:
+        * public/WebKitClient.h:
+        * src/ApplicationCacheHostInternal.h:
+        (WebCore::ApplicationCacheHostInternal::ApplicationCacheHostInternal):
+
+2010-04-09  Marcus Bulach  <bulach@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Crash on WebKit::WebGeolocationServiceBridgeImpl::stopUpdating() during frame disconnection
+        Should not try to access WebViewClient if the frame has already been disconnected.
+        https://bugs.webkit.org/show_bug.cgi?id=37318
+
+        * src/WebGeolocationServiceBridgeImpl.cpp:
+        (WebKit::WebGeolocationServiceBridgeImpl::stopUpdating):
+
+2010-04-09  Jochen Eisinger  <jochen@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Expose SecurityOrigin::canRequest in WebSecurityOrigin.
+        https://bugs.webkit.org/show_bug.cgi?id=37271
+
+        * public/WebSecurityOrigin.h:
+        * src/WebSecurityOrigin.cpp:
+        (WebKit::WebSecurityOrigin::canRequest):
+
+2010-04-09  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Must resolve multisampled back buffer during copyTexImage2D and copyTexSubImage2D
+        https://bugs.webkit.org/show_bug.cgi?id=37174
+
+        Test: fast/canvas/webgl/copy-tex-image-and-sub-image-2d.html
+
+        * src/WebGraphicsContext3DDefaultImpl.cpp: Resolve multisampled back buffer during copyTexImage2D and copyTexSubImage2D.
+        (WebKit::WebGraphicsContext3DDefaultImpl::copyTexImage2D):
+        (WebKit::WebGraphicsContext3DDefaultImpl::copyTexSubImage2D):
+
 2010-04-08  Pavel Feldman  <pfeldman@chromium.org>
 
         Reviewed by Yury Semikhatsky.

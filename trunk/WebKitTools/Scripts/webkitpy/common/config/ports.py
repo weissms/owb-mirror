@@ -31,8 +31,6 @@
 import os
 import platform
 
-from optparse import make_option
-
 from webkitpy.common.system.executive import Executive
 
 
@@ -61,7 +59,7 @@ class WebKitPort(object):
 
     @staticmethod
     def makeArgs():
-        args = '--makeargs="-j%s"' % Executive.cpu_count()
+        args = '--makeargs="-j%s"' % Executive().cpu_count()
         if os.environ.has_key('MAKEFLAGS'):
             args = '--makeargs="%s"' % os.environ['MAKEFLAGS']
         return args

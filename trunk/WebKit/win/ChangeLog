@@ -1,3 +1,45 @@
+2010-04-12  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r57468.
+        http://trac.webkit.org/changeset/57468
+        https://bugs.webkit.org/show_bug.cgi?id=37433
+
+        Broke the world...  Must have applied the patch wrong
+        (Requested by abarth on #webkit).
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::receivedData):
+
+2010-04-11  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Factor DocumentWriter out of FrameLoader
+        https://bugs.webkit.org/show_bug.cgi?id=37175
+
+        Update these callsites because the method moved to DocumentWriter.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::receivedData):
+
+2010-04-09  Adam Roben  <aroben@apple.com>
+
+        Windows Debug/Release build fix after r57244
+
+        * WebKit.vcproj/WebKit.vcproj: Don't delay-load QuartzCore.dll or
+        QuartzCoreInterface.dll in any configurations. r57244 made this change
+        only for Debug_Internal.
+
+2010-04-08  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WebView::isLoading should null check m_mainFrame
+        https://bugs.webkit.org/show_bug.cgi?id=37294
+
+        * WebView.cpp:
+        (WebView::isLoading):
+
 2010-04-08  Chris Marrin  <cmarrin@apple.com>
 
         Reviewed by Steve Falkenburg.

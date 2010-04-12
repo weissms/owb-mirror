@@ -433,6 +433,7 @@ Document::Document(Frame* frame, bool isXHTML, bool isHTML)
     m_usesFirstLetterRules = false;
     m_usesBeforeAfterRules = false;
     m_usesRemUnits = false;
+    m_usesLinkRules = false;
 
     m_gotoAnchorNeededAfterStylesheetsLoad = false;
  
@@ -518,7 +519,7 @@ Document::~Document()
     removeAllEventListeners();
 
 #if USE(JSC)
-    forgetAllDOMNodesForDocument(this);
+    destroyAllWrapperCaches();
 #endif
 
     m_tokenizer.clear();
@@ -550,14 +551,29 @@ Document::~Document()
 #if USE(JSC)
 Document::JSWrapperCache* Document::createWrapperCache(DOMWrapperWorld* world)
 {
-    JSWrapperCache* wrapperCache = new JSWrapperCache();
+    JSWrapperCache* wrapperCache = new JSWrapperCache;
     m_wrapperCacheMap.set(world, wrapperCache);
     if (world->isNormal()) {
         ASSERT(!m_normalWorldWrapperCache);
         m_normalWorldWrapperCache = wrapperCache;
     }
-    world->rememberDocument(this);
+    world->didCreateWrapperCache(this);
     return wrapperCache;
+}
+
+void Document::destroyWrapperCache(DOMWrapperWorld* world)
+{
+    Document::JSWrapperCache* wrappers = wrapperCacheMap().take(world);
+    ASSERT(wrappers);
+    delete wrappers;
+    world->didDestroyWrapperCache(this);
+}
+
+void Document::destroyAllWrapperCaches()
+{
+    JSWrapperCacheMap& wrapperCacheMap = this->wrapperCacheMap();
+    while (wrapperCacheMap.begin() != wrapperCacheMap.end())
+        destroyWrapperCache(wrapperCacheMap.begin()->first);
 }
 #endif
 
@@ -2493,7 +2509,13 @@ void Document::updateStyleSelector()
 #endif
 
     recalcStyleSelector();
+    // This recalcStyle initiates a new recalc cycle. We need to bracket it to
+    // make sure animations get the correct update time
+    if (m_frame)
+        m_frame->animation()->beginAnimationUpdate();
     recalcStyle(Force);
+    if (m_frame)
+        m_frame->animation()->endAnimationUpdate();
 
 #ifdef INSTRUMENT_LAYOUT_SCHEDULING
     if (!ownerElement())

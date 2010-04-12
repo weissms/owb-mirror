@@ -143,6 +143,12 @@ void LayoutTestController::keepWebHistory()
     // FIXME: implement
 }
 
+JSValueRef LayoutTestController::computedStyleIncludingVisitedInfo(JSContextRef context, JSValueRef value)
+{
+    // FIXME: Implement this.
+    return JSValueMakeUndefined(context);
+}
+
 JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
 {
     // FIXME: implement
@@ -242,6 +248,11 @@ void LayoutTestController::waitForPolicyDelegate()
 {
     waitForPolicy = true;
     setWaitToDump(true);
+}
+
+void LayoutTestController::setScrollbarPolicy(JSStringRef orientation, JSStringRef policy)
+{
+    // FIXME: implement
 }
 
 void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef protocol, JSStringRef host, bool includeSubdomains)

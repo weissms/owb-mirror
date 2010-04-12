@@ -516,8 +516,9 @@ static PassRefPtr<CSSValue> getTimingFunctionValue(const AnimationList* animList
     return list.release();
 }
 
-CSSComputedStyleDeclaration::CSSComputedStyleDeclaration(PassRefPtr<Node> n)
+CSSComputedStyleDeclaration::CSSComputedStyleDeclaration(PassRefPtr<Node> n, bool allowVisitedStyle)
     : m_node(n)
+    , m_allowVisitedStyle(allowVisitedStyle)
 {
 }
 
@@ -691,7 +692,7 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
             break;
 
         case CSSPropertyBackgroundColor:
-            return CSSPrimitiveValue::createColor(style->backgroundColor().rgb());
+            return CSSPrimitiveValue::createColor(m_allowVisitedStyle? style->visitedDependentColor(CSSPropertyBackgroundColor).rgb() : style->backgroundColor().rgb());
         case CSSPropertyBackgroundImage:
             if (style->backgroundImage())
                 return style->backgroundImage()->cssValue();
@@ -748,13 +749,13 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
         case CSSPropertyWebkitBorderVerticalSpacing:
             return CSSPrimitiveValue::create(style->verticalBorderSpacing(), CSSPrimitiveValue::CSS_PX);
         case CSSPropertyBorderTopColor:
-            return currentColorOrValidColor(style.get(), style->borderTopColor());
+            return m_allowVisitedStyle ? CSSPrimitiveValue::createColor(style->visitedDependentColor(CSSPropertyBorderTopColor).rgb()) : currentColorOrValidColor(style.get(), style->borderTopColor());
         case CSSPropertyBorderRightColor:
-            return currentColorOrValidColor(style.get(), style->borderRightColor());
+            return m_allowVisitedStyle ? CSSPrimitiveValue::createColor(style->visitedDependentColor(CSSPropertyBorderRightColor).rgb()) : currentColorOrValidColor(style.get(), style->borderRightColor());
         case CSSPropertyBorderBottomColor:
-            return currentColorOrValidColor(style.get(), style->borderBottomColor());
+            return m_allowVisitedStyle ? CSSPrimitiveValue::createColor(style->visitedDependentColor(CSSPropertyBorderBottomColor).rgb()) : currentColorOrValidColor(style.get(), style->borderBottomColor());
         case CSSPropertyBorderLeftColor:
-            return currentColorOrValidColor(style.get(), style->borderLeftColor());
+            return m_allowVisitedStyle ? CSSPrimitiveValue::createColor(style->visitedDependentColor(CSSPropertyBorderLeftColor).rgb()) : currentColorOrValidColor(style.get(), style->borderLeftColor());
         case CSSPropertyBorderTopStyle:
             return CSSPrimitiveValue::create(style->borderTopStyle());
         case CSSPropertyBorderRightStyle:
@@ -804,7 +805,7 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
         case CSSPropertyClear:
             return CSSPrimitiveValue::create(style->clear());
         case CSSPropertyColor:
-            return CSSPrimitiveValue::createColor(style->color().rgb());
+            return CSSPrimitiveValue::createColor(m_allowVisitedStyle ? style->visitedDependentColor(CSSPropertyColor).rgb() : style->color().rgb());
         case CSSPropertyWebkitColumnCount:
             if (style->hasAutoColumnCount())
                 return CSSPrimitiveValue::createIdentifier(CSSValueAuto);
@@ -814,7 +815,7 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
                 return CSSPrimitiveValue::createIdentifier(CSSValueNormal);
             return CSSPrimitiveValue::create(style->columnGap(), CSSPrimitiveValue::CSS_NUMBER);
         case CSSPropertyWebkitColumnRuleColor:
-            return currentColorOrValidColor(style.get(), style->columnRuleColor());
+            return m_allowVisitedStyle ? CSSPrimitiveValue::createColor(style->visitedDependentColor(CSSPropertyOutlineColor).rgb()) : currentColorOrValidColor(style.get(), style->columnRuleColor());
         case CSSPropertyWebkitColumnRuleStyle:
             return CSSPrimitiveValue::create(style->columnRuleStyle());
         case CSSPropertyWebkitColumnRuleWidth:
@@ -835,7 +836,7 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
             if (cursors && cursors->size() > 0) {
                 list = CSSValueList::createCommaSeparated();
                 for (unsigned i = 0; i < cursors->size(); ++i)
-                    list->append(CSSPrimitiveValue::create((*cursors)[i].cursorImage->url(), CSSPrimitiveValue::CSS_URI));
+                    list->append(CSSPrimitiveValue::create((*cursors)[i].image()->url(), CSSPrimitiveValue::CSS_URI));
             }
             RefPtr<CSSValue> value = CSSPrimitiveValue::create(style->cursor());
             if (list) {
@@ -973,9 +974,14 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
                 return style->maskImage()->cssValue();
             return CSSPrimitiveValue::createIdentifier(CSSValueNone);
         case CSSPropertyWebkitMaskSize: {
+            EFillSizeType size = style->maskSizeType();
+            if (size == Contain)
+                return CSSPrimitiveValue::createIdentifier(CSSValueContain);
+            if (size == Cover)
+                return CSSPrimitiveValue::createIdentifier(CSSValueCover);
             RefPtr<CSSValueList> list = CSSValueList::createSpaceSeparated();
-            list->append(CSSPrimitiveValue::create(style->maskSize().width()));
-            list->append(CSSPrimitiveValue::create(style->maskSize().height()));
+            list->append(CSSPrimitiveValue::create(style->maskSizeLength().width()));
+            list->append(CSSPrimitiveValue::create(style->maskSizeLength().height()));
             return list.release();
         }  
         case CSSPropertyWebkitMaskRepeat:
@@ -1024,7 +1030,7 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
         case CSSPropertyOrphans:
             return CSSPrimitiveValue::create(style->orphans(), CSSPrimitiveValue::CSS_NUMBER);
         case CSSPropertyOutlineColor:
-            return currentColorOrValidColor(style.get(), style->outlineColor());
+            return m_allowVisitedStyle ? CSSPrimitiveValue::createColor(style->visitedDependentColor(CSSPropertyOutlineColor).rgb()) : currentColorOrValidColor(style.get(), style->outlineColor());
         case CSSPropertyOutlineStyle:
             if (style->outlineStyleIsAuto())
                 return CSSPrimitiveValue::createIdentifier(CSSValueAuto);

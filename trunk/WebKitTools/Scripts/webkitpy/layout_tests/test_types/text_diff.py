@@ -37,8 +37,8 @@ import errno
 import logging
 import os.path
 
-from layout_package import test_failures
-from test_types import test_type_base
+from webkitpy.layout_tests.layout_package import test_failures
+from webkitpy.layout_tests.test_types import test_type_base
 
 _log = logging.getLogger("webkitpy.layout_tests.test_types.text_diff")
 
@@ -98,8 +98,8 @@ class TestTextDiff(test_type_base.TestTypeBase):
         # Write output files for new tests, too.
         if port.compare_text(output, expected):
             # Text doesn't match, write output files.
-            self.write_output_files(port, filename, "", ".txt", output,
-                                    expected, diff=True, wdiff=True)
+            self.write_output_files(port, filename, ".txt", output,
+                                    expected, print_text_diffs=True)
 
             if expected == '':
                 failures.append(test_failures.FailureMissingResult(self))

@@ -209,6 +209,7 @@ FrameLoader::FrameLoader(Frame* frame, FrameLoaderClient* client)
     , m_loadingFromCachedPage(false)
     , m_suppressOpenerInNewFrame(false)
     , m_sandboxFlags(SandboxAll)
+    , m_forcedSandboxFlags(SandboxNone)
 #ifndef NDEBUG
     , m_didDispatchDidCommitLoad(false)
 #endif
@@ -482,6 +483,9 @@ void FrameLoader::submitForm(const char* action, const String& url, PassRefPtr<F
     if (!shouldAllowNavigation(targetFrame))
         return;
     if (!targetFrame) {
+        if (!DOMWindow::allowPopUp(m_frame) && !isProcessingUserGesture())
+            return;
+
         targetFrame = m_frame;
         frameRequest.setFrameName(targetOrBaseTarget);
     }
@@ -4021,7 +4025,7 @@ void FrameLoader::dispatchDidClearWindowObjectInWorld(DOMWrapperWorld* world)
 
 void FrameLoader::updateSandboxFlags()
 {
-    SandboxFlags flags = SandboxNone;
+    SandboxFlags flags = m_forcedSandboxFlags;
     if (Frame* parentFrame = m_frame->tree()->parent())
         flags |= parentFrame->loader()->sandboxFlags();
     if (HTMLFrameOwnerElement* ownerElement = m_frame->ownerElement())

@@ -1439,7 +1439,7 @@ class TCMalloc_PageHeap {
   ALWAYS_INLINE bool shouldScavenge() const;
 
 #if !HAVE(DISPATCH_H)
-  static NO_RETURN void* runScavengerThread(void*);
+  static NO_RETURN_WITH_VALUE void* runScavengerThread(void*);
   NO_RETURN void scavengerThread();
 
   // Keeps track of whether the background thread is actively scavenging memory every kScavengeDelayInSeconds, or
@@ -4484,6 +4484,9 @@ malloc_introspection_t jscore_fastmalloc_introspection = { &FastMallocZone::enum
 
 #if !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD) && !OS(IPHONE_OS)
     , 0 // zone_locked will not be called on the zone unless it advertises itself as version five or higher.
+#endif
+#if !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD) && !defined(BUILDING_ON_SNOW_LEOPARD) && !OS(IPHONE_OS)
+    , 0, 0, 0, 0 // These members will not be used unless the zone advertises itself as version seven or higher.
 #endif
 
     };

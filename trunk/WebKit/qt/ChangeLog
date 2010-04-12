@@ -1,3 +1,286 @@
+2010-04-12  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r57468.
+        http://trac.webkit.org/changeset/57468
+        https://bugs.webkit.org/show_bug.cgi?id=37433
+
+        Broke the world...  Must have applied the patch wrong
+        (Requested by abarth on #webkit).
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::finishedLoading):
+        (WebCore::FrameLoaderClientQt::setMainDocumentError):
+        (WebCore::FrameLoaderClientQt::committedLoad):
+        (WebCore::FrameLoaderClientQt::dispatchDidFailLoading):
+
+2010-04-11  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Factor DocumentWriter out of FrameLoader
+        https://bugs.webkit.org/show_bug.cgi?id=37175
+
+        Update these callsites because the method moved to DocumentWriter.
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::finishedLoading):
+        (WebCore::FrameLoaderClientQt::setMainDocumentError):
+        (WebCore::FrameLoaderClientQt::committedLoad):
+        (WebCore::FrameLoaderClientQt::dispatchDidFailLoading):
+
+2010-04-11  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add setWillSendRequestReturnsNull and setWillSendRequestClearHeader
+
+        https://bugs.webkit.org/show_bug.cgi?id=37410
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (qt_set_will_send_request_returns_null):
+        (qt_set_will_send_request_clear_headers):
+        (WebCore::FrameLoaderClientQt::dispatchWillSendRequest):
+
+2010-04-10  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Refactor Qt DRT support in QtWebKit
+
+        Move all QT DRT support functions to a static class.
+
+        https://bugs.webkit.org/show_bug.cgi?id=35844
+
+        * Api/qwebframe.cpp: Remove static functions.
+        * Api/qwebframe.h: Make DumpRenderTreeSupportQt a friend.
+        * Api/qwebpage.cpp: Remove static functions.
+        * Api/qwebpage.h: Make DumpRenderTreeSupportQt a friend.
+        * Api/qwebsecurityorigin.cpp: Remove static functions.
+        * WebCoreSupport/DumpRenderTreeSupportQt.cpp: Added.
+        (DumpRenderTreeSupportQt::DumpRenderTreeSupportQt):
+        (DumpRenderTreeSupportQt::~DumpRenderTreeSupportQt):
+        (DumpRenderTreeSupportQt::overwritePluginDirectories):
+        (DumpRenderTreeSupportQt::workerThreadCount):
+        (DumpRenderTreeSupportQt::setDumpRenderTreeModeEnabled):
+        (DumpRenderTreeSupportQt::setFrameFlatteningEnabled):
+        (DumpRenderTreeSupportQt::webPageSetGroupName):
+        (DumpRenderTreeSupportQt::webPageGroupName):
+        (DumpRenderTreeSupportQt::webInspectorExecuteScript):
+        (DumpRenderTreeSupportQt::webInspectorClose):
+        (DumpRenderTreeSupportQt::webInspectorShow):
+        (DumpRenderTreeSupportQt::setTimelineProfilingEnabled):
+        (DumpRenderTreeSupportQt::hasDocumentElement):
+        (DumpRenderTreeSupportQt::setJavaScriptProfilingEnabled):
+        (DumpRenderTreeSupportQt::pauseAnimation):
+        (DumpRenderTreeSupportQt::pauseTransitionOfProperty):
+        (DumpRenderTreeSupportQt::pauseSVGAnimation):
+        (DumpRenderTreeSupportQt::numberOfActiveAnimations):
+        (DumpRenderTreeSupportQt::clearFrameName):
+        (DumpRenderTreeSupportQt::javaScriptObjectsCount):
+        (DumpRenderTreeSupportQt::garbageCollectorCollect):
+        (DumpRenderTreeSupportQt::garbageCollectorCollectOnAlternateThread):
+        (DumpRenderTreeSupportQt::counterValueForElementById):
+        (DumpRenderTreeSupportQt::pageNumberForElementById):
+        (DumpRenderTreeSupportQt::numberOfPages):
+        (DumpRenderTreeSupportQt::suspendActiveDOMObjects):
+        (DumpRenderTreeSupportQt::resumeActiveDOMObjects):
+        (DumpRenderTreeSupportQt::evaluateScriptInIsolatedWorld):
+        (DumpRenderTreeSupportQt::whiteListAccessFromOrigin):
+        (DumpRenderTreeSupportQt::resetOriginAccessWhiteLists):
+        (DumpRenderTreeSupportQt::setDomainRelaxationForbiddenForURLScheme):
+        (DumpRenderTreeSupportQt::setCaretBrowsingEnabled):
+        (DumpRenderTreeSupportQt::setMediaType):
+        (DumpRenderTreeSupportQt::setViewMode):
+        * WebCoreSupport/DumpRenderTreeSupportQt.h: Added.
+        * WebCoreSupport/EditorClientQt.h:
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::multiplePageGroupsAndLocalStorage):
+        (tst_QWebPage::inputMethodsTextFormat):
+        (tst_QWebPage::protectBindingsRuntimeObjectsFromCollector):
+
+2010-04-11  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Update layoutTestController.DumpResourceLoadCallbacks to match other ports.
+
+        Unskip  http/tests/xmlhttprequest/abort-should-cancel-load.html
+                http/tests/misc/will-send-request-returns-null-on-redirect.html
+                fast/loader/user-style-sheet-resource-load-callbacks.html
+                http/tests/misc/window-dot-stop.html
+                http/tests/security/XFrameOptions/x-frame-options-deny-meta-tag-parent-same-origin-allow.html
+                http/tests/security/XFrameOptions/x-frame-options-deny.html
+                http/tests/security/XFrameOptions/x-frame-options-parent-same-origin-allow.html
+                http/tests/security/XFrameOptions/x-frame-options-parent-same-origin-deny.html
+                http/tests/xmlhttprequest/abort-should-cancel-load.html
+
+        QNetworkReply::OperationCanceledError has a value of 5, so update expected results accordingly.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37237
+
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (qt_set_will_send_request_returns_null_on_redirect):
+        (drtDescriptionSuitableForTestResult):
+        (WebCore::FrameLoaderClientQt::dispatchWillSendRequest):
+        (WebCore::FrameLoaderClientQt::dispatchDidReceiveResponse):
+        (WebCore::FrameLoaderClientQt::dispatchDidFinishLoading):
+        (WebCore::FrameLoaderClientQt::dispatchDidFailLoading):
+
+2010-04-10  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Implement Desktop Notifications API for QtWebKit
+        https://bugs.webkit.org/show_bug.cgi?id=35503
+
+        Map WebKit notifications to Qt's SystemTray API and
+        implement DRT tracing.
+
+        This patch does not implement the security part of
+        WebKit notifications.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate):
+        * Api/qwebpage.h:
+        * Api/qwebpage_p.h:
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::notificationPresenter):
+        * WebCoreSupport/ChromeClientQt.h:
+        * WebCoreSupport/NotificationPresenterClientQt.cpp: Added.
+        (qt_dump_notification):
+        (NotificationPresenterClientQt::NotificationPresenterClientQt):
+        (NotificationPresenterClientQt::show):
+        (NotificationPresenterClientQt::cancel):
+        (NotificationPresenterClientQt::notificationObjectDestroyed):
+        (NotificationPresenterClientQt::requestPermission):
+        (NotificationPresenterClientQt::checkPermission):
+        * WebCoreSupport/NotificationPresenterClientQt.h: Added.
+
+2010-04-09  Tasuku Suzuki  <tasuku.suzuki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt]Fix compile error with QT_NO_IM
+        https://bugs.webkit.org/show_bug.cgi?id=36533
+
+        * WebCoreSupport/QtFallbackWebPopup.cpp:
+        (WebCore::QtFallbackWebPopupCombo::hidePopup):
+
+2010-04-09  Yi Shen  <yi.4.shen@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] tst_QWebFrame::popupFocus() fails
+        https://bugs.webkit.org/show_bug.cgi?id=37320
+
+        The QWebPopup class has been moved & renamed, so tst_QWebFrame::popupFocus() should use
+        the class name "QComboBox", rather than "WebCore::QWebPopup" to find the popup menu.
+
+        * tests/qwebframe/tst_qwebframe.cpp:
+
+2010-04-09  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Holger Freyther.
+
+        Removing the use of topLevelWidget of QWidget class since it is deprecated/obsolete
+        since Qt 4.5. window() method is being used instead now.
+
+        See http://doc.trolltech.com/4.5/qwidget-obsolete.html#topLevelWidget for more info.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::windowRect):
+        (WebCore::ChromeClientQt::show):
+        (WebCore::ChromeClientQt::windowResizerRect):
+
+2010-04-09  Tasuku Suzuki  <tasuku.suzuki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Fix compile error with QT_NO_ACTION
+        https://bugs.webkit.org/show_bug.cgi?id=36529
+
+        Make sure QT_NO_ACTION is not defined to use QAction
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::pageAction):
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::updateAction):
+        (QWebPage::updatePositionDependentActions):
+        * Api/qwebpage.h:
+        * Api/qwebview.cpp:
+        * Api/qwebview.h:
+
+2010-04-09  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Lars Knoll.
+
+        [Qt] tests/qgraphicswebview fails
+        https://bugs.webkit.org/show_bug.cgi?id=37317
+
+        * Api/qwebpage.cpp:
+        (QWebPage::userAgentForUrl): Don't crash if the ownerWidget is null.
+
+2010-04-08  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Warnings when compiling InspectorClientQt.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=37266
+
+        Add a default: for the switch()-case to avoid
+        warnings.
+
+        * WebCoreSupport/InspectorClientQt.cpp:
+        (WebCore::variantToSetting):
+
+2010-04-01  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        [Qt] REGRESSION:(r50665) QWebFrame::setScrollBarPolicy(Qt::Vertical,Qt::ScrollBarAlwaysOff) has no effect.
+        https://bugs.webkit.org/show_bug.cgi?id=29431
+
+        Make use of the new lock parameter of set{Vertical,Horizontal}ScrollbarMode.
+
+        Always added a qt auto test for set scrollbar policy feature.
+
+        * Api/qwebframe.cpp:
+        (QWebFrame::setScrollBarPolicy):
+        * tests/qwebframe/tst_qwebframe.cpp:
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (FrameLoaderClientQt::transitionToCommittedForNewPage):
+
+2010-04-08  Joe Ligman  <joseph.ligman@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] WebKit crashes while input text through input method.
+        The formatted text underline painting crashes when painting with invalid indexes.
+        https://bugs.webkit.org/show_bug.cgi?id=36870
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::inputMethodEvent):
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::inputMethodsTextFormat_data):
+        (tst_QWebPage::inputMethodsTextFormat):
+
+2010-04-08  Joe Ligman  <joseph.ligman@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] qtwebkit_webframe_scrollRecursively scrolls when body.style.overflow="hidden"
+        https://bugs.webkit.org/show_bug.cgi?id=36674
+
+        The scrolling check was based on the frameview's scrolloffset, and
+        maximumScrollPosition, which does not acknowledge the overflow properties.
+
+        I am now basing the scrolling off the scrollbar position. The scrollbars are
+        affected by the overflow properties indicating when not to scroll. The scrollbar
+        positions also continue to work for CSS ::-webkit-scrollbar styles.
+
+        * Api/qwebframe.cpp:
+        (qtwebkit_webframe_scrollRecursively):
+
 2010-04-08  Andrey Kosyakov  <caseq@chromium.org>
 
         Reviewed by Yury Semikhatsky.

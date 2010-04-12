@@ -599,3 +599,14 @@ void LayoutTestController::setWebViewEditable(bool)
 {
     // FIXME: implement
 }
+
+void LayoutTestController::setScrollbarPolicy(JSStringRef orientation, JSStringRef policy)
+{ 
+    // FIXME: implement 
+}
+
+JSValueRef LayoutTestController::computedStyleIncludingVisitedInfo(JSContextRef context, JSValueRef value)
+{
+    // FIXME: Implement this.
+    return 0;
+}

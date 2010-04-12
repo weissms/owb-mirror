@@ -600,7 +600,7 @@ void RenderBoxModelObject::paintFillLayerExtended(const PaintInfo& paintInfo, co
         IntPoint phase;
         IntSize tileSize;
 
-        calculateBackgroundImageGeometry(bgLayer, tx, ty, w, h, destRect, phase, tileSize, backgroundObject);
+        calculateBackgroundImageGeometry(bgLayer, tx, ty, w, h, destRect, phase, tileSize);
         IntPoint destOrigin = destRect.location();
         destRect.intersect(paintInfo.rect);
         if (!destRect.isEmpty()) {
@@ -636,6 +636,7 @@ IntSize RenderBoxModelObject::calculateFillTileSize(const FillLayer* fillLayer, 
         case SizeLength: {
             int w = positioningAreaSize.width();
             int h = positioningAreaSize.height();
+
             Length layerWidth = fillLayer->size().size.width();
             Length layerHeight = fillLayer->size().size.height();
 
@@ -651,15 +652,19 @@ IntSize RenderBoxModelObject::calculateFillTileSize(const FillLayer* fillLayer, 
             
             // If one of the values is auto we have to use the appropriate
             // scale to maintain our aspect ratio.
-            if (layerWidth.isAuto() && !layerHeight.isAuto())
-                w = image->imageSize(this, style()->effectiveZoom()).width() * h / image->imageSize(this, style()->effectiveZoom()).height();        
-            else if (!layerWidth.isAuto() && layerHeight.isAuto())
-                h = image->imageSize(this, style()->effectiveZoom()).height() * w / image->imageSize(this, style()->effectiveZoom()).width();
-            else if (layerWidth.isAuto() && layerHeight.isAuto()) {
-                // If both width and height are auto, we just want to use the image's
-                // intrinsic size.
-                w = image->imageSize(this, style()->effectiveZoom()).width();
-                h = image->imageSize(this, style()->effectiveZoom()).height();
+            if (layerWidth.isAuto() && !layerHeight.isAuto()) {
+                IntSize imageIntrinsicSize = image->imageSize(this, style()->effectiveZoom());
+                if (imageIntrinsicSize.height())
+                    w = imageIntrinsicSize.width() * h / imageIntrinsicSize.height();        
+            } else if (!layerWidth.isAuto() && layerHeight.isAuto()) {
+                IntSize imageIntrinsicSize = image->imageSize(this, style()->effectiveZoom());
+                if (imageIntrinsicSize.width())
+                    h = imageIntrinsicSize.height() * w / imageIntrinsicSize.width();
+            } else if (layerWidth.isAuto() && layerHeight.isAuto()) {
+                // If both width and height are auto, use the image's intrinsic size.
+                IntSize imageIntrinsicSize = image->imageSize(this, style()->effectiveZoom());
+                w = imageIntrinsicSize.width();
+                h = imageIntrinsicSize.height();
             }
             
             return IntSize(max(1, w), max(1, h));
@@ -667,20 +672,22 @@ IntSize RenderBoxModelObject::calculateFillTileSize(const FillLayer* fillLayer, 
         case Contain:
         case Cover: {
             IntSize imageIntrinsicSize = image->imageSize(this, 1);
-            float horizontalScaleFactor = static_cast<float>(positioningAreaSize.width()) / imageIntrinsicSize.width();
-            float verticalScaleFactor = static_cast<float>(positioningAreaSize.height()) / imageIntrinsicSize.height();
+            float horizontalScaleFactor = imageIntrinsicSize.width()
+                ? static_cast<float>(positioningAreaSize.width()) / imageIntrinsicSize.width() : 1;
+            float verticalScaleFactor = imageIntrinsicSize.height()
+                ? static_cast<float>(positioningAreaSize.height()) / imageIntrinsicSize.height() : 1;
             float scaleFactor = type == Contain ? min(horizontalScaleFactor, verticalScaleFactor) : max(horizontalScaleFactor, verticalScaleFactor);
-
             return IntSize(max<int>(1, imageIntrinsicSize.width() * scaleFactor), max<int>(1, imageIntrinsicSize.height() * scaleFactor));
         }
         case SizeNone:
             break;
     }
+
     return image->imageSize(this, style()->effectiveZoom());
 }
 
 void RenderBoxModelObject::calculateBackgroundImageGeometry(const FillLayer* fillLayer, int tx, int ty, int w, int h, 
-                                                            IntRect& destRect, IntPoint& phase, IntSize& tileSize, RenderObject* backgroundObject)
+                                                            IntRect& destRect, IntPoint& phase, IntSize& tileSize)
 {
     int left = 0;
     int top = 0;
@@ -700,12 +707,8 @@ void RenderBoxModelObject::calculateBackgroundImageGeometry(const FillLayer* fil
     }
 #endif
 
-    // FIXME: Add table columns/column groups to this condition once RenderTableCol::absoluteContentBox(),
-    // RenderTableCol::width() and RenderTableCol::height() have been implemented. See bug <https://bugs.webkit.org/show_bug.cgi?id=36104>.
-    bool isBackgroundTablePart = backgroundObject && (backgroundObject->isTableRow() || backgroundObject->isTableSection());
-
     if (!fixedAttachment) {
-        destRect = isBackgroundTablePart ? toRenderBox(backgroundObject)->absoluteBoundingBoxRect() : IntRect(tx, ty, w, h);
+        destRect = IntRect(tx, ty, w, h);
 
         int right = 0;
         int bottom = 0;
@@ -728,10 +731,6 @@ void RenderBoxModelObject::calculateBackgroundImageGeometry(const FillLayer* fil
         // the background positioning area.
         if (isRoot()) {
             positioningAreaSize = IntSize(toRenderBox(this)->width() - left - right, toRenderBox(this)->height() - top - bottom);
-            left += marginLeft();
-            top += marginTop();
-        } else if (isBackgroundTablePart) {
-            positioningAreaSize = IntSize(toRenderBox(backgroundObject)->width() - left - right, toRenderBox(backgroundObject)->height() - top - bottom);
             left += marginLeft();
             top += marginTop();
         } else
@@ -768,11 +767,6 @@ void RenderBoxModelObject::calculateBackgroundImageGeometry(const FillLayer* fil
         phase.move(max(tx - destRect.x(), 0), max(ty - destRect.y(), 0));
 
     destRect.intersect(IntRect(tx, ty, w, h));
-
-    if (adjustBackgroundImagePosition(backgroundObject, destRect, tileSize, xPosition, yPosition)) {
-        phase.setX(tileSize.width() ? tileSize.width() - xPosition % tileSize.width() : 0);
-        phase.setY(tileSize.height() ? tileSize.height() - yPosition % tileSize.height() : 0);
-    }
 }
 
 int RenderBoxModelObject::verticalPosition(bool firstLine) const
@@ -933,15 +927,15 @@ bool RenderBoxModelObject::paintNinePieceImage(GraphicsContext* graphicsContext,
 }
 
 void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx, int ty, int w, int h,
-                               const RenderStyle* style, bool begin, bool end)
+                                       const RenderStyle* style, bool begin, bool end)
 {
     if (paintNinePieceImage(graphicsContext, tx, ty, w, h, style, style->borderImage()))
         return;
 
-    const Color& topColor = style->borderTopColor();
-    const Color& bottomColor = style->borderBottomColor();
-    const Color& leftColor = style->borderLeftColor();
-    const Color& rightColor = style->borderRightColor();
+    const Color& topColor = style->visitedDependentColor(CSSPropertyBorderTopColor);
+    const Color& bottomColor = style->visitedDependentColor(CSSPropertyBorderBottomColor);
+    const Color& leftColor = style->visitedDependentColor(CSSPropertyBorderLeftColor);
+    const Color& rightColor = style->visitedDependentColor(CSSPropertyBorderRightColor);
 
     bool topTransparent = style->borderTopIsTransparent();
     bool bottomTransparent = style->borderBottomIsTransparent();
@@ -1006,7 +1000,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
             x2 -= topRight.width();
         }
 
-        drawLineForBoxSide(graphicsContext, x, ty, x2, ty + style->borderTopWidth(), BSTop, topColor, style->color(), topStyle,
+        drawLineForBoxSide(graphicsContext, x, ty, x2, ty + style->borderTopWidth(), BSTop, topColor, topStyle,
                    ignore_left ? 0 : style->borderLeftWidth(), ignore_right ? 0 : style->borderRightWidth());
 
         if (renderRadii) {
@@ -1034,7 +1028,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw upper left arc
                 drawArcForBoxSide(graphicsContext, leftX, leftY, thickness, topLeft, firstAngleStart, firstAngleSpan,
-                              BSTop, topColor, style->color(), topStyle, true);
+                              BSTop, topColor, topStyle, true);
                 if (applyLeftInnerClip)
                     graphicsContext->restore();
             }
@@ -1060,7 +1054,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw upper right arc
                 drawArcForBoxSide(graphicsContext, rightX, leftY, thickness, topRight, secondAngleStart, secondAngleSpan,
-                              BSTop, topColor, style->color(), topStyle, false);
+                              BSTop, topColor, topStyle, false);
                 if (applyRightInnerClip)
                     graphicsContext->restore();
             }
@@ -1083,7 +1077,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
             x2 -= bottomRight.width();
         }
 
-        drawLineForBoxSide(graphicsContext, x, ty + h - style->borderBottomWidth(), x2, ty + h, BSBottom, bottomColor, style->color(), bottomStyle,
+        drawLineForBoxSide(graphicsContext, x, ty + h - style->borderBottomWidth(), x2, ty + h, BSBottom, bottomColor, bottomStyle,
                    ignore_left ? 0 : style->borderLeftWidth(), ignore_right ? 0 : style->borderRightWidth());
 
         if (renderRadii) {
@@ -1111,7 +1105,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw lower left arc
                 drawArcForBoxSide(graphicsContext, leftX, leftY, thickness, bottomLeft, firstAngleStart, firstAngleSpan,
-                              BSBottom, bottomColor, style->color(), bottomStyle, true);
+                              BSBottom, bottomColor, bottomStyle, true);
                 if (applyLeftInnerClip)
                     graphicsContext->restore();
             }
@@ -1133,7 +1127,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw lower right arc
                 drawArcForBoxSide(graphicsContext, rightX, rightY, thickness, bottomRight, secondAngleStart, secondAngleSpan,
-                              BSBottom, bottomColor, style->color(), bottomStyle, false);
+                              BSBottom, bottomColor, bottomStyle, false);
                 if (applyRightInnerClip)
                     graphicsContext->restore();
             }
@@ -1156,7 +1150,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
             y2 -= bottomLeft.height();
         }
 
-        drawLineForBoxSide(graphicsContext, tx, y, tx + style->borderLeftWidth(), y2, BSLeft, leftColor, style->color(), leftStyle,
+        drawLineForBoxSide(graphicsContext, tx, y, tx + style->borderLeftWidth(), y2, BSLeft, leftColor, leftStyle,
                    ignore_top ? 0 : style->borderTopWidth(), ignore_bottom ? 0 : style->borderBottomWidth());
 
         if (renderRadii && (!upperLeftBorderStylesMatch || !lowerLeftBorderStylesMatch)) {
@@ -1179,7 +1173,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw top left arc
                 drawArcForBoxSide(graphicsContext, topX, topY, thickness, topLeft, firstAngleStart, firstAngleSpan,
-                              BSLeft, leftColor, style->color(), leftStyle, true);
+                              BSLeft, leftColor, leftStyle, true);
                 if (applyTopInnerClip)
                     graphicsContext->restore();
             }
@@ -1200,7 +1194,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw bottom left arc
                 drawArcForBoxSide(graphicsContext, topX, bottomY, thickness, bottomLeft, secondAngleStart, secondAngleSpan,
-                              BSLeft, leftColor, style->color(), leftStyle, false);
+                              BSLeft, leftColor, leftStyle, false);
                 if (applyBottomInnerClip)
                     graphicsContext->restore();
             }
@@ -1225,7 +1219,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
             y2 -= bottomRight.height();
         }
 
-        drawLineForBoxSide(graphicsContext, tx + w - style->borderRightWidth(), y, tx + w, y2, BSRight, rightColor, style->color(), rightStyle,
+        drawLineForBoxSide(graphicsContext, tx + w - style->borderRightWidth(), y, tx + w, y2, BSRight, rightColor, rightStyle,
                    ignore_top ? 0 : style->borderTopWidth(), ignore_bottom ? 0 : style->borderBottomWidth());
 
         if (renderRadii && (!upperRightBorderStylesMatch || !lowerRightBorderStylesMatch)) {
@@ -1248,7 +1242,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw top right arc
                 drawArcForBoxSide(graphicsContext, topX, topY, thickness, topRight, firstAngleStart, firstAngleSpan,
-                              BSRight, rightColor, style->color(), rightStyle, true);
+                              BSRight, rightColor, rightStyle, true);
                 if (applyTopInnerClip)
                     graphicsContext->restore();
             }
@@ -1270,7 +1264,7 @@ void RenderBoxModelObject::paintBorder(GraphicsContext* graphicsContext, int tx,
 
                 // Draw bottom right arc
                 drawArcForBoxSide(graphicsContext, bottomX, bottomY, thickness, bottomRight, secondAngleStart, secondAngleSpan,
-                              BSRight, rightColor, style->color(), rightStyle, false);
+                              BSRight, rightColor, rightStyle, false);
                 if (applyBottomInnerClip)
                     graphicsContext->restore();
             }

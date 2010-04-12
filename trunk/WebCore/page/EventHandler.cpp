@@ -1030,8 +1030,8 @@ Cursor EventHandler::selectCursor(const MouseEventWithHitTestResults& event, Scr
     if (style && style->cursors()) {
         const CursorList* cursors = style->cursors();
         for (unsigned i = 0; i < cursors->size(); ++i) {
-            CachedImage* cimage = (*cursors)[i].cursorImage.get();
-            IntPoint hotSpot = (*cursors)[i].hotSpot;
+            const CachedImage* cimage = (*cursors)[i].image();
+            IntPoint hotSpot = (*cursors)[i].hotSpot();
             if (!cimage)
                 continue;
             // Limit the size of cursors so that they cannot be used to cover UI elements in chrome.
@@ -1175,9 +1175,9 @@ static IntPoint documentPointForWindowPoint(Frame* frame, const IntPoint& window
 bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
 {
     RefPtr<FrameView> protector(m_frame->view());
-    
-    UserGestureIndicator gestureIndicator;
-    
+
+    UserGestureIndicator gestureIndicator(DefinitelyProcessingUserGesture);
+
     cancelFakeMouseMoveEvent();
     m_mousePressed = true;
     m_capturesDragging = true;
@@ -1213,7 +1213,7 @@ bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
     if (Page* page = m_frame->page()) {
         InspectorController* inspector = page->inspectorController();
         if (inspector && inspector->enabled() && inspector->searchingForNodeInPage()) {
-            inspector->handleMousePressOnNode(m_mousePressNode.get());
+            inspector->handleMousePress();
             invalidateClick();
             return true;
         }
@@ -1306,8 +1306,8 @@ bool EventHandler::handleMousePressEvent(const PlatformMouseEvent& mouseEvent)
 bool EventHandler::handleMouseDoubleClickEvent(const PlatformMouseEvent& mouseEvent)
 {
     RefPtr<FrameView> protector(m_frame->view());
-    
-    UserGestureIndicator gestureIndicator;
+
+    UserGestureIndicator gestureIndicator(DefinitelyProcessingUserGesture);
 
     // We get this instead of a second mouse-up 
     m_mousePressed = false;
@@ -1476,7 +1476,7 @@ bool EventHandler::handleMouseReleaseEvent(const PlatformMouseEvent& mouseEvent)
 {
     RefPtr<FrameView> protector(m_frame->view());
     
-    UserGestureIndicator gestureIndicator;
+    UserGestureIndicator gestureIndicator(DefinitelyProcessingUserGesture);
 
 #if ENABLE(PAN_SCROLLING)
     if (mouseEvent.button() == MiddleButton)
@@ -2145,8 +2145,8 @@ bool EventHandler::keyEvent(const PlatformKeyboardEvent& initialKeyEvent, bool* 
     RefPtr<Node> node = eventTargetNodeForDocument(m_frame->document());
     if (!node)
         return false;
-    
-    UserGestureIndicator gestureIndicator;
+
+    UserGestureIndicator gestureIndicator(DefinitelyProcessingUserGesture);
 
     if (FrameView* view = m_frame->view())
         view->resetDeferredRepaintDelay();
@@ -2733,8 +2733,8 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
 
     const Vector<PlatformTouchPoint>& points = event.touchPoints();
     AtomicString* eventName = 0;
-    
-    UserGestureIndicator gestureIndicator;
+
+    UserGestureIndicator gestureIndicator(DefinitelyProcessingUserGesture);
 
     for (unsigned i = 0; i < points.size(); ++i) {
         const PlatformTouchPoint& point = points[i];

@@ -37,6 +37,7 @@
 #include "FrameView.h"
 #include "HitTestResult.h"
 #include "Icon.h"
+#include "NotificationPresenterClientQt.h"
 #include "NotImplemented.h"
 #include "ScrollbarTheme.h"
 #include "WindowFeatures.h"
@@ -97,7 +98,7 @@ FloatRect ChromeClientQt::windowRect()
     QWidget* view = m_webPage->view();
     if (!view)
         return FloatRect();
-    return IntRect(view->topLevelWidget()->geometry());
+    return IntRect(view->window()->geometry());
 }
 
 
@@ -176,7 +177,7 @@ void ChromeClientQt::show()
     QWidget* view = m_webPage->view();
     if (!view)
         return;
-    view->topLevelWidget()->show();
+    view->window()->show();
 }
 
 
@@ -341,7 +342,7 @@ IntRect ChromeClientQt::windowResizerRect() const
     if (!ownerWidget)
         return IntRect();
 
-    QWidget* topLevelWidget = ownerWidget->topLevelWidget();
+    QWidget* topLevelWidget = ownerWidget->window();
     QRect topLevelGeometry(topLevelWidget->geometry());
 
     // There's no API in Qt to query for the size of the resizer, so we assume
@@ -470,6 +471,13 @@ void ChromeClientQt::reachedMaxAppCacheSize(int64_t)
 {
     // FIXME: Free some space.
     notImplemented();
+}
+#endif
+
+#if ENABLE(NOTIFICATIONS)
+NotificationPresenter* ChromeClientQt::notificationPresenter() const
+{
+    return m_webPage->d->notificationPresenterClient;
 }
 #endif
 

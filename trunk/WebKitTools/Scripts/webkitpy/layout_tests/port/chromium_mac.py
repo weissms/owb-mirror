@@ -66,10 +66,6 @@ class ChromiumMacPort(chromium.ChromiumPort):
                        'MacBuildInstructions')
         return result
 
-    def num_cores(self):
-        return int(subprocess.Popen(['sysctl','-n','hw.ncpu'],
-                                    stdout=subprocess.PIPE).stdout.read())
-
     def test_platform_name(self):
         # We use 'mac' instead of 'chromium-mac'
         return 'mac'
@@ -108,14 +104,6 @@ class ChromiumMacPort(chromium.ChromiumPort):
     def _lighttpd_path(self, *comps):
         return self.path_from_chromium_base('third_party', 'lighttpd',
                                             'mac', *comps)
-
-    def _kill_process(self, pid):
-        """Forcefully kill the process.
-
-        Args:
-            pid: The id of the process to be killed.
-        """
-        os.kill(pid, signal.SIGKILL)
 
     def _kill_all_process(self, process_name):
         """Kill any processes running under this name."""

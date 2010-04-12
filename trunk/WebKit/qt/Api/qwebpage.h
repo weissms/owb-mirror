@@ -55,6 +55,7 @@ namespace WebCore {
     class FrameLoaderClientQt;
     class InspectorClientQt;
     class InspectorFrontendClientQt;
+    class NotificationPresenterClientQt;
     class ResourceHandle;
     class HitTestResult;
     class QNetworkReplyHandler;
@@ -220,7 +221,9 @@ public:
 
     QString selectedText() const;
 
+#ifndef QT_NO_ACTION
     QAction *action(WebAction action) const;
+#endif
     virtual void triggerAction(WebAction action, bool checked = false);
 
     QSize viewportSize() const;
@@ -348,7 +351,9 @@ protected:
 
 private:
     Q_PRIVATE_SLOT(d, void _q_onLoadProgressChanged(int))
+#ifndef QT_NO_ACTION
     Q_PRIVATE_SLOT(d, void _q_webActionTriggered(bool checked))
+#endif
     Q_PRIVATE_SLOT(d, void _q_cleanupLeakMessages())
 
     QWebPagePrivate *d;
@@ -365,8 +370,10 @@ private:
     friend class WebCore::FrameLoaderClientQt;
     friend class WebCore::InspectorClientQt;
     friend class WebCore::InspectorFrontendClientQt;
+    friend class WebCore::NotificationPresenterClientQt;
     friend class WebCore::ResourceHandle;
     friend class WebCore::QNetworkReplyHandler;
+    friend class DumpRenderTreeSupportQt;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QWebPage::FindFlags)

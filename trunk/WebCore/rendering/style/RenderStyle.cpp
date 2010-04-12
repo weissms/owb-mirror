@@ -22,6 +22,7 @@
 #include "config.h"
 #include "RenderStyle.h"
 
+#include "CSSPropertyNames.h"
 #include "CSSStyleSelector.h"
 #include "CachedImage.h"
 #include "CounterContent.h"
@@ -58,8 +59,7 @@ PassRefPtr<RenderStyle> RenderStyle::clone(const RenderStyle* other)
 }
 
 RenderStyle::RenderStyle()
-    : m_pseudoState(PseudoUnknown)
-    , m_affectedByAttributeSelectors(false)
+    : m_affectedByAttributeSelectors(false)
     , m_unique(false)
     , m_affectedByEmpty(false)
     , m_emptyState(false)
@@ -86,8 +86,7 @@ RenderStyle::RenderStyle()
 }
 
 RenderStyle::RenderStyle(bool)
-    : m_pseudoState(PseudoUnknown)
-    , m_affectedByAttributeSelectors(false)
+    : m_affectedByAttributeSelectors(false)
     , m_unique(false)
     , m_affectedByEmpty(false)
     , m_emptyState(false)
@@ -121,7 +120,6 @@ RenderStyle::RenderStyle(bool)
 
 RenderStyle::RenderStyle(const RenderStyle& o)
     : RefCounted<RenderStyle>()
-    , m_pseudoState(o.m_pseudoState)
     , m_affectedByAttributeSelectors(false)
     , m_unique(false)
     , m_affectedByEmpty(false)
@@ -502,6 +500,7 @@ StyleDifference RenderStyle::diff(const RenderStyle* other, unsigned& changedCon
         inherited_flags._visibility != other->inherited_flags._visibility ||
         inherited_flags._text_decorations != other->inherited_flags._text_decorations ||
         inherited_flags._force_backgrounds_to_white != other->inherited_flags._force_backgrounds_to_white ||
+        inherited_flags._insideLink != other->inherited_flags._insideLink ||
         surround->border != other->surround->border ||
         *background.get() != *other->background.get() ||
         visual->textDecoration != other->visual->textDecoration ||
@@ -543,12 +542,9 @@ void RenderStyle::setClip(Length top, Length right, Length bottom, Length left)
 
 void RenderStyle::addCursor(CachedImage* image, const IntPoint& hotSpot)
 {
-    CursorData data;
-    data.cursorImage = image;
-    data.hotSpot = hotSpot;
     if (!inherited.access()->cursorData)
         inherited.access()->cursorData = CursorList::create();
-    inherited.access()->cursorData->append(data);
+    inherited.access()->cursorData->append(CursorData(image, hotSpot));
 }
 
 void RenderStyle::setCursorList(PassRefPtr<CursorList> other)
@@ -734,11 +730,11 @@ void RenderStyle::setBoxShadow(ShadowData* shadowData, bool add)
 
 void RenderStyle::getBorderRadiiForRect(const IntRect& r, IntSize& topLeft, IntSize& topRight, IntSize& bottomLeft, IntSize& bottomRight) const
 {
-    topLeft = surround->border.topLeft;
-    topRight = surround->border.topRight;
+    topLeft = surround->border.topLeft();
+    topRight = surround->border.topRight();
     
-    bottomLeft = surround->border.bottomLeft;
-    bottomRight = surround->border.bottomRight;
+    bottomLeft = surround->border.bottomLeft();
+    bottomRight = surround->border.bottomRight();
 
     // Constrain corner radii using CSS3 rules:
     // http://www.w3.org/TR/css3-background/#the-border-radius
@@ -965,6 +961,100 @@ void RenderStyle::getBoxShadowVerticalExtent(int &top, int &bottom) const
         top = min(top, boxShadow->y - blurAndSpread);
         bottom = max(bottom, boxShadow->y + blurAndSpread);
     }
+}
+
+static EBorderStyle borderStyleForColorProperty(const RenderStyle* style, int colorProperty)
+{
+    EBorderStyle borderStyle;
+    switch (colorProperty) {
+    case CSSPropertyBorderLeftColor:
+        borderStyle = style->borderLeftStyle();
+        break;
+    case CSSPropertyBorderRightColor:
+        borderStyle = style->borderRightStyle();
+        break;
+    case CSSPropertyBorderTopColor:
+        borderStyle = style->borderTopStyle();
+        break;
+    case CSSPropertyBorderBottomColor:
+        borderStyle = style->borderBottomStyle();
+        break;
+    default:
+        borderStyle = BNONE;
+        break;
+    }
+    return borderStyle;
+}
+
+static Color colorIncludingFallback(const RenderStyle* style, int colorProperty, EBorderStyle borderStyle)
+{
+    Color result;
+    switch (colorProperty) {
+    case CSSPropertyBackgroundColor:
+        return style->backgroundColor(); // Background color doesn't fall back.
+    case CSSPropertyBorderLeftColor:
+        result = style->borderLeftColor();
+        borderStyle = style->borderLeftStyle();
+        break;
+    case CSSPropertyBorderRightColor:
+        result = style->borderRightColor();
+        borderStyle = style->borderRightStyle();
+        break;
+    case CSSPropertyBorderTopColor:
+        result = style->borderTopColor();
+        borderStyle = style->borderTopStyle();
+        break;
+    case CSSPropertyBorderBottomColor:
+        result = style->borderBottomColor();
+        borderStyle = style->borderBottomStyle();
+        break;
+    case CSSPropertyColor:
+        result = style->color();
+        break;
+    case CSSPropertyOutlineColor:
+        result = style->outlineColor();
+        break;
+    case CSSPropertyWebkitColumnRuleColor:
+        result = style->columnRuleColor();
+        break;
+    case CSSPropertyWebkitTextFillColor:
+        result = style->textFillColor();
+        break;
+    case CSSPropertyWebkitTextStrokeColor:
+        result = style->textStrokeColor();
+        break;
+    default:
+        // FIXME: Add SVG fill and stroke.
+        ASSERT_NOT_REACHED();
+        break;
+    }
+
+    if (!result.isValid()) {
+        if ((colorProperty == CSSPropertyBorderLeftColor || colorProperty == CSSPropertyBorderRightColor
+            || colorProperty == CSSPropertyBorderTopColor || colorProperty == CSSPropertyBorderBottomColor)
+            && (borderStyle == INSET || borderStyle == OUTSET || borderStyle == RIDGE || borderStyle == GROOVE))
+            result.setRGB(238, 238, 238);
+        else
+            result = style->color();
+    }
+
+    return result;
+}
+
+Color RenderStyle::visitedDependentColor(int colorProperty) const
+{
+    EBorderStyle borderStyle = borderStyleForColorProperty(this, colorProperty);
+    Color unvisitedColor = colorIncludingFallback(this, colorProperty, borderStyle);
+    if (insideLink() != InsideVisitedLink)
+        return unvisitedColor;
+
+    RenderStyle* visitedStyle = getCachedPseudoStyle(VISITED_LINK);
+    if (!visitedStyle)
+        return unvisitedColor;
+    Color visitedColor = colorIncludingFallback(visitedStyle, colorProperty, borderStyle);
+
+    // Take the alpha from the unvisited color, but get the RGB values from the visited color.
+    return Color(visitedColor.red(), visitedColor.green(), visitedColor.blue(), unvisitedColor.alpha());
 }
 
 } // namespace WebCore

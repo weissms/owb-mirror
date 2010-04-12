@@ -42,6 +42,8 @@ import apache_http_server
 import http_server
 import websocket_server
 
+from webkitpy.common.system.executive import Executive
+
 # Python bug workaround.  See Port.wdiff_text() for an explanation.
 _wdiff_available = True
 
@@ -51,13 +53,27 @@ class Port(object):
     """Abstract class for Port-specific hooks for the layout_test package.
     """
 
-    def __init__(self, port_name=None, options=None):
+    @staticmethod
+    def flag_from_configuration(configuration):
+        flags_by_configuration = {
+            "Debug": "--debug",
+            "Release": "--release",
+        }
+        return flags_by_configuration[configuration]
+
+    def __init__(self, port_name=None, options=None, executive=Executive()):
         self._name = port_name
         self._options = options
         self._helper = None
         self._http_server = None
         self._webkit_base_dir = None
         self._websocket_server = None
+        self._executive = executive
+
+    def default_child_processes(self):
+        """Return the number of DumpRenderTree instances to use for this
+        port."""
+        return self._executive.cpu_count()
 
     def baseline_path(self):
         """Return the absolute path to the directory to store new baselines
@@ -277,13 +293,6 @@ class Port(object):
         Note that this is different from the test_platform_name(), which
         may be different (e.g., 'win-xp' instead of 'chromium-win-xp'."""
         return self._name
-
-    def num_cores(self):
-        """Return the number of cores/cpus available on this machine.
-
-        This routine is used to determine the default amount of parallelism
-        used by run-chromium-webkit-tests."""
-        raise NotImplementedError('Port.num_cores')
 
     # FIXME: This could be replaced by functions in webkitpy.common.checkout.scm.
     def path_from_webkit_base(self, *comps):
@@ -510,6 +519,7 @@ class Port(object):
                '--end-insert=##WDIFF_END##',
                actual_filename,
                expected_filename]
+        # FIXME: Why not just check os.exists(executable) once?
         global _wdiff_available
         result = ''
         try:
@@ -532,6 +542,7 @@ class Port(object):
             # http://bugs.python.org/issue1236
             if _wdiff_available:
                 try:
+                    # FIXME: Use Executive() here.
                     wdiff = subprocess.Popen(cmd,
                         stdout=subprocess.PIPE).communicate()[0]
                 except ValueError, e:
@@ -553,19 +564,21 @@ class Port(object):
                 raise e
         return result
 
+    def pretty_patch_text(self, diff_path):
+        pretty_patch_path = self.path_from_webkit_base("BugsSite", "PrettyPatch")
+        prettify_path = os.path.join(pretty_patch_path, "prettify.rb")
+        command = ["ruby", "-I", pretty_patch_path, prettify_path, diff_path]
+        return self._executive.run_command(command)
+
+    def default_configuration(self):
+        return "Release"
+
     #
     # PROTECTED ROUTINES
     #
     # The routines below should only be called by routines in this class
     # or any of its subclasses.
     #
-
-    def _kill_process(self, pid):
-        """Forcefully kill a process.
-
-        This routine should not be used or needed generically, but can be
-        used in helper files like http_server.py."""
-        raise NotImplementedError('Port.kill_process')
 
     def _path_to_apache(self):
         """Returns the full path to the apache binary.

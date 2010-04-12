@@ -36,7 +36,7 @@ import os
 import re
 import sys
 
-import simplejson
+import webkitpy.thirdparty.simplejson as simplejson
 
 _log = logging.getLogger("webkitpy.layout_tests.layout_package."
                          "test_expectations")
@@ -271,8 +271,8 @@ class TestExpectationsFile:
                                 IMAGE: ('image mismatch', 'image mismatch'),
                                 IMAGE_PLUS_TEXT: ('image and text mismatch',
                                                   'image and text mismatch'),
-                                CRASH: ('test shell crash',
-                                        'test shell crashes'),
+                                CRASH: ('DumpRenderTree crash',
+                                        'DumpRenderTree crashes'),
                                 TIMEOUT: ('test timed out', 'tests timed out'),
                                 MISSING: ('no expected result found',
                                           'no expected results found')}

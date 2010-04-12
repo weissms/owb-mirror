@@ -259,6 +259,9 @@ public:
 
     bool isSandboxed(SandboxFlags mask) const { return m_sandboxFlags & mask; }
     SandboxFlags sandboxFlags() const { return m_sandboxFlags; }
+    // The following sandbox flags will be forced, regardless of changes to
+    // the sandbox attribute of any parent frames.
+    void setForcedSandboxFlags(SandboxFlags flags) { m_forcedSandboxFlags = flags; m_sandboxFlags |= flags; }
 
     // Mixed content related functions.
     static bool isMixedContent(SecurityOrigin* context, const KURL&);
@@ -533,6 +536,7 @@ private:
     bool m_suppressOpenerInNewFrame;
     
     SandboxFlags m_sandboxFlags;
+    SandboxFlags m_forcedSandboxFlags;
 
 #ifndef NDEBUG
     bool m_didDispatchDidCommitLoad;

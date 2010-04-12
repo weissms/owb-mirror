@@ -465,6 +465,16 @@ static JSValueRef keepWebHistoryCallback(JSContextRef context, JSObjectRef funct
     return JSValueMakeUndefined(context);
 }
 
+static JSValueRef computedStyleIncludingVisitedInfoCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount != 1)
+        return JSValueMakeUndefined(context);
+    
+    // Has mac implementation
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    return controller->computedStyleIncludingVisitedInfo(context, arguments[0]);
+}
+
 static JSValueRef layerTreeAsTextCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     // Has mac & windows implementation
@@ -1282,6 +1292,21 @@ static JSValueRef whiteListAccessFromOriginCallback(JSContextRef context, JSObje
     return JSValueMakeUndefined(context);
 }
 
+static JSValueRef setScrollbarPolicyCallback(JSContextRef context, JSObjectRef, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
+{
+    if (argumentCount != 2)
+        return JSValueMakeUndefined(context);
+
+    JSRetainPtr<JSStringRef> orientation(Adopt, JSValueToStringCopy(context, arguments[0], exception));
+    ASSERT(!*exception);
+    JSRetainPtr<JSStringRef> policy(Adopt, JSValueToStringCopy(context, arguments[1], exception));
+    ASSERT(!*exception);
+
+    LayoutTestController* controller = static_cast<LayoutTestController*>(JSObjectGetPrivate(thisObject));
+    controller->setScrollbarPolicy(orientation.get(), policy.get());
+    return JSValueMakeUndefined(context);
+}
+
 static JSValueRef addUserScriptCallback(JSContextRef context, JSObjectRef, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception)
 {
     if (argumentCount != 2)
@@ -1428,6 +1453,7 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "clearBackForwardList", clearBackForwardListCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "clearPersistentUserStyleSheet", clearPersistentUserStyleSheetCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "closeWebInspector", closeWebInspectorCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "computedStyleIncludingVisitedInfo", computedStyleIncludingVisitedInfoCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "decodeHostName", decodeHostNameCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "disableImageLoading", disableImageLoadingCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "dispatchPendingLoadRequests", dispatchPendingLoadRequestsCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
@@ -1525,6 +1551,7 @@ JSStaticFunction* LayoutTestController::staticFunctions()
         { "waitUntilDone", waitUntilDoneCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "windowCount", windowCountCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { "whiteListAccessFromOrigin", whiteListAccessFromOriginCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
+        { "setScrollbarPolicy", setScrollbarPolicyCallback, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
         { 0, 0, 0 }
     };
 

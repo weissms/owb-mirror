@@ -34,7 +34,9 @@ except ImportError:
     multiprocessing = None
 
 import os
+import platform
 import StringIO
+import signal
 import subprocess
 import sys
 
@@ -102,9 +104,11 @@ class Executive(object):
     def run_and_throw_if_fail(self, args, quiet=False):
         # Cache the child's output locally so it can be used for error reports.
         child_out_file = StringIO.StringIO()
+        tee_stdout = sys.stdout
         if quiet:
             dev_null = open(os.devnull, "w")
-        child_stdout = tee(child_out_file, dev_null if quiet else sys.stdout)
+            tee_stdout = dev_null
+        child_stdout = tee(child_out_file, tee_stdout)
         exit_code = self._run_command_with_teed_output(args, child_stdout)
         if quiet:
             dev_null.close()
@@ -118,13 +122,35 @@ class Executive(object):
                               output=child_output)
         return child_output
 
-    @staticmethod
-    def cpu_count():
+    def cpu_count(self):
         if multiprocessing:
             return multiprocessing.cpu_count()
+        # Darn.  We don't have the multiprocessing package.
+        system_name = platform.system()
+        if system_name == "Darwin":
+            return int(self.run_command(["sysctl", "-n", "hw.ncpu"]))
+        elif system_name == "Windows":
+            return int(os.environ.get('NUMBER_OF_PROCESSORS', 1))
+        elif system_name == "Linux":
+            num_cores = os.sysconf("SC_NPROCESSORS_ONLN")
+            if isinstance(num_cores, int) and num_cores > 0:
+                return num_cores
         # This quantity is a lie but probably a reasonable guess for modern
         # machines.
         return 2
+
+    def kill_process(self, pid):
+        if platform.system() == "Windows":
+            # According to http://docs.python.org/library/os.html
+            # os.kill isn't available on Windows.  However, when I tried it
+            # using Cygwin, it worked fine.  We should investigate whether
+            # we need this platform specific code here.
+            subprocess.call(('taskkill.exe', '/f', '/pid', str(pid)),
+                            stdin=open(os.devnull, 'r'),
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+            return
+        os.kill(pid, signal.SIGKILL)
 
     # Error handlers do not need to be static methods once all callers are
     # updated to use an Executive object.
@@ -150,7 +176,9 @@ class Executive(object):
             stdin = input
             string_to_communicate = None
         else:
-            stdin = subprocess.PIPE if input else None
+            stdin = None
+            if input:
+                stdin = subprocess.PIPE
             string_to_communicate = input
         if return_stderr:
             stderr = subprocess.STDOUT

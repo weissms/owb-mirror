@@ -75,10 +75,14 @@
 #include <QGraphicsWidget>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QStringList>
 #include "qwebhistory_p.h"
 
 static bool dumpFrameLoaderCallbacks = false;
 static bool dumpResourceLoadCallbacks = false;
+static bool sendRequestReturnsNullOnRedirect = false;
+static bool sendRequestReturnsNull = false;
+static QStringList sendRequestClearHeaders;
 
 static QMap<unsigned long, QString> dumpAssignedUrls;
 
@@ -90,6 +94,21 @@ void QWEBKIT_EXPORT qt_dump_frame_loader(bool b)
 void QWEBKIT_EXPORT qt_dump_resource_load_callbacks(bool b)
 {
     dumpResourceLoadCallbacks = b;
+}
+
+void QWEBKIT_EXPORT qt_set_will_send_request_returns_null_on_redirect(bool b)
+{
+    sendRequestReturnsNullOnRedirect = b;
+}
+
+void QWEBKIT_EXPORT qt_set_will_send_request_returns_null(bool b)
+{
+    sendRequestReturnsNull = b;
+}
+
+void QWEBKIT_EXPORT qt_set_will_send_request_clear_headers(const QStringList& headers)
+{
+    sendRequestClearHeaders = headers;
 }
 
 // Compare with WebKitTools/DumpRenderTree/mac/FrameLoadDelegate.mm
@@ -125,16 +144,16 @@ static QString drtDescriptionSuitableForTestResult(const WebCore::ResourceError&
 static QString drtDescriptionSuitableForTestResult(const WebCore::ResourceRequest& request)
 {
     QString url = request.url().string();
-    return QString::fromLatin1("<NSURLRequest %1>").arg(url);
+    QString httpMethod = request.httpMethod();
+    QString mainDocumentUrl = request.firstPartyForCookies().string();
+    return QString::fromLatin1("<NSURLRequest URL %1, main document URL %2, http method %3>").arg(url).arg(mainDocumentUrl).arg(httpMethod);
 }
 
 static QString drtDescriptionSuitableForTestResult(const WebCore::ResourceResponse& response)
 {
-    QString text = response.httpStatusText();
-    if (text.isEmpty())
-        return QLatin1String("(null)");
-
-    return text;
+    QString url = response.url().string();
+    int httpStatusCode = response.httpStatusCode();
+    return QString::fromLatin1("<NSURLResponse %1, http status code %2>").arg(url).arg(httpStatusCode);
 }
 
 
@@ -215,12 +234,17 @@ void FrameLoaderClientQt::transitionToCommittedForNewPage()
     QWebPage* page = m_webFrame->page();
     const QSize preferredLayoutSize = page->preferredContentsSize();
 
+    ScrollbarMode hScrollbar = (ScrollbarMode) m_webFrame->scrollBarPolicy(Qt::Horizontal);
+    ScrollbarMode vScrollbar = (ScrollbarMode) m_webFrame->scrollBarPolicy(Qt::Vertical);
+    bool hLock = hScrollbar != ScrollbarAuto;
+    bool vLock = vScrollbar != ScrollbarAuto;
+
     m_frame->createView(m_webFrame->page()->viewportSize(),
                         backgroundColor, !backgroundColor.alpha(),
                         preferredLayoutSize.isValid() ? IntSize(preferredLayoutSize) : IntSize(),
                         preferredLayoutSize.isValid(),
-                        (ScrollbarMode)m_webFrame->scrollBarPolicy(Qt::Horizontal),
-                        (ScrollbarMode)m_webFrame->scrollBarPolicy(Qt::Vertical));
+                        hScrollbar, hLock,
+                        vScrollbar, vLock);
 }
 
 
@@ -836,11 +860,23 @@ void FrameLoaderClientQt::assignIdentifierToInitialRequest(unsigned long identif
 
 void FrameLoaderClientQt::dispatchWillSendRequest(WebCore::DocumentLoader*, unsigned long identifier, WebCore::ResourceRequest& newRequest, const WebCore::ResourceResponse& redirectResponse)
 {
+
     if (dumpResourceLoadCallbacks)
         printf("%s - willSendRequest %s redirectResponse %s\n",
                qPrintable(dumpAssignedUrls[identifier]),
                qPrintable(drtDescriptionSuitableForTestResult(newRequest)),
-               qPrintable(drtDescriptionSuitableForTestResult(redirectResponse)));
+               (redirectResponse.isNull()) ? "(null)" : qPrintable(drtDescriptionSuitableForTestResult(redirectResponse)));
+
+    if (sendRequestReturnsNull)
+        newRequest.setURL(QUrl());
+
+    if (sendRequestReturnsNullOnRedirect && !redirectResponse.isNull()) {
+        printf("Returning null for this redirect\n");
+        newRequest.setURL(QUrl());
+    }
+
+    for (int i = 0; i < sendRequestClearHeaders.size(); ++i)
+          newRequest.setHTTPHeaderField(sendRequestClearHeaders.at(i).toLocal8Bit().constData(), QString());
 
     // seems like the Mac code doesn't do anything here by default neither
     //qDebug() << "FrameLoaderClientQt::dispatchWillSendRequest" << request.isNull() << request.url().string`();
@@ -863,11 +899,15 @@ void FrameLoaderClientQt::dispatchDidCancelAuthenticationChallenge(DocumentLoade
     notImplemented();
 }
 
-void FrameLoaderClientQt::dispatchDidReceiveResponse(WebCore::DocumentLoader*, unsigned long, const WebCore::ResourceResponse& response)
+void FrameLoaderClientQt::dispatchDidReceiveResponse(WebCore::DocumentLoader*, unsigned long identifier, const WebCore::ResourceResponse& response)
 {
 
     m_response = response;
     m_firstData = true;
+    if (dumpResourceLoadCallbacks)
+        printf("%s - didReceiveResponse %s\n",
+               qPrintable(dumpAssignedUrls[identifier]),
+               qPrintable(drtDescriptionSuitableForTestResult(response)));
     //qDebug() << "    got response from" << response.url().string();
 }
 
@@ -875,14 +915,19 @@ void FrameLoaderClientQt::dispatchDidReceiveContentLength(WebCore::DocumentLoade
 {
 }
 
-void FrameLoaderClientQt::dispatchDidFinishLoading(WebCore::DocumentLoader*, unsigned long)
+void FrameLoaderClientQt::dispatchDidFinishLoading(WebCore::DocumentLoader*, unsigned long identifier)
 {
+    if (dumpResourceLoadCallbacks)
+        printf("%s - didFinishLoading\n",
+               (dumpAssignedUrls.contains(identifier) ? qPrintable(dumpAssignedUrls[identifier]) : "<unknown>"));
 }
 
 void FrameLoaderClientQt::dispatchDidFailLoading(WebCore::DocumentLoader* loader, unsigned long identifier, const WebCore::ResourceError& error)
 {
     if (dumpResourceLoadCallbacks)
-        printf("%s - didFailLoadingWithError: %s\n", qPrintable(dumpAssignedUrls[identifier]), qPrintable(drtDescriptionSuitableForTestResult(error)));
+        printf("%s - didFailLoadingWithError: %s\n",
+               (dumpAssignedUrls.contains(identifier) ? qPrintable(dumpAssignedUrls[identifier]) : "<unknown>"),
+               qPrintable(drtDescriptionSuitableForTestResult(error)));
 
     if (m_firstData) {
         FrameLoader *fl = loader->frameLoader();

@@ -365,6 +365,11 @@ void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, J
 
 }
 
+void LayoutTestController::setScrollbarPolicy(JSStringRef orientation, JSStringRef policy)
+{
+    // FIXME: implement
+}
+
 JSRetainPtr<JSStringRef> LayoutTestController::counterValueForElementById(JSStringRef id)
 {
     return 0;
@@ -407,6 +412,11 @@ bool LayoutTestController::callShouldCloseOnWebView()
 }
 
 JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
+{
+    return 0;
+}
+
+JSValueRef LayoutTestController::computedStyleIncludingVisitedInfo(JSContextRef, JSValueRef)
 {
     return 0;
 }

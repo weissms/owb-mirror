@@ -28,6 +28,7 @@
  */
 #include "config.h"
 #include "LayoutTestControllerQt.h"
+#include "../../../WebKit/qt/WebCoreSupport/DumpRenderTreeSupportQt.h"
 
 #include "DumpRenderTreeQt.h"
 #include "WorkQueue.h"
@@ -36,35 +37,21 @@
 #include <QLocale>
 #include <qwebsettings.h>
 
-extern void qt_wrt_setViewMode(QWebPage*, const QString& mode);
 extern void qt_dump_editing_callbacks(bool b);
 extern void qt_dump_frame_loader(bool b);
 extern void qt_dump_resource_load_callbacks(bool b);
-extern void qt_drt_setMediaType(QWebFrame* qframe, const QString& type);
-extern void qt_drt_setFrameFlatteningEnabled(QWebPage*, bool);
-extern void qt_drt_setJavaScriptProfilingEnabled(QWebFrame*, bool enabled);
-extern void qt_drt_setTimelineProfilingEnabled(QWebPage*, bool enabled);
-extern bool qt_drt_pauseAnimation(QWebFrame*, const QString& name, double time, const QString& elementId);
-extern bool qt_drt_pauseTransitionOfProperty(QWebFrame*, const QString& name, double time, const QString& elementId);
-extern bool qt_drt_pauseSVGAnimation(QWebFrame*, const QString& animationId, double time, const QString& elementId);
-extern int qt_drt_numberOfActiveAnimations(QWebFrame*);
-extern void qt_drt_setDomainRelaxationForbiddenForURLScheme(bool forbidden, const QString& scheme);
+extern void qt_set_will_send_request_returns_null_on_redirect(bool b);
+extern void qt_set_will_send_request_returns_null(bool b);
+extern void qt_set_will_send_request_clear_headers(const QStringList& headers);
 
-extern void qt_drt_whiteListAccessFromOrigin(const QString& sourceOrigin, const QString& destinationProtocol, const QString& destinationHost, bool allowDestinationSubdomains);
-extern QString qt_drt_counterValueForElementById(QWebFrame* qFrame, const QString& id);
-extern int qt_drt_workerThreadCount();
-extern int qt_drt_pageNumberForElementById(QWebFrame* qFrame, const QString& id, float width, float height);
-extern int qt_drt_numberOfPages(QWebFrame* qFrame, float width, float height);
-extern void qt_drt_webinspector_executeScript(QWebPage* page, long callId, const QString& script);
-extern void qt_drt_webinspector_show(QWebPage *page);
-extern void qt_drt_webinspector_close(QWebPage *page);
-extern void qt_drt_enableCaretBrowsing(QWebPage* page, bool value);
+extern void qt_dump_notification(bool b);
 
 LayoutTestController::LayoutTestController(WebCore::DumpRenderTree* drt)
     : QObject()
     , m_drt(drt)
 {
     reset();
+    qt_dump_notification(true);
 }
 
 void LayoutTestController::reset()
@@ -88,6 +75,9 @@ void LayoutTestController::reset()
     qt_dump_editing_callbacks(false);
     qt_dump_frame_loader(false);
     qt_dump_resource_load_callbacks(false);
+    qt_set_will_send_request_returns_null_on_redirect(false);
+    qt_set_will_send_request_returns_null(false);
+    qt_set_will_send_request_clear_headers(QStringList());
     emit hidePage();
 }
 
@@ -144,12 +134,12 @@ void LayoutTestController::waitUntilDone()
 
 QString LayoutTestController::counterValueForElementById(const QString& id)
 {
-    return qt_drt_counterValueForElementById(m_drt->webPage()->mainFrame(), id);
+    return DumpRenderTreeSupportQt::counterValueForElementById(m_drt->webPage()->mainFrame(), id);
 }
 
 void LayoutTestController::setViewModeMediaFeature(const QString& mode)
 {
-    qt_wrt_setViewMode(m_drt->webPage(), mode);
+    DumpRenderTreeSupportQt::setViewMode(m_drt->webPage(), mode);
 }
 
 int LayoutTestController::webHistoryItemCount()
@@ -196,6 +186,17 @@ int LayoutTestController::windowCount()
     return m_drt->windowCount();
 }
 
+void LayoutTestController::grantDesktopNotificationPermission(const QString& origin)
+{
+    // FIXME: Implement for notification security
+}
+
+bool LayoutTestController::checkDesktopNotificationPermission(const QString& origin)
+{
+    // FIXME: Implement for notification security
+    return true;
+}
+
 void LayoutTestController::display()
 {
     emit showPage();
@@ -226,6 +227,21 @@ void LayoutTestController::dumpFrameLoadCallbacks()
 void LayoutTestController::dumpResourceLoadCallbacks()
 {
     qt_dump_resource_load_callbacks(true);
+}
+
+void LayoutTestController::setWillSendRequestReturnsNullOnRedirect(bool enabled)
+{
+    qt_set_will_send_request_returns_null_on_redirect(enabled);
+}
+
+void LayoutTestController::setWillSendRequestReturnsNull(bool enabled)
+{
+    qt_set_will_send_request_returns_null(enabled);
+}
+
+void LayoutTestController::setWillSendRequestClearHeader(const QStringList& headers)
+{
+    qt_set_will_send_request_clear_headers(headers);
 }
 
 void LayoutTestController::queueBackNavigation(int howFarBackward)
@@ -300,12 +316,13 @@ QString LayoutTestController::decodeHostName(const QString& host)
 
 void LayoutTestController::setMediaType(const QString& type)
 {
-    qt_drt_setMediaType(m_drt->webPage()->mainFrame(), type);
+    DumpRenderTreeSupportQt::setMediaType(m_drt->webPage()->mainFrame(), type);
 }
 
 void LayoutTestController::closeWebInspector()
 {
-    qt_drt_webinspector_close(m_drt->webPage());
+    DumpRenderTreeSupportQt::webInspectorClose(m_drt->webPage());
+    m_drt->webPage()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, false);
 }
 
 void LayoutTestController::setDeveloperExtrasEnabled(bool enabled)
@@ -315,17 +332,18 @@ void LayoutTestController::setDeveloperExtrasEnabled(bool enabled)
 
 void LayoutTestController::showWebInspector()
 {
-    qt_drt_webinspector_show(m_drt->webPage());
+    m_drt->webPage()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+    DumpRenderTreeSupportQt::webInspectorShow(m_drt->webPage());
 }
 
 void LayoutTestController::evaluateInWebInspector(long callId, const QString& script)
 {
-    qt_drt_webinspector_executeScript(m_drt->webPage(), callId, script);
+    DumpRenderTreeSupportQt::webInspectorExecuteScript(m_drt->webPage(), callId, script);
 }
 
 void LayoutTestController::setFrameFlatteningEnabled(bool enabled)
 {
-    qt_drt_setFrameFlatteningEnabled(m_drt->webPage(), enabled);
+    DumpRenderTreeSupportQt::setFrameFlatteningEnabled(m_drt->webPage(), enabled);
 }
 
 void LayoutTestController::setAllowUniversalAccessFromFileURLs(bool enabled)
@@ -346,12 +364,12 @@ void LayoutTestController::setAppCacheMaximumSize(unsigned long long quota)
 void LayoutTestController::setJavaScriptProfilingEnabled(bool enable)
 {
     setDeveloperExtrasEnabled(enable);
-    qt_drt_setJavaScriptProfilingEnabled(m_topLoadingFrame, enable);
+    DumpRenderTreeSupportQt::setJavaScriptProfilingEnabled(m_topLoadingFrame, enable);
 }
 
 void LayoutTestController::setTimelineProfilingEnabled(bool enable)
 {
-    qt_drt_setTimelineProfilingEnabled(m_drt->webPage(), enable);
+    DumpRenderTreeSupportQt::setTimelineProfilingEnabled(m_drt->webPage(), enable);
 }
 
 void LayoutTestController::setFixedContentsSize(int width, int height)
@@ -406,7 +424,7 @@ bool LayoutTestController::pauseAnimationAtTimeOnElementWithId(const QString& an
 {
     QWebFrame* frame = m_drt->webPage()->mainFrame();
     Q_ASSERT(frame);
-    return qt_drt_pauseAnimation(frame, animationName, time, elementId);
+    return DumpRenderTreeSupportQt::pauseAnimation(frame, animationName, time, elementId);
 }
 
 bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(const QString& propertyName,
@@ -415,7 +433,7 @@ bool LayoutTestController::pauseTransitionAtTimeOnElementWithId(const QString& p
 {
     QWebFrame* frame = m_drt->webPage()->mainFrame();
     Q_ASSERT(frame);
-    return qt_drt_pauseTransitionOfProperty(frame, propertyName, time, elementId);
+    return DumpRenderTreeSupportQt::pauseTransitionOfProperty(frame, propertyName, time, elementId);
 }
 
 bool LayoutTestController::sampleSVGAnimationForElementAtTime(const QString& animationId,
@@ -424,14 +442,14 @@ bool LayoutTestController::sampleSVGAnimationForElementAtTime(const QString& ani
 {
     QWebFrame* frame = m_drt->webPage()->mainFrame();
     Q_ASSERT(frame);
-    return qt_drt_pauseSVGAnimation(frame, animationId, time, elementId);
+    return DumpRenderTreeSupportQt::pauseSVGAnimation(frame, animationId, time, elementId);
 }
 
 unsigned LayoutTestController::numberOfActiveAnimations() const
 {
     QWebFrame* frame = m_drt->webPage()->mainFrame();
     Q_ASSERT(frame);
-    return qt_drt_numberOfActiveAnimations(frame);
+    return DumpRenderTreeSupportQt::numberOfActiveAnimations(frame);
 }
 
 void LayoutTestController::disableImageLoading()
@@ -459,7 +477,7 @@ void LayoutTestController::clearAllDatabases()
 
 void LayoutTestController::whiteListAccessFromOrigin(const QString& sourceOrigin, const QString& destinationProtocol, const QString& destinationHost, bool allowDestinationSubdomains)
 {
-    qt_drt_whiteListAccessFromOrigin(sourceOrigin, destinationProtocol, destinationHost, allowDestinationSubdomains);
+    DumpRenderTreeSupportQt::whiteListAccessFromOrigin(sourceOrigin, destinationProtocol, destinationHost, allowDestinationSubdomains);
 }
 
 void LayoutTestController::waitForPolicyDelegate()
@@ -498,7 +516,7 @@ void LayoutTestController::setUserStyleSheetLocation(const QString& url)
 
 void LayoutTestController::setCaretBrowsingEnabled(bool value)
 {
-    qt_drt_enableCaretBrowsing(m_drt->webPage(), value);
+    DumpRenderTreeSupportQt::setCaretBrowsingEnabled(m_drt->webPage(), value);
 }
 
 void LayoutTestController::setUserStyleSheetEnabled(bool enabled)
@@ -511,12 +529,12 @@ void LayoutTestController::setUserStyleSheetEnabled(bool enabled)
 
 void LayoutTestController::setDomainRelaxationForbiddenForURLScheme(bool forbidden, const QString& scheme)
 {
-    qt_drt_setDomainRelaxationForbiddenForURLScheme(forbidden, scheme);
+    DumpRenderTreeSupportQt::setDomainRelaxationForbiddenForURLScheme(forbidden, scheme);
 }
 
 int LayoutTestController::workerThreadCount()
 {
-    return qt_drt_workerThreadCount();
+    return DumpRenderTreeSupportQt::workerThreadCount();
 }
 
 int LayoutTestController::pageNumberForElementById(const QString& id, float width, float height)
@@ -527,18 +545,42 @@ int LayoutTestController::pageNumberForElementById(const QString& id, float widt
         height = m_drt->webPage()->viewportSize().height();
     }
 
-    return qt_drt_pageNumberForElementById(m_drt->webPage()->mainFrame(), id, width, height);
+    return DumpRenderTreeSupportQt::pageNumberForElementById(m_drt->webPage()->mainFrame(), id, width, height);
 }
 
 int LayoutTestController::numberOfPages(float width, float height)
 {
-    return qt_drt_numberOfPages(m_drt->webPage()->mainFrame(), width, height);
+    return DumpRenderTreeSupportQt::numberOfPages(m_drt->webPage()->mainFrame(), width, height);
 }
 
 bool LayoutTestController::callShouldCloseOnWebView()
 {
     // FIXME: Implement for testing fix for https://bugs.webkit.org/show_bug.cgi?id=27481
     return false;
+}
+
+void LayoutTestController::setScrollbarPolicy(const QString& orientation, const QString& policy)
+{
+    Qt::Orientation o;
+    Qt::ScrollBarPolicy p;
+
+    if (orientation == "vertical")
+        o = Qt::Vertical;
+    else if (orientation == "horizontal")
+        o = Qt::Horizontal;
+    else
+        return;
+
+    if (policy == "on")
+        p = Qt::ScrollBarAlwaysOn;
+    else if (policy == "auto")
+        p = Qt::ScrollBarAsNeeded;
+    else if (policy == "off")
+        p = Qt::ScrollBarAlwaysOff;
+    else
+        return;
+
+    m_drt->webPage()->mainFrame()->setScrollBarPolicy(o, p);
 }
 
 const unsigned LayoutTestController::maxViewWidth = 800;

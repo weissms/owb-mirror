@@ -143,7 +143,7 @@ public:
 
     bool searchingForNodeInPage() const { return m_searchingForNode; }
     void mouseDidMoveOverElement(const HitTestResult&, unsigned modifierFlags);
-    void handleMousePressOnNode(Node*);
+    void handleMousePress();
 
     void setInspectorFrontendClient(PassOwnPtr<InspectorFrontendClient> client);
     bool hasInspectorFrontendClient() const { return m_inspectorFrontendClient; }
@@ -214,7 +214,7 @@ public:
     void startGroup(MessageSource source, ScriptCallStack* callFrame);
     void endGroup(MessageSource source, unsigned lineNumber, const String& sourceURL);
 
-    void markTimeline(const String& message); 
+    void markTimeline(const String& message);
 
 #if ENABLE(JAVASCRIPT_DEBUGGER)
     void addProfile(PassRefPtr<ScriptProfile>, unsigned lineNumber, const String& sourceURL);

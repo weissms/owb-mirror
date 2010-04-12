@@ -55,11 +55,7 @@ JSValue JSNotificationCenter::requestPermission(ExecState* exec, const ArgList& 
     if (!args.at(0).isObject())
         return throwError(exec, TypeError);
 
-    JSDOMGlobalObject* globalObject = toJSDOMGlobalObject(impl()->scriptExecutionContext(), currentWorld(exec));
-    if (!globalObject)
-        return jsUndefined();
-
-    PassRefPtr<JSCustomVoidCallback> callback = JSCustomVoidCallback::create(args.at(0).getObject(), globalObject);
+    PassRefPtr<JSCustomVoidCallback> callback = JSCustomVoidCallback::create(args.at(0).getObject(), toJSDOMGlobalObject(static_cast<Document*>(context), exec));
 
     impl()->requestPermission(callback);
     return jsUndefined();

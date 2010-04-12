@@ -181,6 +181,11 @@ void LayoutTestController::keepWebHistory()
     }
 }
 
+JSValueRef LayoutTestController::computedStyleIncludingVisitedInfo(JSContextRef context, JSValueRef value)
+{   
+    return [[mainFrame webView] _computedStyleIncludingVisitedInfo:context forElement:value];
+}
+
 JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
 {
     JSRetainPtr<JSStringRef> string(Adopt, JSStringCreateWithCFString((CFStringRef)[mainFrame _layerTreeAsText]));
@@ -566,6 +571,11 @@ void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, J
     RetainPtr<CFStringRef> hostCF(AdoptCF, JSStringCopyCFString(kCFAllocatorDefault, destinationHost));
     NSString *destinationHostNS = (NSString *)hostCF.get();
     [WebView _whiteListAccessFromOrigin:sourceOriginNS destinationProtocol:destinationProtocolNS destinationHost:destinationHostNS allowDestinationSubdomains:allowDestinationSubdomains];
+}
+
+void LayoutTestController::setScrollbarPolicy(JSStringRef orientation, JSStringRef policy)
+{
+    // FIXME: implement
 }
 
 void LayoutTestController::addUserScript(JSStringRef source, bool runAtStart)

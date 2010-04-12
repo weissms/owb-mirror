@@ -65,6 +65,9 @@ class AbstractQueueTest(CommandsTest):
         self._assert_log_progress_output(["1","2","3"], "3 patches in test-queue [1, 2, 3]\n")
         self._assert_log_progress_output([1], "1 patch in test-queue [1]\n")
 
+    def test_log_directory(self):
+        self.assertEquals(TestQueue()._log_directory(), "test-queue-logs")
+
     def _assert_run_webkit_patch(self, run_args):
         queue = TestQueue()
         tool = MockTool()
@@ -146,7 +149,7 @@ Warning, attachment 128 on bug 42 has invalid committer (non-committer@example.c
 Warning, attachment 128 on bug 42 has invalid committer (non-committer@example.com)
 1 patch in commit-queue [106]
 """,
-            "process_work_item": "MOCK run_and_throw_if_fail: ['echo', '--status-host=example.com', 'land-attachment', '--force-clean', '--non-interactive', '--ignore-builders', '--build-style=both', '--quiet', '76543']\n",
+            "process_work_item": "MOCK run_and_throw_if_fail: ['echo', '--status-host=example.com', 'land-attachment', '--force-clean', '--build', '--test', '--non-interactive', '--ignore-builders', '--build-style=both', '--quiet', '76543']\n",
         }
         self.assert_queue_outputs(CommitQueue(), tool=tool, work_item=rollout_patch, expected_stderr=expected_stderr)
 

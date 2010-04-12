@@ -46,6 +46,7 @@
 #include <qwebsecurityorigin.h>
 
 class QWebFrame;
+class DumpRenderTreeSupportQt;
 namespace WebCore {
     class DumpRenderTree;
 }
@@ -101,6 +102,9 @@ public slots:
     void dumpEditingCallbacks();
     void dumpFrameLoadCallbacks();
     void dumpResourceLoadCallbacks();
+    void setWillSendRequestReturnsNullOnRedirect(bool enabled);
+    void setWillSendRequestReturnsNull(bool enabled);
+    void setWillSendRequestClearHeader(const QStringList& headers);
     void queueBackNavigation(int howFarBackward);
     void queueForwardNavigation(int howFarForward);
     void queueLoad(const QString& url, const QString& target = QString());
@@ -110,6 +114,8 @@ public slots:
     void provisionalLoad();
     void setCloseRemainingWindowsWhenComplete(bool = false) {}
     int windowCount();
+    void grantDesktopNotificationPermission(const QString& origin);
+    bool checkDesktopNotificationPermission(const QString& origin);
     void display();
     void clearBackForwardList();
     QString pathToLocalResource(const QString& url);
@@ -164,6 +170,12 @@ public slots:
     int pageNumberForElementById(const QString& id, float width = 0, float height = 0);
     int numberOfPages(float width = maxViewWidth, float height = maxViewHeight);
     bool callShouldCloseOnWebView();
+
+    /*
+        Policy values: 'on', 'auto' or 'off'.
+        Orientation values: 'vertical' or 'horizontal'.
+    */
+    void setScrollbarPolicy(const QString& orientation, const QString& policy);
 
 private slots:
     void processWork();
