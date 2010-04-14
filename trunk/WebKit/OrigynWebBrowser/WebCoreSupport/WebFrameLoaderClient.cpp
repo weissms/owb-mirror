@@ -1350,7 +1350,7 @@ void WebFrameLoaderClient::didReceiveSSLSecurityExtension(const ResourceRequest&
     // FIXME: This sanity check is failing because m_webFrame->url() is returning null, so disable it for now.
     //ASSERT(request.url().string() == m_webFrame->url());
     UNUSED_PARAM(request); // For release build.
-#if ENABLE(DAE_APPLICATION)
+#if ENABLE(DAE_PERMISSION)
     SharedPtr<WebApplication> webApp = webAppMgr().application(m_webFrame->webView());
     if (webApp)
         webApp->setPermissions(securityExtension);
