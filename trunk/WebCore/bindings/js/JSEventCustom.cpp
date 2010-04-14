@@ -87,8 +87,10 @@
 
 #if ENABLE(DAE)
 #include "DAEEvent.h"
+#if ENABLE(DAE_METADATA)
 #include "JSMetadataSearchEvent.h"
 #include "MetadataSearchEvent.h"
+#endif
 #if ENABLE(DAE_PVR)
 #include "JSPVREvent.h"
 #include "PVREvent.h"
@@ -171,7 +173,11 @@ JSValue toJS(ExecState* exec, JSDOMGlobalObject* globalObject, Event* event)
     else if (event->isDAEEvent()) {
         DAEEvent* daeEvent = static_cast<DAEEvent*>(event);
         if (daeEvent->isDAEMetadataSearchEvent())
+#if ENABLE(DAE_METADATA)
             wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, MetadataSearchEvent, daeEvent);
+#else
+            ;
+#endif
 #if ENABLE(DAE_PVR)
         else if (daeEvent->isDAEPVREvent())
             wrapper = CREATE_DOM_OBJECT_WRAPPER(exec, globalObject, PVREvent, daeEvent);

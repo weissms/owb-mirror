@@ -1,3 +1,11 @@
+2010-04-14  Olivier DOLE  <odole@sand-labs.org>
+
+        Reviewed by Mario BENSI.
+
+        Remove a useless SDL.h include
+
+        * Widgets/WebKit/Generic/WebPopup.h:
+
 2010-04-06  Guillaume Penin  <gpenin@sand-labs.org>
 
         Fixed internal memory allocator (used in release mode).
@@ -633,7 +641,7 @@
 
         * Scripts/Drt/runtests.py:
 
-2009-12-30  Mario Bensi  <mbensi@pleyo.com>
+2009-12-29  Mario Bensi  <mbensi@pleyo.com>
 
         Test the stat path and test if the source path are not None
 

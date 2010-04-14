@@ -31,7 +31,6 @@
 
 #include "BALBase.h"
 #include "WebWindow.h"
-#include "SDL/SDL.h"
 #include "PlatformString.h"
 #include "GraphicsContext.h"
 #include "IntRect.h"

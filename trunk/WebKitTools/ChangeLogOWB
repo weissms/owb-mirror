@@ -1,3 +1,12 @@
+2010-04-14  Olivier DOLE  <odole@sand-labs.org>
+
+        Reviewed by Mario BENSI.
+
+        fix when DAE_PERMISSION is enabled.
+
+        * DumpRenderTree/bal/ApplicationTestController.cpp:
+        (setPermissionsForMainApplication):
+
 2010-02-04  Mario Bensi  <mbensi@pleyo.com>
 
         remove warnings.
@@ -37,7 +46,7 @@
 
         * DumpRenderTree/AccessibilityController.h:
 
-2010-02-04  Gilles Bertal  <gbertal@pleyo.com>
+2010-02-03  Gilles Bertal  <gbertal@pleyo.com>
 
         Do not explicitly delete the WebView which is a shared object.
 
@@ -215,6 +224,20 @@
         * DumpRenderTree/bal/ResourceLoadDelegate.cpp:
         (ResourceLoadDelegate::willSendRequest):
         (ResourceLoadDelegate::didReceiveResponse):
+
+2010-01-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Implement elementDoesAutoCompleteForElementWithId.
+
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::elementDoesAutoCompleteForElementWithId):
+
+2010-01-18  Mario Bensi  <mbensi@pleyo.com>
+
+        Implement elementDoesAutoCompleteForElementWithId.
+
+        * DumpRenderTree/bal/LayoutTestControllerBal.cpp:
+        (LayoutTestController::elementDoesAutoCompleteForElementWithId):
 
 2010-01-18  Mario Bensi  <mbensi@pleyo.com>
 

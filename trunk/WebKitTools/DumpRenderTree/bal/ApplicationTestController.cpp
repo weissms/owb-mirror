@@ -102,12 +102,14 @@ static JSValueRef setPermissionsForMainApplication(JSContextRef context, JSObjec
     JSRetainPtr<JSStringRef> permissions(Adopt, JSValueToStringCopy(context, arguments[0], exception));
     //ASSERT(!*exception);
 
+#if ENABLE(DAE_PERMISSION)
     // Clear permissions.
     SharedPtr<WebApplication> webApp = webAppMgr().application(getWebView());
     if (webApp) {
         webApp->setPermissions(0);
         webApp->setPermissions(JSStringCopyUTF8CString(permissions.get()));
     }
+#endif
 #endif
 
     return JSValueMakeUndefined(context);
