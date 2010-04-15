@@ -834,10 +834,10 @@ bool RenderBoxModelObject::paintNinePieceImage(GraphicsContext* graphicsContext,
     int imageWidth = imageSize.width();
     int imageHeight = imageSize.height();
 
-    int topSlice = min(imageHeight, ninePieceImage.m_slices.top().calcValue(imageHeight));
-    int bottomSlice = min(imageHeight, ninePieceImage.m_slices.bottom().calcValue(imageHeight));
-    int leftSlice = min(imageWidth, ninePieceImage.m_slices.left().calcValue(imageWidth));
-    int rightSlice = min(imageWidth, ninePieceImage.m_slices.right().calcValue(imageWidth));
+    int topSlice = min(imageHeight, ninePieceImage.slices().top().calcValue(imageHeight));
+    int bottomSlice = min(imageHeight, ninePieceImage.slices().bottom().calcValue(imageHeight));
+    int leftSlice = min(imageWidth, ninePieceImage.slices().left().calcValue(imageWidth));
+    int rightSlice = min(imageWidth, ninePieceImage.slices().right().calcValue(imageWidth));
 
     ENinePieceImageRule hRule = ninePieceImage.horizontalRule();
     ENinePieceImageRule vRule = ninePieceImage.verticalRule();
@@ -1322,16 +1322,16 @@ void RenderBoxModelObject::paintBoxShadow(GraphicsContext* context, int tx, int 
     }
 
     bool hasOpaqueBackground = s->backgroundColor().isValid() && s->backgroundColor().alpha() == 255;
-    for (ShadowData* shadow = s->boxShadow(); shadow; shadow = shadow->next) {
-        if (shadow->style != shadowStyle)
+    for (const ShadowData* shadow = s->boxShadow(); shadow; shadow = shadow->next()) {
+        if (shadow->style() != shadowStyle)
             continue;
 
-        IntSize shadowOffset(shadow->x, shadow->y);
-        int shadowBlur = shadow->blur;
-        int shadowSpread = shadow->spread;
-        Color& shadowColor = shadow->color;
+        IntSize shadowOffset(shadow->x(), shadow->y());
+        int shadowBlur = shadow->blur();
+        int shadowSpread = shadow->spread();
+        const Color& shadowColor = shadow->color();
 
-        if (shadow->style == Normal) {
+        if (shadow->style() == Normal) {
             IntRect fillRect(rect);
             fillRect.inflate(shadowSpread);
             if (fillRect.isEmpty())

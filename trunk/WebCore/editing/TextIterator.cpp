@@ -40,7 +40,7 @@
 #include "VisiblePosition.h"
 #include "visible_units.h"
 
-#if USE(ICU_UNICODE) && !UCONFIG_NO_COLLATION && !USE(BALI18N)
+#if USE(ICU_UNICODE) && (!defined(UCONFIG_NO_COLLATION) || !UCONFIG_NO_COLLATION) && !USE(BALI18N)
 #include "TextBreakIteratorInternalICU.h"
 #include <unicode/usearch.h>
 #endif

@@ -139,6 +139,7 @@ static void createAndAppendSpellingAndGrammarSubMenu(const HitTestResult& result
 }
 #else
 
+#ifdef BUILDING_ON_TIGER
 static void createAndAppendSpellingSubMenu(const HitTestResult& result, ContextMenuItem& spellingMenuItem)
 {
     ContextMenu spellingMenu(result);
@@ -156,6 +157,8 @@ static void createAndAppendSpellingSubMenu(const HitTestResult& result, ContextM
 
     spellingMenuItem.setSubMenu(&spellingMenu);
 }
+#endif
+
 #endif
 
 #if PLATFORM(MAC)

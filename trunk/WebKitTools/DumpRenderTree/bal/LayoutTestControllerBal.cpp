@@ -448,12 +448,20 @@ unsigned LayoutTestController::workerThreadCount() const
     return count;
 }
 
-void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
+void LayoutTestController::addOriginAccessWhitelistEntry(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
 {
     char* source = JSStringCopyUTF8CString(sourceOrigin);
     char* destination = JSStringCopyUTF8CString(destinationProtocol);
     char* host = JSStringCopyUTF8CString(destinationHost);
-    getWebView()->whiteListAccessFromOrigin(source, destination, host, allowDestinationSubdomains);
+    getWebView()->addOriginAccessWhitelistEntry(source, destination, host, allowDestinationSubdomains);
+}
+
+void LayoutTestController::removeOriginAccessWhitelistEntry(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
+{
+    char* source = JSStringCopyUTF8CString(sourceOrigin);
+    char* destination = JSStringCopyUTF8CString(destinationProtocol);
+    char* host = JSStringCopyUTF8CString(destinationHost);
+    getWebView()->removeOriginAccessWhitelistEntry(source, destination, host, allowDestinationSubdomains);
 }
 
 void LayoutTestController::setAlwaysAcceptCookies(bool alwaysAcceptCookies)

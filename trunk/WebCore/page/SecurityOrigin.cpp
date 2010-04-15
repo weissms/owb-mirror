@@ -649,7 +649,7 @@ bool SecurityOrigin::allowSubstituteDataAccessToLocal()
     return localLoadPolicy != SecurityOrigin::AllowLocalLoadsForLocalOnly;
 }
 
-void SecurityOrigin::whiteListAccessFromOrigin(const SecurityOrigin& sourceOrigin, const String& destinationProtocol, const String& destinationDomains, bool allowDestinationSubdomains)
+void SecurityOrigin::addOriginAccessWhitelistEntry(const SecurityOrigin& sourceOrigin, const String& destinationProtocol, const String& destinationDomains, bool allowDestinationSubdomains)
 {
     ASSERT(isMainThread());
     ASSERT(!sourceOrigin.isEmpty());
@@ -657,15 +657,42 @@ void SecurityOrigin::whiteListAccessFromOrigin(const SecurityOrigin& sourceOrigi
         return;
 
     String sourceString = sourceOrigin.toString();
-    OriginAccessWhiteList* list = originAccessMap().get(sourceString);
-    if (!list) {
-        list = new OriginAccessWhiteList;
-        originAccessMap().set(sourceString, list);
-    }
+    pair<OriginAccessMap::iterator, bool> result = originAccessMap().add(sourceString, 0);
+    if (result.second)
+        result.first->second = new OriginAccessWhiteList;
+
+    OriginAccessWhiteList* list = result.first->second;
     list->append(OriginAccessEntry(destinationProtocol, destinationDomains, allowDestinationSubdomains ? OriginAccessEntry::AllowSubdomains : OriginAccessEntry::DisallowSubdomains));
 }
 
-void SecurityOrigin::resetOriginAccessWhiteLists()
+void SecurityOrigin::removeOriginAccessWhitelistEntry(const SecurityOrigin& sourceOrigin, const String& destinationProtocol, const String& destinationDomains, bool allowDestinationSubdomains)
+{
+    ASSERT(isMainThread());
+    ASSERT(!sourceOrigin.isEmpty());
+    if (sourceOrigin.isEmpty())
+        return;
+
+    String sourceString = sourceOrigin.toString();
+    OriginAccessMap& map = originAccessMap();
+    OriginAccessMap::iterator it = map.find(sourceString);
+    if (it == map.end())
+        return;
+
+    OriginAccessWhiteList* list = it->second;
+    size_t index = list->find(OriginAccessEntry(destinationProtocol, destinationDomains, allowDestinationSubdomains ? OriginAccessEntry::AllowSubdomains : OriginAccessEntry::DisallowSubdomains));
+    if (index == notFound)
+        return;
+
+    list->remove(index);
+
+    if (!list->isEmpty())
+        return;
+
+    map.remove(it);
+    delete list;
+}
+
+void SecurityOrigin::resetOriginAccessWhitelists()
 {
     ASSERT(isMainThread());
     OriginAccessMap& map = originAccessMap();

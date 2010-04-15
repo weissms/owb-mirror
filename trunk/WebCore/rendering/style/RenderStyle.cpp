@@ -71,9 +71,9 @@ RenderStyle::RenderStyle()
     , m_firstChildState(false)
     , m_lastChildState(false)
     , m_childIndex(0)
-    , box(defaultStyle()->box)
+    , m_box(defaultStyle()->m_box)
     , visual(defaultStyle()->visual)
-    , background(defaultStyle()->background)
+    , m_background(defaultStyle()->m_background)
     , surround(defaultStyle()->surround)
     , rareNonInheritedData(defaultStyle()->rareNonInheritedData)
     , rareInheritedData(defaultStyle()->rareInheritedData)
@@ -101,9 +101,9 @@ RenderStyle::RenderStyle(bool)
 {
     setBitDefaults();
 
-    box.init();
+    m_box.init();
     visual.init();
-    background.init();
+    m_background.init();
     surround.init();
     rareNonInheritedData.init();
     rareNonInheritedData.access()->flexibleBox.init();
@@ -132,9 +132,9 @@ RenderStyle::RenderStyle(const RenderStyle& o)
     , m_firstChildState(false)
     , m_lastChildState(false)
     , m_childIndex(0)
-    , box(o.box)
+    , m_box(o.m_box)
     , visual(o.visual)
-    , background(o.background)
+    , m_background(o.m_background)
     , surround(o.surround)
     , rareNonInheritedData(o.rareNonInheritedData)
     , rareInheritedData(o.rareInheritedData)
@@ -167,9 +167,9 @@ bool RenderStyle::operator==(const RenderStyle& o) const
     // compare everything except the pseudoStyle pointer
     return inherited_flags == o.inherited_flags &&
             noninherited_flags == o.noninherited_flags &&
-            box == o.box &&
+            m_box == o.m_box &&
             visual == o.visual &&
-            background == o.background &&
+            m_background == o.m_background &&
             surround == o.surround &&
             rareNonInheritedData == o.rareNonInheritedData &&
             rareInheritedData == o.rareInheritedData &&
@@ -295,18 +295,18 @@ StyleDifference RenderStyle::diff(const RenderStyle* other, unsigned& changedCon
         return StyleDifferenceLayout;
 #endif
 
-    if (box->width != other->box->width ||
-        box->min_width != other->box->min_width ||
-        box->max_width != other->box->max_width ||
-        box->height != other->box->height ||
-        box->min_height != other->box->min_height ||
-        box->max_height != other->box->max_height)
+    if (m_box->width() != other->m_box->width() ||
+        m_box->minWidth() != other->m_box->minWidth() ||
+        m_box->maxWidth() != other->m_box->maxWidth() ||
+        m_box->height() != other->m_box->height() ||
+        m_box->minHeight() != other->m_box->minHeight() ||
+        m_box->maxHeight() != other->m_box->maxHeight())
         return StyleDifferenceLayout;
 
-    if (box->vertical_align != other->box->vertical_align || noninherited_flags._vertical_align != other->noninherited_flags._vertical_align)
+    if (m_box->verticalAlign() != other->m_box->verticalAlign() || noninherited_flags._vertical_align != other->noninherited_flags._vertical_align)
         return StyleDifferenceLayout;
 
-    if (box->boxSizing != other->box->boxSizing)
+    if (m_box->boxSizing() != other->m_box->boxSizing())
         return StyleDifferenceLayout;
 
     if (surround->margin != other->surround->margin)
@@ -478,7 +478,7 @@ StyleDifference RenderStyle::diff(const RenderStyle* other, unsigned& changedCon
             //    return RepaintLayer;
             //else
                 return StyleDifferenceLayout;
-        } else if (box->z_index != other->box->z_index || box->z_auto != other->box->z_auto ||
+        } else if (m_box->zIndex() != other->m_box->zIndex() || m_box->hasAutoZIndex() != other->m_box->hasAutoZIndex() ||
                  visual->clip != other->visual->clip || visual->hasClip != other->visual->hasClip)
             return StyleDifferenceRepaintLayer;
     }
@@ -502,7 +502,7 @@ StyleDifference RenderStyle::diff(const RenderStyle* other, unsigned& changedCon
         inherited_flags._force_backgrounds_to_white != other->inherited_flags._force_backgrounds_to_white ||
         inherited_flags._insideLink != other->inherited_flags._insideLink ||
         surround->border != other->surround->border ||
-        *background.get() != *other->background.get() ||
+        *m_background.get() != *other->m_background.get() ||
         visual->textDecoration != other->visual->textDecoration ||
         rareInheritedData->userModify != other->rareInheritedData->userModify ||
         rareInheritedData->userSelect != other->rareInheritedData->userSelect ||
@@ -703,7 +703,7 @@ void RenderStyle::addBindingURI(StringImpl* uri)
 
 void RenderStyle::setTextShadow(ShadowData* val, bool add)
 {
-    ASSERT(!val || (!val->spread && val->style == Normal));
+    ASSERT(!val || (!val->spread() && val->style() == Normal));
 
     StyleRareInheritedData* rareData = rareInheritedData.access();
     if (!add) {
@@ -712,7 +712,7 @@ void RenderStyle::setTextShadow(ShadowData* val, bool add)
         return;
     }
 
-    val->next = rareData->textShadow;
+    val->setNext(rareData->textShadow);
     rareData->textShadow = val;
 }
 
@@ -724,7 +724,7 @@ void RenderStyle::setBoxShadow(ShadowData* shadowData, bool add)
         return;
     }
 
-    shadowData->next = rareData->m_boxShadow.release();
+    shadowData->setNext(rareData->m_boxShadow.release());
     rareData->m_boxShadow.set(shadowData);
 }
 
@@ -921,15 +921,15 @@ void RenderStyle::getBoxShadowExtent(int &top, int &right, int &bottom, int &lef
     bottom = 0;
     left = 0;
 
-    for (ShadowData* boxShadow = this->boxShadow(); boxShadow; boxShadow = boxShadow->next) {
-        if (boxShadow->style == Inset)
+    for (const ShadowData* boxShadow = this->boxShadow(); boxShadow; boxShadow = boxShadow->next()) {
+        if (boxShadow->style() == Inset)
             continue;
-        int blurAndSpread = boxShadow->blur + boxShadow->spread;
+        int blurAndSpread = boxShadow->blur() + boxShadow->spread();
 
-        top = min(top, boxShadow->y - blurAndSpread);
-        right = max(right, boxShadow->x + blurAndSpread);
-        bottom = max(bottom, boxShadow->y + blurAndSpread);
-        left = min(left, boxShadow->x - blurAndSpread);
+        top = min(top, boxShadow->y() - blurAndSpread);
+        right = max(right, boxShadow->x() + blurAndSpread);
+        bottom = max(bottom, boxShadow->y() + blurAndSpread);
+        left = min(left, boxShadow->x() - blurAndSpread);
     }
 }
 
@@ -938,13 +938,13 @@ void RenderStyle::getBoxShadowHorizontalExtent(int &left, int &right) const
     left = 0;
     right = 0;
 
-    for (ShadowData* boxShadow = this->boxShadow(); boxShadow; boxShadow = boxShadow->next) {
-        if (boxShadow->style == Inset)
+    for (const ShadowData* boxShadow = this->boxShadow(); boxShadow; boxShadow = boxShadow->next()) {
+        if (boxShadow->style() == Inset)
             continue;
-        int blurAndSpread = boxShadow->blur + boxShadow->spread;
+        int blurAndSpread = boxShadow->blur() + boxShadow->spread();
 
-        left = min(left, boxShadow->x - blurAndSpread);
-        right = max(right, boxShadow->x + blurAndSpread);
+        left = min(left, boxShadow->x() - blurAndSpread);
+        right = max(right, boxShadow->x() + blurAndSpread);
     }
 }
 
@@ -953,13 +953,13 @@ void RenderStyle::getBoxShadowVerticalExtent(int &top, int &bottom) const
     top = 0;
     bottom = 0;
 
-    for (ShadowData* boxShadow = this->boxShadow(); boxShadow; boxShadow = boxShadow->next) {
-        if (boxShadow->style == Inset)
+    for (const ShadowData* boxShadow = this->boxShadow(); boxShadow; boxShadow = boxShadow->next()) {
+        if (boxShadow->style() == Inset)
             continue;
-        int blurAndSpread = boxShadow->blur + boxShadow->spread;
+        int blurAndSpread = boxShadow->blur() + boxShadow->spread();
 
-        top = min(top, boxShadow->y - blurAndSpread);
-        bottom = max(bottom, boxShadow->y + blurAndSpread);
+        top = min(top, boxShadow->y() - blurAndSpread);
+        bottom = max(bottom, boxShadow->y() + blurAndSpread);
     }
 }
 

@@ -13,6 +13,7 @@ if(ENABLE_ACCESSIBILITY)
         accessibility/AccessibilityMenuListOption.cpp
         accessibility/AccessibilityMenuListPopup.cpp
         accessibility/AccessibilityObject.cpp
+        accessibility/AccessibilityProgressIndicator.cpp
         accessibility/AccessibilityRenderObject.cpp
         accessibility/AccessibilityScrollbar.cpp
         accessibility/AccessibilitySlider.cpp

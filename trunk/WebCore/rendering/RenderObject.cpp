@@ -1580,6 +1580,7 @@ void RenderObject::styleWillChange(StyleDifference diff, const RenderStyle* newS
         // If our z-index changes value or our visibility changes,
         // we need to dirty our stacking context's z-order list.
         if (newStyle) {
+#if ENABLE(DASHBOARD_SUPPORT) || HAVE(ACCESSIBILITY)
             bool visibilityChanged = m_style->visibility() != newStyle->visibility() 
                 || m_style->zIndex() != newStyle->zIndex() 
                 || m_style->hasAutoZIndex() != newStyle->hasAutoZIndex();
@@ -1590,6 +1591,7 @@ void RenderObject::styleWillChange(StyleDifference diff, const RenderStyle* newS
 #if HAVE(ACCESSIBILITY)
             if (visibilityChanged && AXObjectCache::accessibilityEnabled())
                 document()->axObjectCache()->childrenChanged(this);
+#endif
 #endif
 
             // Keep layer hierarchy visibility bits up to date if visibility changes.
@@ -2361,21 +2363,21 @@ int RenderObject::nextOffset(int current) const
 void RenderObject::adjustRectForOutlineAndShadow(IntRect& rect) const
 {
     int outlineSize = outlineStyleForRepaint()->outlineSize();
-    if (ShadowData* boxShadow = style()->boxShadow()) {
+    if (const ShadowData* boxShadow = style()->boxShadow()) {
         int shadowLeft = 0;
         int shadowRight = 0;
         int shadowTop = 0;
         int shadowBottom = 0;
 
         do {
-            if (boxShadow->style == Normal) {
-                shadowLeft = min(boxShadow->x - boxShadow->blur - boxShadow->spread - outlineSize, shadowLeft);
-                shadowRight = max(boxShadow->x + boxShadow->blur + boxShadow->spread + outlineSize, shadowRight);
-                shadowTop = min(boxShadow->y - boxShadow->blur - boxShadow->spread - outlineSize, shadowTop);
-                shadowBottom = max(boxShadow->y + boxShadow->blur + boxShadow->spread + outlineSize, shadowBottom);
+            if (boxShadow->style() == Normal) {
+                shadowLeft = min(boxShadow->x() - boxShadow->blur() - boxShadow->spread() - outlineSize, shadowLeft);
+                shadowRight = max(boxShadow->x() + boxShadow->blur() + boxShadow->spread() + outlineSize, shadowRight);
+                shadowTop = min(boxShadow->y() - boxShadow->blur() - boxShadow->spread() - outlineSize, shadowTop);
+                shadowBottom = max(boxShadow->y() + boxShadow->blur() + boxShadow->spread() + outlineSize, shadowBottom);
             }
 
-            boxShadow = boxShadow->next;
+            boxShadow = boxShadow->next();
         } while (boxShadow);
 
         rect.move(shadowLeft, shadowTop);

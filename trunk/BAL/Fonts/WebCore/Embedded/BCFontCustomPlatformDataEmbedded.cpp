@@ -45,10 +45,12 @@ FontPlatformData FontCustomPlatformData::fontPlatformData(int size, bool bold, b
     return FontPlatformData(m_fontFace, size, bold, italic);
 }
 
+/*
 static void releaseData(void* data)
 {
     static_cast<SharedBuffer*>(data)->deref();
 }
+*/
 
 FontCustomPlatformData* createFontCustomPlatformData(SharedBuffer* buffer)
 {

@@ -5,8 +5,11 @@ JavaScriptCore/wtf/FastMalloc.h BAL/Memory/WTF/BCFastMallocWTF.h
 JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
 JavaScriptCore/wtf/MainThread.h BAL/Types/WTF/BCMainThreadWTF.h
-JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
 JavaScriptCore/wtf/gtk/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
+JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
+JavaScriptCore/wtf/unicode/Collator.h BAL/Internationalization/WTF/BCCollatorWTF.h
+JavaScriptCore/wtf/unicode/CollatorDefault.cpp BAL/Internationalization/WTF/BCCollatorDefaultWTF.cpp
+JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp BAL/Internationalization/WTF/ICU/BCCollatorICU.cpp
 WebCore/accessibility/AccessibilityObject.h
 WebCore/bindings/js/JSCustomXPathNSResolver.cpp
 WebCore/bindings/js/JSDOMWindowBase.cpp
@@ -20,6 +23,7 @@ WebCore/bindings/js/JSInjectedScriptHostCustom.cpp
 WebCore/bindings/js/JSInspectorFrontendHostCustom.cpp
 WebCore/bindings/js/JSPluginElementFunctions.cpp
 WebCore/bindings/js/JSPluginElementFunctions.h
+WebCore/bindings/js/JSScriptProfileNodeCustom.cpp
 WebCore/bindings/js/JSWorkerContextErrorHandler.cpp
 WebCore/bindings/js/ScriptController.cpp
 WebCore/bridge/c/c_instance.cpp
@@ -43,6 +47,7 @@ WebCore/editing/Editor.cpp
 WebCore/editing/TextIterator.cpp
 WebCore/editing/gtk/SelectionControllerGtk.cpp BAL/Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp
 WebCore/html/HTMLDocument.cpp
+WebCore/html/HTMLFormElement.cpp
 WebCore/html/HTMLInputElement.cpp
 WebCore/html/HTMLObjectElement.cpp
 WebCore/html/HTMLObjectElement.idl
@@ -59,6 +64,7 @@ WebCore/loader/ResourceLoadNotifier.cpp
 WebCore/loader/ThreadableLoader.cpp
 WebCore/loader/ResourceLoader.cpp
 WebCore/loader/ResourceLoader.h
+WebCore/loader/icon/IconDatabase.cpp
 WebCore/notifications/Notification.cpp
 WebCore/notifications/NotificationCenter.cpp
 WebCore/notifications/NotificationCenter.h
@@ -139,6 +145,8 @@ WebCore/platform/qt/RenderThemeQt.cpp BAL/Widgets/WebCore/Qt/BCRenderThemeQt.cpp
 WebCore/platform/qt/SharedTimerQt.cpp BAL/Timer/WebCore/Qt/BCSharedTimerQt.cpp
 WebCore/platform/qt/TemporaryLinkStubs.cpp
 WebCore/platform/qt/WidgetQt.cpp BAL/Widgets/WebCore/Qt/BCWidgetQt.cpp
+WebCore/platform/sql/SQLiteDatabase.cpp BAL/Database/WebCore/SQLite/BCSQLiteDatabaseSQLite.cpp
+WebCore/platform/sql/SQLiteFileSystem.cpp BAL/Database/WebCore/SQLite/BCSQLiteFileSystemSQLite.cpp
 WebCore/platform/text/Base64.cpp BAL/Internationalization/WebCore/WK/BCBase64WK.cpp
 WebCore/platform/text/TextEncoding.cpp BAL/Internationalization/WebCore/WK/BCTextEncodingWK.cpp
 WebCore/plugins/PluginView.cpp
@@ -153,6 +161,7 @@ WebCore/rendering/RenderObject.cpp
 WebCore/rendering/RenderObjectChildList.cpp
 WebCore/rendering/RenderSVGRoot.cpp
 WebCore/rendering/RenderSVGViewportContainer.cpp
+WebCore/rendering/RenderTableRow.cpp
 WebCore/rendering/RenderText.cpp
 WebCore/rendering/RenderTextControl.cpp
 WebCore/rendering/RenderTextControlSingleLine.h

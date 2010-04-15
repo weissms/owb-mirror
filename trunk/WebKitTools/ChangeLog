@@ -1,3 +1,404 @@
+2010-04-15  Luiz Agostini  <luiz.agostini@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Moving setViewMode from DumpRenderTreeSupportQt to qwebpage.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=37622
+
+        Method qt_wrt_setViewMode was removed from qwebpage.cpp by mistake in r57433
+        (bug 35844). Moving it back.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setViewModeMediaFeature):
+
+2010-04-15  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add some very minimal unit tests for new-run-webkit-tests. This should
+        be enough to catch egregious brokenness like syntax errors and import
+        declaration issues.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37432
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests_unittest.py: Added.
+
+2010-04-14  Brian Weinstein  <bweinstein@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add a way for the buildbot to kill any old processes that are running. This
+        is useful because the Windows bots can get in states where a process remains
+        running (httpd.exe, DumpRenderTree.exe), which causes the bots to get in a red
+        state, and the processes must be killed manually.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg: If we are on Windows, kill
+            the old processes that might be running.
+        * BuildSlaveSupport/win/kill-old-processes: Added.
+
+2010-04-14  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Tear down WebKit more completely on window closing and application
+        termination. We still don't block application termination for pending
+        close, but this is a step in the right direction.
+
+        * MiniBrowser/mac/AppDelegate.m:
+        (-[BrowserAppDelegate applicationWillTerminate:]):
+        * MiniBrowser/mac/BrowserWindowController.h:
+        * MiniBrowser/mac/BrowserWindowController.m:
+        (-[BrowserWindowController dealloc]):
+        (-[BrowserWindowController windowWillClose:]):
+        (-[BrowserWindowController applicationTerminating]):
+
+2010-04-14  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Use pretty patch for confirming webkit-patch diffs
+        https://bugs.webkit.org/show_bug.cgi?id=37489
+
+        * Scripts/webkitpy/common/prettypatch.py: Added.
+        * Scripts/webkitpy/tool/commands/download_unittest.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/confirmdiff.py:
+
+2010-04-14  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Teach webkit-patch how to handle revisions missing ChangeLogs
+        https://bugs.webkit.org/show_bug.cgi?id=37519
+
+        Make commit_info_for_revision return None when revision
+        is missing a ChangeLog.  Previously we would throw an array index
+        exception.
+        Teach callers how to handle None.
+
+        * Scripts/webkitpy/common/checkout/api.py:
+        * Scripts/webkitpy/common/checkout/api_unittest.py:
+        * Scripts/webkitpy/tool/commands/download.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+        * Scripts/webkitpy/tool/commands/sheriffbot.py:
+
+2010-04-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add Qt Bot to the list of "core builders" (builders which block the commit-queue when red)
+        https://bugs.webkit.org/show_bug.cgi?id=33297
+
+        This is an experiment.  The bots have been green for
+        a while.  We'll see if adding them under sheriff-bot protection
+        will keep them green.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/common/net/buildbot_unittest.py:
+
+2010-04-13  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, just fixing a constant in the Rietveld unit test.
+
+        * Scripts/webkitpy/common/net/rietveld_unittest.py
+
+2010-04-13  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, just adding missing Mock to fix python tests.
+
+        * Scripts/webkitpy/tool/mocktool.py:
+
+2010-04-13  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by David Levin.
+
+        Add experimental prototype Rietveld integration to webkit-patch upload
+        https://bugs.webkit.org/show_bug.cgi?id=37418
+
+        This patch adds bare-bones integration with Rietveld for code reviews.
+        The behavior is hidden behind the --fancy-review command line flag.
+        Currently, there's no support for uploading more than one patch per
+        issue (which is a nice feature of Rietveld).  The plan is to play with
+        this for a bit and see if it's useful.
+
+        Modified from Adam's original patch to autoinstall the rietveld upload script.
+
+        * Scripts/webkitpy/common/config/__init__.py:
+        * Scripts/webkitpy/common/net/rietveld.py: Added.
+        * Scripts/webkitpy/common/net/rietveld_unitttest.py: Added.
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/main.py:
+        * Scripts/webkitpy/tool/mocktool.py:
+        * Scripts/webkitpy/tool/steps/__init__.py:
+        * Scripts/webkitpy/tool/steps/options.py:
+        * Scripts/webkitpy/tool/steps/postcodereview.py: Added.
+        * Scripts/webkitpy/tool/steps/postdiff.py:
+
+2010-04-13  Sam Weinig  <sam@webkit.org>
+
+        Rubber-stamped by Mark Rowe.
+
+        Add Makefile to MiniBrowser.
+
+        * MiniBrowser/Makefile: Added.
+
+2010-04-13  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, just adding a sanity check.
+
+        Add check to make sure commit-queue can never commit too short a message
+        https://bugs.webkit.org/show_bug.cgi?id=37528
+
+        The commit-queue made bogus messages here:
+        http://trac.webkit.org/changeset/57532
+        http://trac.webkit.org/changeset/57534
+
+        This was a regression caused by adding unicode parsing for
+        our ChangeLog files.  Popen does not seem to play nice with
+        unicode strings.
+
+        I'm also adding an "assert" to make sure short ChangeLogs never happen again.
+
+        * Scripts/webkitpy/common/system/executive.py:
+         - Cast input to strings before passing to POpen
+        * Scripts/webkitpy/tool/steps/commit.py:
+         - Validate that commit messages are not to short.
+
+2010-04-13  Adam Roben  <aroben@apple.com>
+
+        Robustify new-run-webkit-tests against paths with spaces in them
+
+        Reviewed by Eric Seidel.
+
+        * Scripts/webkitpy/layout_tests/port/apache_http_server.py:
+        (LayoutTestApacheHttpd.__init__): Quote all paths that we pass to
+        Apache to ensure that paths with spaces in them are interpreted
+        correctly.
+
+2010-04-13  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Unreviewed buildfix after r57537.
+
+        * DumpRenderTree/qt/LayoutTestControllerQt.h: Declaration of removeOriginAccessWhitelistEntry() added.
+
+2010-04-13  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Make building new webkit API and MiniBrowser a little easier.
+
+        * Scripts/build-webkit: Make building with --webkit2 build the 
+        MiniBrowser as well and tell you how to use it.
+        * Scripts/run-minibrowser: Copied from Scripts/run-safari.
+        * Scripts/webkitdirs.pm: Add runMiniBrowser function.
+
+2010-04-12  Timothy Hatcher  <timothy@apple.com>
+
+        SecurityOrigin needs a way to remove individual OriginAccessEntries
+        https://bugs.webkit.org/show_bug.cgi?id=37449
+
+        Reviewed by Dave Hyatt.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (removeOriginAccessWhitelistEntryCallback): Added. Call LayoutTestController::removeOriginAccessWhitelistEntry.
+        (LayoutTestController::staticFunctions): Added removeOriginAccessWhitelistEntry.
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::removeOriginAccessWhitelistEntry): Added. FIXME to implement.
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::removeOriginAccessWhitelistEntry): Added.
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::removeOriginAccessWhitelistEntry): Added. FIXME to implement.
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::removeOriginAccessWhitelistEntry): Added.
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::whiteListAccessFromOrigin): FIXME to implement.
+        (LayoutTestController::removeOriginAccessWhitelistEntry): Added. FIXME to implement.
+
+2010-04-13  Timothy Hatcher  <timothy@apple.com>
+
+        Rename SecurityOrigin::whiteListAccessFromOrigin to addOriginAccessWhitelistEntry.
+        And LayoutTestController.whiteListAccessFromOrigin to addOriginAccessWhitelistEntry.
+        And SecurityOrigin::resetOriginAccessWhiteLists to resetOriginAccessWhitelists.
+
+        SecurityOrigin needs a way to remove individual OriginAccessEntries
+        https://bugs.webkit.org/show_bug.cgi?id=37449
+
+        Reviewed by Dave Hyatt.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (addOriginAccessWhitelistEntryCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/chromium/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (LayoutTestController::addOriginAccessWhitelistEntry):
+        * DumpRenderTree/chromium/LayoutTestController.h:
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        (LayoutTestController::addOriginAccessWhitelistEntry):
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        (LayoutTestController::addOriginAccessWhitelistEntry):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::addOriginAccessWhitelistEntry):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetWebViewToConsistentStateBeforeTesting):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        (LayoutTestController::addOriginAccessWhitelistEntry):
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::addOriginAccessWhitelistEntry):
+
+2010-04-13  Tor Arne Vestbø  <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Remove duplicate function for new-run-webkit-tests
+        https://bugs.webkit.org/show_bug.cgi?id=37517
+
+        The version() function was already implemented.
+
+        * Scripts/webkitpy/layout_tests/port/webkit.py:
+
+2010-04-13  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by David Levin.
+
+        the commit-queue hates Tor Arne Vestbø
+        https://bugs.webkit.org/show_bug.cgi?id=37511
+
+        We were failing to read reviewers out of ChangeLogs
+        when the reviewer has unicode characters in his/her name.
+        I fixed this by explicitly decoding from utf8 every time we
+        read in a ChangeLog file (they are always UTF8).
+
+        * Scripts/webkitpy/common/checkout/changelog.py:
+        * Scripts/webkitpy/common/checkout/changelog_unittest.py:
+
+2010-04-13  Adam Roben  <aroben@apple.com>
+
+        Fix run-webkit-tests on Windows with spaces in the path
+
+        Fixes <http://webkit.org/b/37509>.
+
+        Reviewed by Steve Falkenburg.
+
+        * Scripts/run-webkit-tests:
+        (convertPathUsingCygpath): Remove spaces from the path before passing
+        them to cygpath, then add them back in after conversion, as some
+        versions of cygpath seem to convert spaces into newlines.
+
+2010-04-13  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed, but approved by Dumitru Daniliuc.  (This patch is intended
+        to fix the downstream Chromium build bots.  Hopefully it will work!)
+
+        Add a driver script for the new websocket server
+        https://bugs.webkit.org/show_bug.cgi?id=37495
+
+        websocket_server.py can't be run directly because its a module and not
+        a standalone script.  This used to work by accident because it didn't
+        depend on any other modules.
+
+        * Scripts/new-run-webkit-websocketserver: Added.
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+
+2010-04-12  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Make new-run-webkit-test PrettyPatch failure reporting more awesome
+        https://bugs.webkit.org/show_bug.cgi?id=37487
+
+        I also fixed an Executive/executive typo.
+
+        * Scripts/webkitpy/layout_tests/port/base.py:
+
+2010-04-12  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests should only build java support files on Mac
+        https://bugs.webkit.org/show_bug.cgi?id=37482
+
+        Only the mac needs java support files, so I pushed _build_java
+        down into the Mac port using a new hook "_check_port_build".
+        In the process I noticed a bunch of code which could be shared
+        between all ports and thus got rid of _tests_for_disabled_features
+        and version() copy/paste between all webkit ports.
+        I also made check_build only bother to check for ImageDiff if we're
+        using pixel tests.
+
+        * Scripts/webkitpy/layout_tests/port/gtk.py:
+        * Scripts/webkitpy/layout_tests/port/mac.py:
+        * Scripts/webkitpy/layout_tests/port/qt.py:
+        * Scripts/webkitpy/layout_tests/port/webkit.py:
+        * Scripts/webkitpy/layout_tests/port/win.py:
+
+2010-04-12  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Unreviewed, trying to make scripts work on machines without
+        Ruby...
+
+        * Scripts/webkitpy/layout_tests/port/base.py:
+
+2010-04-12  Tor Arne Vestbø <tor.arne.vestbo@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        Add stub files for running new-run-webkit-tests for the Qt port
+
+        * Scripts/webkitpy/layout_tests/port/factory.py:
+        * Scripts/webkitpy/layout_tests/port/qt.py: Added.
+
+2010-04-12  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Modify run_webkit_tests.py to not call sys.exit() at the end of test
+        run; doing so makes it more difficult to embed the routine for,
+        among other things, unit tests. We push the exit calling up into
+        new-run-webkit-tests.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37464
+
+        * Scripts/new-run-webkit-tests:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-04-12  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed.
+
+        Add stub Gtk implementation for new-run-webkit-tests.
+
+        * Scripts/webkitpy/layout_tests/port/factory.py:
+        * Scripts/webkitpy/layout_tests/port/gtk.py: Added.
+
+2010-04-12  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests fails with exception on systems missing ruby
+        https://bugs.webkit.org/show_bug.cgi?id=37441
+
+        * Scripts/webkitpy/layout_tests/port/base.py:
+         - Catch failures similar to how wdiff code path does.
+         - After one failure, stop trying.
+
+2010-04-12  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Fix how we import simplejson based on how it's used in this file.
+        This fixes exceptions raised when trying to write the simplejson output.
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
 2010-04-12  Chris Jerdonek  <cjerdonek@webkit.org>
 
         Reviewed by Shinichiro Hamaji.

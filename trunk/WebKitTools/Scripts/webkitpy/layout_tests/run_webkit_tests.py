@@ -71,7 +71,7 @@ from test_types import test_type_base
 from test_types import text_diff
 
 from webkitpy.common.system.executive import Executive
-import webkitpy.thirdparty.simplejson
+from webkitpy.thirdparty import simplejson
 
 import port
 
@@ -604,7 +604,7 @@ class TestRunner:
         """Returns whether the test runner needs an HTTP server."""
         return self._contains_tests(self.HTTP_SUBDIR)
 
-    def run(self, result_summary):
+    def run(self, result_summary, print_results):
         """Run all our tests on all our test files.
 
         For each test file, we run each test type. If there are any failures,
@@ -612,9 +612,10 @@ class TestRunner:
 
         Args:
           result_summary: a summary object tracking the test results.
+          print_results: whether or not to print the summary at the end
 
         Return:
-          We return nonzero if there are regressions compared to the last run.
+          The number of unexpected results (0 == success)
         """
         if not self._test_files:
             return 0
@@ -667,14 +668,15 @@ class TestRunner:
         sys.stdout.flush()
         sys.stderr.flush()
 
-        if (LOG_DETAILED_PROGRESS in self._options.log or
-            (LOG_UNEXPECTED in self._options.log and
-             result_summary.total != result_summary.expected)):
-            print
-
         # This summary data gets written to stdout regardless of log level
-        self._print_one_line_summary(result_summary.total,
-                                  result_summary.expected)
+        # (unless of course we're printing nothing).
+        if print_results:
+            if (LOG_DETAILED_PROGRESS in self._options.log or
+                (LOG_UNEXPECTED in self._options.log and
+                 result_summary.total != result_summary.expected)):
+                print
+            self._print_one_line_summary(result_summary.total,
+                                         result_summary.expected)
 
         unexpected_results = self._summarize_unexpected_results(result_summary,
             retry_summary)
@@ -1367,12 +1369,17 @@ def create_logging_writer(options, log_option):
     return lambda str: 1
 
 
-def main(options, args):
-    """Run the tests.  Will call sys.exit when complete.
+def main(options, args, print_results=True):
+    """Run the tests.
 
     Args:
       options: a dictionary of command line options
       args: a list of sub directories or files to test
+      print_results: whether or not to log anything to stdout.
+          Set to false by the unit tests
+    Returns:
+      the number of unexpected results that occurred, or -1 if there is an
+          error.
     """
 
     if options.sources:
@@ -1470,7 +1477,7 @@ def main(options, args):
         meter.update("")
         print ("If there are no fail messages, errors or exceptions, then the "
             "lint succeeded.")
-        sys.exit(0)
+        return 0
 
     write = create_logging_writer(options, "config")
     write("Using port '%s'" % port_obj.name())
@@ -1490,7 +1497,7 @@ def main(options, args):
 
     meter.update("Checking build ...")
     if not port_obj.check_build(test_runner.needs_http()):
-        sys.exit(1)
+        return -1
 
     meter.update("Starting helper ...")
     port_obj.start_helper()
@@ -1499,7 +1506,7 @@ def main(options, args):
     if not options.nocheck_sys_deps:
         meter.update("Checking system dependencies ...")
         if not port_obj.check_sys_deps(test_runner.needs_http()):
-            sys.exit(1)
+            return -1
 
     meter.update("Preparing tests ...")
     write = create_logging_writer(options, "expected")
@@ -1513,12 +1520,12 @@ def main(options, args):
         if options.fuzzy_pixel_tests:
             test_runner.add_test_type(fuzzy_image_diff.FuzzyImageDiff)
 
-    has_new_failures = test_runner.run(result_summary)
+    num_unexpected_results = test_runner.run(result_summary, print_results)
 
     port_obj.stop_helper()
 
-    _log.debug("Exit status: %d" % has_new_failures)
-    sys.exit(has_new_failures)
+    _log.debug("Exit status: %d" % num_unexpected_results)
+    return num_unexpected_results
 
 
 def parse_args(args=None):
@@ -1620,4 +1627,4 @@ def parse_args(args=None):
 
 if '__main__' == __name__:
     options, args = parse_args()
-    main(options, args)
+    sys.exit(main(options, args))

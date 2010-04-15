@@ -316,12 +316,12 @@ void DumpRenderTreeSupportQt::evaluateScriptInIsolatedWorld(QWebFrame* frame, in
 
 void DumpRenderTreeSupportQt::whiteListAccessFromOrigin(const QString& sourceOrigin, const QString& destinationProtocol, const QString& destinationHost, bool allowDestinationSubdomains)
 {
-    SecurityOrigin::whiteListAccessFromOrigin(*SecurityOrigin::createFromString(sourceOrigin), destinationProtocol, destinationHost, allowDestinationSubdomains);
+    SecurityOrigin::addOriginAccessWhitelistEntry(*SecurityOrigin::createFromString(sourceOrigin), destinationProtocol, destinationHost, allowDestinationSubdomains);
 }
 
 void DumpRenderTreeSupportQt::resetOriginAccessWhiteLists()
 {
-    SecurityOrigin::resetOriginAccessWhiteLists();
+    SecurityOrigin::resetOriginAccessWhitelists();
 }
 
 void DumpRenderTreeSupportQt::setDomainRelaxationForbiddenForURLScheme(bool forbidden, const QString& scheme)
@@ -340,14 +340,5 @@ void DumpRenderTreeSupportQt::setMediaType(QWebFrame* frame, const QString& type
     WebCore::FrameView* view = coreFrame->view();
     view->setMediaType(type);
     coreFrame->document()->updateStyleSelector();
-    view->forceLayout();
-}
-
-void DumpRenderTreeSupportQt::setViewMode(QWebPage* page, const QString& mode)
-{
-    QWebPagePrivate::priv(page)->viewMode = mode;
-    WebCore::Frame* frame = QWebFramePrivate::core(page->mainFrame());
-    WebCore::FrameView* view = frame->view();
-    frame->document()->updateStyleSelector();
     view->forceLayout();
 }

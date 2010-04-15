@@ -165,12 +165,16 @@ void SVGUseElement::svgAttributeChanged(const QualifiedName& attrName)
         return;
     }
 
+    if (SVGStyledTransformableElement::isKnownAttribute(attrName)) {
+        renderer()->setNeedsTransformUpdate();
+        renderer()->setNeedsLayout(true);
+        return;
+    }
+
     if (SVGTests::isKnownAttribute(attrName)
         || SVGLangSpace::isKnownAttribute(attrName)
-        || SVGExternalResourcesRequired::isKnownAttribute(attrName)
-        || SVGStyledTransformableElement::isKnownAttribute(attrName)) {
+        || SVGExternalResourcesRequired::isKnownAttribute(attrName))
         invalidateShadowTree();
-    }
 }
 
 void SVGUseElement::synchronizeProperty(const QualifiedName& attrName)
@@ -605,6 +609,18 @@ Path SVGUseElement::toClipPath() const
     }
 
     return Path();
+}
+
+RenderObject* SVGUseElement::rendererClipChild() const
+{
+    Node* n = m_targetElementInstance ? m_targetElementInstance->shadowTreeElement() : 0;
+    if (!n)
+        return 0;
+
+    if (n->isSVGElement() && isDirectReference(n))
+        return static_cast<SVGElement*>(n)->renderer();
+
+    return 0;
 }
 
 void SVGUseElement::buildInstanceTree(SVGElement* target, SVGElementInstance* targetInstance, bool& foundProblem)

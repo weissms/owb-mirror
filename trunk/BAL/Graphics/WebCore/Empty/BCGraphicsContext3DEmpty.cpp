@@ -398,10 +398,9 @@ void GraphicsContext3D::polygonOffset(double factor, double units)
     notImplemented();
 }
 
-PassRefPtr<WebGLArray> GraphicsContext3D::readPixels(long x, long y, unsigned long width, unsigned long height, unsigned long format, unsigned long type)
+void GraphicsContext3D::readPixels(long x, long y, unsigned long width, unsigned long height, unsigned long format, unsigned long type, void* data)
 {
     notImplemented();
-    return 0;
 }
 
 void GraphicsContext3D::releaseShaderCompiler()

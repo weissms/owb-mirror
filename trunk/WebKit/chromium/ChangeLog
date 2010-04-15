@@ -1,3 +1,144 @@
+2010-04-15  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] update chromium DEPS for upstream compile
+        https://bugs.webkit.org/show_bug.cgi?id=36578
+
+        * DEPS: Pull sub deps from chromium's DEPS file
+
+2010-04-14  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r57599.
+        http://trac.webkit.org/changeset/57599
+        https://bugs.webkit.org/show_bug.cgi?id=37605
+
+        "Broke Chromium build" (Requested by dglazkov on #webkit).
+
+        * WebKit.gyp:
+        * src/WebViewImpl.h:
+        * tests/PopupMenuTest.cpp: Removed.
+
+2010-04-14  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by David Levin.
+
+        Support relative URLs for notifications on Chromium. They weren't working previously because WebCore was inserting
+        the relative URL into a KURL instance, but when KURL is backed by GURL as it is on Chromium, relative URLs are
+        unsupported. Fixed by resolving the relative URL first.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36623
+
+        Adding tests for this is difficult because we don't currently have DRT support for notifications on Mac, only Windows.
+
+        * public/WebNotification.h: Remove deprecated icon() method.
+        * src/WebNotification.cpp: Ditto.
+
+2010-04-14  Jay Civelli  <jcivelli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] Select popups would assert when destroyed.
+        Also adding unit-tests for the select popup code.
+        https://bugs.webkit.org/show_bug.cgi?id=37436
+
+        * WebKit.gyp:
+        * src/WebViewImpl.h:
+        (WebKit::WebViewImpl::selectPopup):
+        * tests/PopupMenuTest.cpp: Added.
+
+2010-04-14  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        readPixels must take PACK_ALIGNMENT into account
+        https://bugs.webkit.org/show_bug.cgi?id=34718
+
+        * src/GraphicsContext3D.cpp: Refactor readPixels.
+        * src/WebGraphicsContext3DDefaultImpl.cpp:
+        (WebKit::WebGraphicsContext3DDefaultImpl::readBackFramebuffer): Temporarily disable pack alignment for glReadPixels.
+        (WebKit::WebGraphicsContext3DDefaultImpl::readPixels): Move array allocation and alpha fix to WebGLRenderingContext; flush before read pixels.
+
+2010-04-14  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Re-write testProfilerTab to match the new implementation.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37516
+
+        * src/js/Tests.js:
+        (.TestSuite.prototype.testProfilerTab.findDisplayedNode):
+        (.TestSuite.prototype.testProfilerTab.findVisibleView):
+        (.TestSuite.prototype.testProfilerTab):
+
+2010-04-13  Timothy Hatcher  <timothy@apple.com>
+
+        Rename SecurityOrigin::whiteListAccessFromOrigin to addOriginAccessWhitelistEntry.
+        And SecurityOrigin::resetOriginAccessWhiteLists to resetOriginAccessWhitelists.
+
+        SecurityOrigin needs a way to remove individual OriginAccessEntries
+        https://bugs.webkit.org/show_bug.cgi?id=37449
+
+        Reviewed by Dave Hyatt.
+
+        * src/WebSecurityPolicy.cpp:
+        (WebKit::WebSecurityPolicy::whiteListAccessFromOrigin):
+        (WebKit::WebSecurityPolicy::resetOriginAccessWhiteLists):
+
+2010-04-13  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Fix search behavior in Heap profiles.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37498
+
+        * src/js/HeapProfilerPanel.js:
+
+2010-04-13  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by David Levin.
+
+        Add some diagnostics to try to track down cause of crash in ArchiveFactory::isArchiveMimeType().
+
+        https://bugs.webkit.org/show_bug.cgi?id=36426
+
+        * src/ResourceHandle.cpp: Track state across ResourceHandle invocations.
+        (WebCore::ResourceHandleInternal::ResourceHandleInternal):
+        (WebCore::ResourceHandleInternal::):
+        (WebCore::ResourceHandleInternal::start):
+        (WebCore::ResourceHandleInternal::cancel):
+        (WebCore::ResourceHandleInternal::didReceiveResponse):
+        (WebCore::ResourceHandleInternal::didReceiveData):
+        (WebCore::ResourceHandleInternal::didFinishLoading):
+        (WebCore::ResourceHandleInternal::didFail):
+
+2010-04-13  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Unreviewed Chromium build fix: pin to a newer V8 revision (4386).
+
+        * DEPS:
+
+2010-04-12  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        Replace hand-written JavaScriptProfile* bindings with idl-based, and
+        in Chromium port, bind them to the new V8's profiler API that is
+        aligned with JSC.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37448
+
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+        * src/js/ProfilerAgent.js:
+        (devtools.ProfilerAgent):
+        (devtools.ProfilerAgent.prototype.initializeProfiling):
+        (devtools.ProfilerAgent.prototype._didGetActiveProfilerModules):
+        (devtools.ProfilerAgent.prototype._didGetLogLines):
+        * src/js/Tests.js:
+
 2010-04-12  Sheriff Bot  <webkit.review.bot@gmail.com>
 
         Unreviewed, rolling out r57468.

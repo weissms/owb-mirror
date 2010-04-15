@@ -1,3 +1,105 @@
+2010-04-15  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Fix a memory leak in QScriptValue::inherits.
+
+        [Qt] QScriptValue::inherits has a memory leak.
+        https://bugs.webkit.org/show_bug.cgi?id=37617
+
+        * qt/api/qscriptvalue_p.h:
+        (QScriptValuePrivate::inherits):
+
+2010-04-14  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Fix a few memory leaks in QScriptEngine.
+
+        Syntax checking caused memory leak, not all temporary variables were released.
+
+        [Qt] Syntax checking  in the QtScript cause a memory leak.
+        https://bugs.webkit.org/show_bug.cgi?id=37610
+
+        * qt/api/qscriptengine_p.cpp:
+        (QScriptEnginePrivate::checkSyntax):
+        * qt/api/qscriptsyntaxcheckresult.cpp:
+        (QScriptSyntaxCheckResultPrivate::errorMessage):
+        (QScriptSyntaxCheckResultPrivate::errorLineNumber):
+
+2010-04-14  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Fix memory leak inside QScriptEnginePrivate::makeJSValue.
+
+        QScriptEnginePrivate::makeJSValue should release temporary JSStringRef variable.
+
+        [Qt] tst_QScriptValue::toString has a memory leak.
+        https://bugs.webkit.org/show_bug.cgi?id=37598
+
+        * qt/api/qscriptengine_p.h:
+        (QScriptEnginePrivate::makeJSValue):
+
+2010-04-14  Peter Varga  <pvarga@inf.u-szeged.hu>
+
+        Reviewed by Geoffrey Garen.
+
+        Move the YARR JIT fallback detection from RegexJIT.cpp to
+        RegexCompiler.cpp.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37571
+
+        * yarr/RegexCompiler.cpp:
+        (JSC::Yarr::RegexPatternConstructor::atomBackReference):
+        (JSC::Yarr::RegexPatternConstructor::quantifyAtom):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::generateTerm):
+        (JSC::Yarr::RegexGenerator::RegexGenerator):
+        (JSC::Yarr::jitCompileRegex):
+        * yarr/RegexJIT.h:
+        (JSC::Yarr::RegexCodeBlock::operator!):
+        * yarr/RegexPattern.h:
+        (JSC::Yarr::RegexPattern::RegexPattern):
+        (JSC::Yarr::RegexPattern::reset):
+
+2010-04-14  Kent Hansen  <kent.hansen@nokia.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Mac OS X: Use deployment target to determine whether memory tagging should be enabled
+        https://bugs.webkit.org/show_bug.cgi?id=34888
+
+        When building on (Snow) Leopard but targeting Tiger
+        (TARGETING_TIGER defined, BUILDING_ON_TIGER not defined),
+        WebKit would crash on Tiger because the tags passed to mmap
+        caused those function calls to fail.
+
+        Conversely, when building on Tiger but targeting Leopard
+        (BUILDING_ON_TIGER defined, TARGETING_LEOPARD defined), WebKit
+        would crash on Leopard because the tags passed to vm_map and
+        vm_allocate caused those function calls to fail.
+
+        Solution: Use TARGETING_TIGER rather than BUILDING_ON_TIGER to
+        govern the tag definitions. Use the same tags for vm_map and
+        vm_allocate regardless of target, since they work on
+        both. Fall back to the mmap tags that work on Tiger (that is,
+        "no tags") if targeting Tiger, since those tags also work on
+        Leopard.
+
+        * wtf/VMTags.h:
+
+2010-04-12  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by nobody, build fix.
+
+        [Qt] Build fix for Mac when building with build-webkit --qt
+
+        Specifying no configuration on Mac builds WebCore both in debug
+        and release. JavaScriptCore has to follow this rule as well.
+
+        * JavaScriptCore.pro:
+
 2010-04-12  Mark Rowe  <mrowe@apple.com>
 
         Reviewed by Sam Weinig.
@@ -3531,6 +3633,23 @@
         * runtime/SmallStrings.cpp:
         (JSC::SmallStrings::markChildren): Since isAnyStringMarked being false
         is a condition of entering the loop, we can just use '=' instead of '|='.
+
+2010-02-12  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        Additional refptr/passrefptr workarounds for WINSCW compiler
+        https://bugs.webkit.org/show_bug.cgi?id=28054
+
+        * wtf/PassRefPtr.h:
+        (WTF::refIfNotNull):
+        (WTF::PassRefPtr::PassRefPtr):
+        (WTF::PassRefPtr::~PassRefPtr):
+        (WTF::PassRefPtr::clear):
+        (WTF::::operator):
+        * wtf/RefPtr.h:
+        (WTF::RefPtr::RefPtr):
+        (WTF::::operator):
 
 2010-02-12  Janne Koskinen  <janne.p.koskinen@digia.com>
 

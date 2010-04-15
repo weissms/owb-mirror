@@ -2719,7 +2719,7 @@ void FrameLoader::clientRedirected(const KURL& url, double seconds, double fireD
     // load as part of the original navigation. If we don't have a document loader, we have
     // no "original" load on which to base a redirect, so we treat the redirect as a normal load.
     // Loads triggered by JavaScript form submissions never count as quick redirects.
-    m_quickRedirectComing = lockBackForwardList && m_documentLoader && !m_isExecutingJavaScriptFormAction;
+    m_quickRedirectComing = (lockBackForwardList || history()->currentItemShouldBeReplaced()) && m_documentLoader && !m_isExecutingJavaScriptFormAction;
 }
 
 bool FrameLoader::shouldReload(const KURL& currentURL, const KURL& destinationURL)
@@ -2884,7 +2884,15 @@ void FrameLoader::finishedLoadingDocument(DocumentLoader* loader)
 #endif
     
     // If loading a webarchive, run through webarchive machinery
+#if PLATFORM(CHROMIUM)
+    // https://bugs.webkit.org/show_bug.cgi?id=36426
+    // FIXME: For debugging purposes, should be removed before closing the bug.
+    // Make real copy of the string so we fail here if the responseMIMEType
+    // string is bad.
+    const String responseMIMEType = loader->responseMIMEType();
+#else
     const String& responseMIMEType = loader->responseMIMEType();
+#endif
 
     // FIXME: Mac's FrameLoaderClient::finishedLoading() method does work that is required even with Archive loads
     // so we still need to call it.  Other platforms should only call finishLoading for non-archive loads
@@ -3777,7 +3785,7 @@ Frame* FrameLoader::findFrameForNavigation(const AtomicString& name)
 {
     Frame* frame = m_frame->tree()->find(name);
     if (!shouldAllowNavigation(frame))
-        return 0;  
+        return 0;
     return frame;
 }
 

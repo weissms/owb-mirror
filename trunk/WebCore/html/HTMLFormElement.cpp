@@ -264,7 +264,8 @@ bool HTMLFormElement::validateInteractively(Event* event)
         }
     }
     // Warn about all of unfocusable controls.
-    if (Frame* frame = document()->frame()) {
+    Frame* frame = document()->frame();
+    if (frame) {
         for (unsigned i = 0; i < unhandledInvalidControls.size(); ++i) {
             HTMLFormControlElement* unhandled = unhandledInvalidControls[i].get();
             if (unhandled->isFocusable() && unhandled->inDocument())

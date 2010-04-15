@@ -33,7 +33,7 @@
 #include <wtf/PassOwnPtr.h>
 #include <wtf/unicode/Unicode.h>
 
-#if USE(ICU_UNICODE) && !UCONFIG_NO_COLLATION
+#if USE(ICU_UNICODE) && (!defined(UCONFIG_NO_COLLATION) || !UCONFIG_NO_COLLATION)
 struct UCollator;
 #endif
 
@@ -52,7 +52,7 @@ namespace WTF {
         Result collate(const ::UChar*, size_t, const ::UChar*, size_t) const;
 
     private:
-#if USE(ICU_UNICODE) && !UCONFIG_NO_COLLATION
+#if USE(ICU_UNICODE) && (!defined(UCONFIG_NO_COLLATION) || !UCONFIG_NO_COLLATION)
         void createCollator() const;
         void releaseCollator();
         mutable UCollator* m_collator;

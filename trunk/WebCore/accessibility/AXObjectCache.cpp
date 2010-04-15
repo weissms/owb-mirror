@@ -40,6 +40,7 @@
 #include "AccessibilityMenuList.h"
 #include "AccessibilityMenuListOption.h"
 #include "AccessibilityMenuListPopup.h"
+#include "AccessibilityProgressIndicator.h"
 #include "AccessibilityRenderObject.h"
 #include "AccessibilityScrollbar.h"
 #include "AccessibilitySlider.h"
@@ -59,6 +60,7 @@
 #include "InputElement.h"
 #include "Page.h"
 #include "RenderObject.h"
+#include "RenderProgress.h"
 #include "RenderView.h"
 
 #include <wtf/PassRefPtr.h>
@@ -207,6 +209,12 @@ AccessibilityObject* AXObjectCache::getOrCreate(RenderObject* renderer)
         // media controls
         else if (renderer->node() && renderer->node()->isMediaControlElement())
             newObj = AccessibilityMediaControl::create(renderer);
+#endif
+
+#if ENABLE(PROGRESS_TAG)
+        // progress bar
+        else if (renderer->isProgress())
+            newObj = AccessibilityProgressIndicator::create(toRenderProgress(renderer));
 #endif
 
         // input type=range

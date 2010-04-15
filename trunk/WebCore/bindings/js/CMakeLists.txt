@@ -13,8 +13,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/DOMWrapperWorld.cpp
     bindings/js/DOMObjectHashTableMap.cpp
     bindings/js/GCController.cpp
-    bindings/js/JavaScriptProfile.cpp
-    bindings/js/JavaScriptProfileNode.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCoordinatesCustom.cpp
@@ -88,6 +86,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSPluginCustom.cpp
     bindings/js/JSPluginElementFunctions.cpp
     bindings/js/JSPopStateEventCustom.cpp
+    bindings/js/JSScriptProfileNodeCustom.cpp
     bindings/js/JSStyleSheetCustom.cpp
     bindings/js/JSStyleSheetListCustom.cpp
     bindings/js/JSTextCustom.cpp

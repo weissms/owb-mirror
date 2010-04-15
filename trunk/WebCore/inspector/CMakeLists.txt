@@ -21,5 +21,7 @@ if(ENABLE_INSPECTOR)
         inspector/InspectorBackend.idl
         inspector/InspectorFrontendHost.idl
         inspector/JavaScriptCallFrame.idl
+        inspector/ScriptProfile.idl
+        inspector/ScriptProfileNode.idl
     )
 endif(ENABLE_INSPECTOR)

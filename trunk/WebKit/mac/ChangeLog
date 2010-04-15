@@ -1,3 +1,42 @@
+2010-04-15  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Separated a DOMWrapperWorld's behavior of keeping wrappers alive from
+        its own lifetime, so a DOMWrapperWorld's controller can throw away
+        its wrappers even before its refcount reaches 0.
+
+        * WebView/WebScriptWorld.h:
+        * WebView/WebScriptWorld.mm:
+        (-[WebScriptWorld unregisterWorld]): Exported this function through WebKit.
+
+2010-04-12  Timothy Hatcher  <timothy@apple.com>
+
+        SecurityOrigin needs a way to remove individual OriginAccessEntries
+        https://bugs.webkit.org/show_bug.cgi?id=37449
+
+        Reviewed by Dave Hyatt.
+
+        * WebView/WebView.mm:
+        (+[WebView _removeOriginAccessWhitelistEntryWithSourceOrigin:destinationProtocol:destinationHost:allowDestinationSubdomains:]):
+        Call SecurityOrigin::removeOriginAccessWhitelistEntry.
+        * WebView/WebViewPrivate.h: Added _removeOriginAccessWhitelistEntryWithSourceOrigin.
+
+2010-04-13  Timothy Hatcher  <timothy@apple.com>
+
+        Rename SecurityOrigin::whiteListAccessFromOrigin to addOriginAccessWhitelistEntry.
+        And SecurityOrigin::resetOriginAccessWhiteLists to resetOriginAccessWhitelists.
+
+        SecurityOrigin needs a way to remove individual OriginAccessEntries
+        https://bugs.webkit.org/show_bug.cgi?id=37449
+
+        Reviewed by Dave Hyatt.
+
+        * WebView/WebView.mm:
+        (+[WebView _addOriginAccessWhitelistEntryWithSourceOrigin:destinationProtocol:destinationHost:allowDestinationSubdomains:]):
+        (+[WebView _resetOriginAccessWhitelists]):
+        * WebView/WebViewPrivate.h:
+
 2010-04-12  Sheriff Bot  <webkit.review.bot@gmail.com>
 
         Unreviewed, rolling out r57468.

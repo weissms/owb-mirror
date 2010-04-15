@@ -1,3 +1,1370 @@
+2010-04-15  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Repaint of fixed, transformed element is broken
+        https://bugs.webkit.org/show_bug.cgi?id=37637
+
+        RenderBox::computeRectForRepaint() failed to set the 'fixed' flag correctly
+        for elements that had both fixed position and a transform. If the element has
+        a transform, 'fixed' should only remain true if the element itself is fixed
+        position.
+        
+        Also cache style()->position() in a local variable for performance.
+        
+        Test: fast/repaint/fixed-tranformed.html
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::computeRectForRepaint):
+
+2010-04-14  Luiz Agostini  <luiz.agostini@openbossa.org>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Changing view mode names due to specification changes
+        https://bugs.webkit.org/show_bug.cgi?id=37615
+
+        test: fast/media/media-feature-wgt-view-mode.html
+
+        specification: http://dev.w3.org/2006/waf/widgets-vmmf/
+
+        * css/MediaQueryEvaluator.cpp:
+        (WebCore::view_modeMediaFeatureEval):
+        * page/ChromeClient.h:
+        (WebCore::ChromeClient::isWindowed):
+        (WebCore::ChromeClient::isMaximized):
+        (WebCore::ChromeClient::isMinimized):
+
+2010-04-14  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed attempt to fix Qt build.
+
+        * bindings/js/JSNodeCustom.cpp:
+
+2010-04-14  Justin Schuh  <jschuh@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Javascript URL can be set as iframe.src via multiple DOM aliases
+        https://bugs.webkit.org/show_bug.cgi?id=37031
+
+        Moved frame/iframe checks from Attr to Node on inherited members.
+        Node child manipulation methods now return NOT_SUPPORTED_ERR if used
+        on a frame/iframe src attribute.
+        NamedNodeMap set methods now perform frame/iframe src checks.
+        Moved allowSettingSrcToJavascriptURL static helper function from 
+        JSElementCustom.cpp to exported function in JSDOMBinding.h.
+
+        * bindings/js/JSAttrCustom.cpp:
+        (WebCore::JSAttr::setValue):
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::allowSettingSrcToJavascriptURL):
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSElementCustom.cpp:
+        * bindings/js/JSNamedNodeMapCustom.cpp:
+        (WebCore::JSNamedNodeMap::setNamedItem):
+        (WebCore::JSNamedNodeMap::setNamedItemNS):
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::isAttrFrameSrc):
+        (WebCore::JSNode::setNodeValue):
+        (WebCore::JSNode::setTextContent):
+        (WebCore::JSNode::insertBefore):
+        (WebCore::JSNode::replaceChild):
+        (WebCore::JSNode::removeChild):
+        (WebCore::JSNode::appendChild):
+        * bindings/v8/custom/V8AttrCustom.cpp:
+        * bindings/v8/custom/V8NamedNodeMapCustom.cpp:
+        (WebCore::V8NamedNodeMap::setNamedItemNSCallback):
+        (WebCore::V8NamedNodeMap::setNamedItemCallback):
+        (WebCore::toV8):
+        * bindings/v8/custom/V8NodeCustom.cpp:
+        (WebCore::isFrameSrc):
+        (WebCore::V8Node::textContentAccessorSetter):
+        (WebCore::V8Node::nodeValueAccessorSetter):
+        (WebCore::V8Node::insertBeforeCallback):
+        (WebCore::V8Node::replaceChildCallback):
+        (WebCore::V8Node::removeChildCallback):
+        (WebCore::V8Node::appendChildCallback):
+        * dom/Attr.idl:
+        * dom/NamedNodeMap.idl:
+        * dom/Node.idl:
+
+2010-04-14  Alejandro G. Castro  <alex@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        We have to check if the resource handler is cancelled before
+        checking the client, other case it could crash.
+
+        * platform/network/soup/ResourceHandleSoup.cpp:
+        (WebCore::parseDataUrl):
+
+2010-04-14  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r57609.
+        http://trac.webkit.org/changeset/57609
+        https://bugs.webkit.org/show_bug.cgi?id=37614
+
+        "Broke multiple builders.  Probably needs new test results,
+        but may be an Inspector bug." (Requested by eseidel on
+        #webkit).
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::didReceiveResponse):
+        (WebCore::InspectorController::didFailLoading):
+        * inspector/front-end/Resource.js:
+        (WebInspector.Resource.prototype._mimeTypeIsConsistentWithType):
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel.prototype.recreateViewForResourceIfNeeded):
+
+2010-04-14  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Don't cache SimpleFontData* in getLastResortFallbackFont. The cached entry may be invalidated.
+        https://bugs.webkit.org/show_bug.cgi?id=37599
+
+        * platform/graphics/win/FontCacheWin.cpp:
+        (WebCore::fontDataFromDescriptionAndLogFont):
+        (WebCore::FontCache::getLastResortFallbackFont):
+
+2010-04-14  Andrey Kosyakov  <caseq@chromium.ru>
+
+        Reviewed by Timothy Hatcher.
+
+        Log error message to inspector console if a resource fails to load.
+        Disable checking of mime-type consistency for failed resources.
+        https://bugs.webkit.org/show_bug.cgi?id=37215
+
+        Test: inspector/console-resource-errors.html
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::didReceiveResponse):
+        (WebCore::InspectorController::didFailLoading):
+        * inspector/front-end/Resource.js:
+        (WebInspector.Resource.prototype._mimeTypeIsConsistentWithType):
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.ResourcesPanel.prototype.recreateViewForResourceIfNeeded):
+
+2010-04-14  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r57599.
+        http://trac.webkit.org/changeset/57599
+        https://bugs.webkit.org/show_bug.cgi?id=37605
+
+        "Broke Chromium build" (Requested by dglazkov on #webkit).
+
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupContainer::PopupContainer):
+        (WebCore::PopupContainer::showPopup):
+        (WebCore::PopupContainer::notifyPopupHidden):
+        * platform/chromium/PopupMenuChromium.h:
+
+2010-04-14  Aaron Boodman  <aa@chromium.org>
+
+        Reviewed by David Levin.
+
+        Support relative URLs for notifications on Chromium. They weren't working previously because WebCore was inserting
+        the relative URL into a KURL instance, but when KURL is backed by GURL as it is on Chromium, relative URLs are
+        unsupported. Fixed by resolving the relative URL first.
+
+        https://bugs.webkit.org/show_bug.cgi?id=36623
+
+        Adding tests for this is difficult because we don't currently have DRT support for notifications on Mac, only Windows.
+
+        * notifications/Notification.cpp:
+        (WebCore::Notification::Notification): Accept resolved KURL instead of relative string.
+        * notifications/Notification.h:
+        (WebCore::Notification::create): Ditto.
+        (WebCore::Notification::iconURL): Return resolved KURL instead of relative string.
+        * notifications/NotificationCenter.h:
+        (WebCore::NotificationCenter::createHTMLNotification): Immediately resolve URL instead of passing off relative string.
+        (WebCore::NotificationCenter::createNotification): Ditto.
+        * notifications/NotificationContents.h:
+        (WebCore::NotificationContents::NotificationContents): Accept resolved KURL instead of relative string.
+        (WebCore::NotificationContents::icon): Return resolved URL.
+
+2010-04-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add ThemeMac::ensuredView and get rid of a workaround in ThemeMac::paintButton.
+        https://bugs.webkit.org/show_bug.cgi?id=37601
+
+        * platform/mac/ThemeMac.h:
+        * platform/mac/ThemeMac.mm:
+        (-[WebCoreFlippedView isFlipped]):
+        (WebCore::paintButton):
+        (WebCore::ThemeMac::ensuredView):
+
+2010-04-14  Jay Civelli  <jcivelli@chromium.org>
+ 
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] Select popups would assert when destroyed.
+        https://bugs.webkit.org/show_bug.cgi?id=37436
+ 
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupContainer::PopupContainer):
+        (WebCore::PopupContainer::showPopup):
+        (WebCore::PopupContainer::notifyPopupHidden):
+        * platform/chromium/PopupMenuChromium.h:
+ 
+
+2010-04-14  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Jian Li.
+
+        Remove an incorrect ASSERT in UniscribeHelper::draw().
+        https://bugs.webkit.org/show_bug.cgi?id=37533
+
+        * platform/graphics/chromium/UniscribeHelper.cpp:
+        (WebCore::UniscribeHelper::draw):
+
+2010-04-14  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: readline shortcuts don't work in Chromium.
+
+        * inspector/front-end/TextPrompt.js:
+        (WebInspector.TextPrompt.prototype._onKeyDown):
+        (WebInspector.TextPrompt.prototype._moveCaretToStartOfPrompt):
+
+2010-04-14  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Web Inspector: Console: Shift-Tab does not cycle autocompletions in the reverse order
+        https://bugs.webkit.org/show_bug.cgi?id=37582
+
+        * inspector/front-end/TextPrompt.js:
+        (WebInspector.TextPrompt.prototype.complete):
+        (WebInspector.TextPrompt.prototype._completionsReady):
+        (WebInspector.TextPrompt.prototype._tabKeyPressed):
+
+2010-04-14  Jeff Schiller  <codedread@gmail.com>
+
+        Reviewed by Dirk Schulze.
+
+        Render SVG Paths up to first error, bug 37413: https://bugs.webkit.org/show_bug.cgi?id=37413
+
+        * svg/SVGParserUtilities.cpp:
+        (WebCore::SVGPathSegListBuilder::build):
+
+2010-04-14  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Joseph Pecoraro.
+
+        Web Inspector: Ctrl-L (Clear History) does nothing on Windows
+        https://bugs.webkit.org/show_bug.cgi?id=37579
+
+        * inspector/front-end/ConsoleView.js:
+        (WebInspector.ConsoleView):
+
+2010-04-14  Anton Muhin  <antonm@chromium.org>
+
+        Not review, build fix.
+
+        Add <limits.h> include to bring UINT_MAX.
+
+        * html/canvas/WebGLArray.h:
+
+2010-04-14  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Not reviewed. Attempt to unbreak build - NodeRenderStyle.h is an _interessting_ concept...
+
+        * rendering/style/SVGRenderStyle.cpp: Include 'NodeRenderStyle.h'
+
+2010-04-14  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Dirk Schulze.
+
+        SVGRenderStyle/SVGRenderStyleDefs needs a cleanup
+        https://bugs.webkit.org/show_bug.cgi?id=37568
+
+        Cleanup SVGRenderStyle / SVGRenderStyleDefs:
+        - use copy constructors in initialization list to initialize members, instead of assignment operators in the body
+        - fix style issues (misplaced references, abbrevations)
+        - merge StyleClipData/StyleMaskData to save memory, rename it StyleResourceData
+        - move filter property in StyleResourceData
+        - rename StyleMarkerData to StyleInheritedResourceData to highlight the difference to StyleResourceData
+        - unify naming schemes for all resources (filter/clipper/masker/markers)
+          - clipPath() -> clipperResource()
+          - maskElement() -> maskerResource()
+          - startMarker() -> markerStartResource()
+          - midMarker() -> markerMidResource()
+          - endMarker() -> markerEndResource()
+          - filter() -> filterResource()
+
+        Adapt all callsites to the renames above.
+        No new tests, as this doesn't affect anything except memory overhead.
+
+        * css/SVGCSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::getSVGPropertyCSSValue):
+        * css/SVGCSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applySVGProperty):
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::calculateMarkerBoundsIfNeeded):
+        * rendering/RenderSVGContainer.cpp:
+        (WebCore::RenderSVGContainer::selfWillPaint):
+        * rendering/RenderSVGRoot.cpp:
+        (WebCore::RenderSVGRoot::selfWillPaint):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::SVGRenderBase::prepareToRenderSVGContent):
+        (WebCore::SVGRenderBase::filterBoundingBoxForRenderer):
+        (WebCore::SVGRenderBase::clipperBoundingBoxForRenderer):
+        (WebCore::SVGRenderBase::maskerBoundingBoxForRenderer):
+        (WebCore::deregisterFromResources):
+        * rendering/SVGRenderTreeAsText.cpp:
+        (WebCore::writeStyle):
+        (WebCore::writeResources):
+        * rendering/style/SVGRenderStyle.cpp:
+        (WebCore::SVGRenderStyle::SVGRenderStyle):
+        (WebCore::SVGRenderStyle::operator==):
+        (WebCore::SVGRenderStyle::inheritedNotEqual):
+        (WebCore::SVGRenderStyle::inheritFrom):
+        * rendering/style/SVGRenderStyle.h:
+        * rendering/style/SVGRenderStyleDefs.cpp:
+        (WebCore::StyleFillData::StyleFillData):
+        (WebCore::StyleFillData::operator==):
+        (WebCore::StyleStrokeData::StyleStrokeData):
+        (WebCore::StyleStrokeData::operator==):
+        (WebCore::StyleStopData::StyleStopData):
+        (WebCore::StyleStopData::operator==):
+        (WebCore::StyleTextData::StyleTextData):
+        (WebCore::StyleMiscData::StyleMiscData):
+        (WebCore::StyleMiscData::operator==):
+        (WebCore::StyleShadowSVGData::StyleShadowSVGData):
+        (WebCore::StyleShadowSVGData::operator==):
+        (WebCore::StyleResourceData::StyleResourceData):
+        (WebCore::StyleResourceData::operator==):
+        (WebCore::StyleInheritedResourceData::StyleInheritedResourceData):
+        (WebCore::StyleInheritedResourceData::operator==):
+        * rendering/style/SVGRenderStyleDefs.h:
+        (WebCore::StyleFillData::operator!=):
+        (WebCore::StyleStopData::operator!=):
+        (WebCore::StyleMiscData::create):
+        (WebCore::StyleMiscData::copy):
+        (WebCore::StyleMiscData::operator!=):
+        (WebCore::StyleShadowSVGData::create):
+        (WebCore::StyleShadowSVGData::copy):
+        (WebCore::StyleShadowSVGData::operator!=):
+        (WebCore::StyleResourceData::create):
+        (WebCore::StyleResourceData::copy):
+        (WebCore::StyleResourceData::operator!=):
+        (WebCore::StyleInheritedResourceData::create):
+        (WebCore::StyleInheritedResourceData::copy):
+        (WebCore::StyleInheritedResourceData::operator!=):
+        * svg/SVGDocumentExtensions.cpp:
+        (WebCore::SVGDocumentExtensions::addResource):
+        (WebCore::SVGDocumentExtensions::removeResource):
+        * svg/SVGDocumentExtensions.h:
+        * svg/SVGStyledElement.cpp:
+        (WebCore::SVGStyledElement::invalidateResources):
+
+2010-04-14  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        readPixels must take PACK_ALIGNMENT into account
+        https://bugs.webkit.org/show_bug.cgi?id=34718
+
+        Test: fast/canvas/webgl/read-pixels.html
+
+        * html/canvas/WebGLRenderingContext.cpp:
+        (WebCore::WebGLRenderingContext::WebGLRenderingContext): Init members to support pack_alignment.
+        (WebCore::WebGLRenderingContext::pixelStorei): Save pack/unpack_alignment.
+        (WebCore::WebGLRenderingContext::readPixels): Validate enum and deal with pack_alignment.
+        * html/canvas/WebGLRenderingContext.h: Add members to support pack_alignment.
+        * platform/graphics/GraphicsContext3D.h: Refactor readPixels.
+        * platform/graphics/mac/GraphicsContext3DMac.cpp:
+        (WebCore::GraphicsContext3D::readPixels): Move array allocation and alpha fix to WebGLRenderingContext; flush before read pixels.
+
+2010-04-13  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        REGRESSION(r57511): many new graphics / svg related leaks
+        https://bugs.webkit.org/show_bug.cgi?id=37527
+
+        The content of a HashMap was not correctly deleted. Fixed this
+        in the DTor and in invalidateClient of RenderSVGResourceClipper.
+
+        * rendering/RenderSVGResourceClipper.cpp:
+        (WebCore::RenderSVGResourceClipper::~RenderSVGResourceClipper):
+        (WebCore::RenderSVGResourceClipper::invalidateClient):
+
+2010-04-13  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Oliver Hunt.
+
+        Fix a potential integer overflow in WebGL*Array::slice()
+        https://bugs.webkit.org/show_bug.cgi?id=37466
+
+        * html/canvas/WebGLArray.h:
+        (WebCore::WebGLArray::clampOffsetAndNumElements): Input parameter "offset"'s semantic changed from in bytes from buffer to in elements from array view; calculate offset in bytes from buffer inside the function, avoiding overflow. 
+        * html/canvas/WebGLByteArray.cpp:
+        (WebCore::WebGLByteArray::slice): Changed according to new semantic of WebCore::WebGLArray::clampOffsetAndNumElements.
+        * html/canvas/WebGLFloatArray.cpp:
+        (WebCore::WebGLFloatArray::slice): Ditto.
+        * html/canvas/WebGLIntArray.cpp:
+        (WebCore::WebGLIntArray::slice): Ditto.
+        * html/canvas/WebGLShortArray.cpp:
+        (WebCore::WebGLShortArray::slice): Ditto.
+        * html/canvas/WebGLUnsignedByteArray.cpp:
+        (WebCore::WebGLUnsignedByteArray::slice): Ditto.
+        * html/canvas/WebGLUnsignedIntArray.cpp:
+        (WebCore::WebGLUnsignedIntArray::slice): Ditto.
+        * html/canvas/WebGLUnsignedShortArray.cpp:
+        (WebCore::WebGLUnsignedShortArray::slice): Ditto.
+
+2010-04-13  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Brady Eidson.
+
+        If the browsing context's session history contains only one Document,
+        and that was the about:blank Document created when the browsing context
+        was created, then the navigation must be done with replacement enabled.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37126
+
+        Tests: fast/loader/frame-location-change-not-added-to-history.html
+               fast/loader/frame-src-change-not-added-to-history.html
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::clientRedirected):
+        (WebCore::FrameLoader::findFrameForNavigation):
+        * loader/HistoryController.cpp:
+        (WebCore::HistoryController::currentItemShouldBeReplaced):
+        * loader/HistoryController.h:
+
+2010-04-13  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Separated a DOMWrapperWorld's behavior of keeping wrappers alive from
+        its own lifetime, so a DOMWrapperWorld's controller can throw away
+        its wrappers even before its refcount reaches 0.
+
+        * WebCore.base.exp:
+        * bindings/js/DOMWrapperWorld.cpp:
+        (WebCore::DOMWrapperWorld::DOMWrapperWorld):
+        (WebCore::DOMWrapperWorld::~DOMWrapperWorld):
+        (WebCore::DOMWrapperWorld::registerWorld):
+        (WebCore::DOMWrapperWorld::unregisterWorld):
+        * bindings/js/DOMWrapperWorld.h: Factored out DOMWrapperWorld registration
+        and unregistration into helper functions, so unregistering could be done manually.
+
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::destroyWindowShell): Added an ASSERT to match
+        similar code.
+
+2010-04-13  Chang Shu  <chang.shu@nokia.com>
+
+        Reviewed by Darin Fisher.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34653
+
+        Based on W3C spec and Firefox behavior, while invoking XHR Send with parameter
+        as String, the charset in Content-Type should be forced to set to UTF-8.
+
+        Test: http/tests/xmlhttprequest/request-encoding2.html
+
+        * platform/network/HTTPParsers.cpp:
+        (WebCore::extractCharsetFromMediaType):
+        (WebCore::findCharsetInMediaType):
+        * platform/network/HTTPParsers.h:
+        * xml/XMLHttpRequest.cpp:
+        (WebCore::setCharsetInMediaType):
+        (WebCore::XMLHttpRequest::send):
+
+2010-04-12  Timothy Hatcher  <timothy@apple.com>
+
+        SecurityOrigin needs a way to remove individual OriginAccessEntries
+        https://bugs.webkit.org/show_bug.cgi?id=37449
+
+        Test: http/tests/xmlhttprequest/origin-whitelisting-removal.html
+
+        Reviewed by Dave Hyatt.
+
+        * WebCore.base.exp: Added SecurityOrigin::removeOriginAccessWhitelistEntry.
+        * page/OriginAccessEntry.h:
+        (WebCore::OriginAccessEntry::protocol): Added. Returns m_protocol.
+        (WebCore::OriginAccessEntry::host): Added. Returns m_host.
+        (WebCore::OriginAccessEntry::subdomainSettings): Added. Returns m_subdomainSettings.
+        (WebCore::operator==): Added. Compares OriginAccessEntry.
+        (WebCore::operator!=): Ditto.
+        * page/SecurityOrigin.cpp:
+        (WebCore::SecurityOrigin::addOriginAccessWhitelistEntry): Use the add method to prevent a
+        second hash lookup.
+        (WebCore::SecurityOrigin::removeOriginAccessWhitelistEntry): Added. Find a matching
+        OriginAccessEntry and remove it.
+        * page/SecurityOrigin.h: Added removeOriginAccessWhitelistEntry.
+
+2010-04-13  Timothy Hatcher  <timothy@apple.com>
+
+        Rename SecurityOrigin::whiteListAccessFromOrigin to addOriginAccessWhitelistEntry.
+        And SecurityOrigin::resetOriginAccessWhiteLists to resetOriginAccessWhitelists.
+
+        SecurityOrigin needs a way to remove individual OriginAccessEntries
+        https://bugs.webkit.org/show_bug.cgi?id=37449
+
+        Reviewed by Dave Hyatt.
+
+        * WebCore.base.exp:
+        * page/SecurityOrigin.cpp:
+        (WebCore::SecurityOrigin::addOriginAccessWhitelistEntry):
+        (WebCore::SecurityOrigin::resetOriginAccessWhitelists):
+        * page/SecurityOrigin.h:
+
+2010-04-13  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Tidied up some more DOMWrapperWorld lifetime issues.
+        
+        Made DOMWrapperWorld aware of its JSDOMWindowShells, so it can clear them.
+
+        * bindings/js/DOMWrapperWorld.cpp:
+        (WebCore::DOMWrapperWorld::~DOMWrapperWorld):
+        * bindings/js/DOMWrapperWorld.h:
+        (WebCore::DOMWrapperWorld::didCreateWindowShell):
+        (WebCore::DOMWrapperWorld::didDestroyWindowShell): Functionality for
+        tracking window shells that reference a given DOMWrapperWorld.
+
+        * bindings/js/ScriptController.cpp:
+        (WebCore::ScriptController::~ScriptController):
+        (WebCore::ScriptController::destroyWindowShell):
+        (WebCore::ScriptController::createWindowShell):
+        (WebCore::ScriptController::clearWindowShell):
+        (WebCore::ScriptController::initScript):
+        * bindings/js/ScriptController.h: Refactored to update a DOMWrapperWorld
+        when adding or removing a JSDOMWindowShell.
+
+        * dom/Document.cpp:
+        (WebCore::Document::destroyAllWrapperCaches): Changed to use isEmpty(),
+        which is slightly faster and simpler than iterator comparison.
+
+2010-04-13  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Make all HTML5 DB callbacks run in the correct context.
+        https://bugs.webkit.org/show_bug.cgi?id=27698
+
+        Tests: storage/statement-error-callback-isolated-world.html
+               storage/statement-success-callback-isolated-world.html
+               storage/transaction-callback-isolated-world.html
+               storage/transaction-error-callback-isolated-world.html
+
+        * bindings/js/JSCustomSQLStatementCallback.cpp:
+        (WebCore::JSCustomSQLStatementCallback::JSCustomSQLStatementCallback):
+        (WebCore::JSCustomSQLStatementCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementCallback.h:
+        * bindings/js/JSCustomSQLStatementErrorCallback.cpp:
+        (WebCore::JSCustomSQLStatementErrorCallback::JSCustomSQLStatementErrorCallback):
+        (WebCore::JSCustomSQLStatementErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLStatementErrorCallback.h:
+        * bindings/js/JSCustomSQLTransactionCallback.cpp:
+        (WebCore::JSCustomSQLTransactionCallback::JSCustomSQLTransactionCallback):
+        (WebCore::JSCustomSQLTransactionCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionCallback.h:
+        * bindings/js/JSCustomSQLTransactionErrorCallback.cpp:
+        (WebCore::JSCustomSQLTransactionErrorCallback::JSCustomSQLTransactionErrorCallback):
+        (WebCore::JSCustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/js/JSCustomSQLTransactionErrorCallback.h:
+        * bindings/v8/custom/V8CustomSQLStatementCallback.cpp:
+        (WebCore::V8CustomSQLStatementCallback::V8CustomSQLStatementCallback):
+        (WebCore::V8CustomSQLStatementCallback::handleEvent):
+        * bindings/v8/custom/V8CustomSQLStatementCallback.h:
+        * bindings/v8/custom/V8CustomSQLStatementErrorCallback.cpp:
+        (WebCore::V8CustomSQLStatementErrorCallback::V8CustomSQLStatementErrorCallback):
+        (WebCore::V8CustomSQLStatementErrorCallback::handleEvent):
+        * bindings/v8/custom/V8CustomSQLStatementErrorCallback.h:
+        * bindings/v8/custom/V8CustomSQLTransactionCallback.cpp:
+        (WebCore::V8CustomSQLTransactionCallback::V8CustomSQLTransactionCallback):
+        (WebCore::V8CustomSQLTransactionCallback::handleEvent):
+        * bindings/v8/custom/V8CustomSQLTransactionCallback.h:
+        * bindings/v8/custom/V8CustomSQLTransactionErrorCallback.cpp:
+        (WebCore::V8CustomSQLTransactionErrorCallback::V8CustomSQLTransactionErrorCallback):
+        (WebCore::V8CustomSQLTransactionErrorCallback::handleEvent):
+        * bindings/v8/custom/V8CustomSQLTransactionErrorCallback.h:
+        * storage/SQLStatement.cpp:
+        (WebCore::SQLStatement::performCallback):
+        * storage/SQLStatementCallback.h:
+        * storage/SQLStatementErrorCallback.h:
+        * storage/SQLTransaction.cpp:
+        (WebCore::SQLTransaction::deliverTransactionCallback):
+        (WebCore::SQLTransaction::deliverTransactionErrorCallback):
+        * storage/SQLTransactionCallback.h:
+        * storage/SQLTransactionErrorCallback.h:
+        (WebCore::SQLTransactionErrorCallback::~SQLTransactionErrorCallback):
+
+2010-04-13  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Fix search behavior in Profiles tab.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37498
+
+        * inspector/front-end/ProfileView.js:
+        (WebInspector.CPUProfileView.profileCallback):
+        (WebInspector.CPUProfileView):
+
+2010-04-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37513, clean up StyleBoxData and the RenderStyle variable that uses it.
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::RenderStyle):
+        (WebCore::RenderStyle::operator==):
+        (WebCore::RenderStyle::diff):
+        * rendering/style/RenderStyle.h:
+        (WebCore::):
+        (WebCore::InheritedFlags::width):
+        (WebCore::InheritedFlags::height):
+        (WebCore::InheritedFlags::minWidth):
+        (WebCore::InheritedFlags::maxWidth):
+        (WebCore::InheritedFlags::minHeight):
+        (WebCore::InheritedFlags::maxHeight):
+        (WebCore::InheritedFlags::verticalAlignLength):
+        (WebCore::InheritedFlags::boxSizing):
+        (WebCore::InheritedFlags::setWidth):
+        (WebCore::InheritedFlags::setHeight):
+        (WebCore::InheritedFlags::setMinWidth):
+        (WebCore::InheritedFlags::setMaxWidth):
+        (WebCore::InheritedFlags::setMinHeight):
+        (WebCore::InheritedFlags::setMaxHeight):
+        (WebCore::InheritedFlags::setVerticalAlignLength):
+        (WebCore::InheritedFlags::hasAutoZIndex):
+        (WebCore::InheritedFlags::setHasAutoZIndex):
+        (WebCore::InheritedFlags::zIndex):
+        (WebCore::InheritedFlags::setZIndex):
+        (WebCore::InheritedFlags::setBoxSizing):
+        * rendering/style/StyleBoxData.cpp:
+        (WebCore::StyleBoxData::StyleBoxData):
+        (WebCore::StyleBoxData::operator==):
+        * rendering/style/StyleBoxData.h:
+        (WebCore::StyleBoxData::width):
+        (WebCore::StyleBoxData::height):
+        (WebCore::StyleBoxData::minWidth):
+        (WebCore::StyleBoxData::minHeight):
+        (WebCore::StyleBoxData::maxWidth):
+        (WebCore::StyleBoxData::maxHeight):
+        (WebCore::StyleBoxData::verticalAlign):
+        (WebCore::StyleBoxData::zIndex):
+        (WebCore::StyleBoxData::hasAutoZIndex):
+        (WebCore::StyleBoxData::boxSizing):
+
+2010-04-12  yael aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Tor Arne Vestbo.
+
+        Minor fix to pass RenderProgress instead of RenderObject
+        https://bugs.webkit.org/show_bug.cgi?id=37481
+
+        * accessibility/AXObjectCache.cpp:
+        (WebCore::AXObjectCache::getOrCreate):
+        * accessibility/AccessibilityProgressIndicator.cpp:
+        (WebCore::AccessibilityProgressIndicator::AccessibilityProgressIndicator):
+        (WebCore::AccessibilityProgressIndicator::create):
+        * accessibility/AccessibilityProgressIndicator.h:
+
+2010-04-13  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37510, clean up StyleBackgroundData
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::RenderStyle):
+        (WebCore::RenderStyle::operator==):
+        (WebCore::RenderStyle::diff):
+        * rendering/style/RenderStyle.h:
+        (WebCore::):
+        (WebCore::InheritedFlags::hasBackground):
+        (WebCore::InheritedFlags::hasBackgroundImage):
+        (WebCore::InheritedFlags::hasFixedBackgroundImage):
+        (WebCore::InheritedFlags::outlineWidth):
+        (WebCore::InheritedFlags::outlineStyle):
+        (WebCore::InheritedFlags::outlineStyleIsAuto):
+        (WebCore::InheritedFlags::outlineColor):
+        (WebCore::InheritedFlags::backgroundColor):
+        (WebCore::InheritedFlags::backgroundImage):
+        (WebCore::InheritedFlags::backgroundRepeatX):
+        (WebCore::InheritedFlags::backgroundRepeatY):
+        (WebCore::InheritedFlags::backgroundComposite):
+        (WebCore::InheritedFlags::backgroundAttachment):
+        (WebCore::InheritedFlags::backgroundClip):
+        (WebCore::InheritedFlags::backgroundOrigin):
+        (WebCore::InheritedFlags::backgroundXPosition):
+        (WebCore::InheritedFlags::backgroundYPosition):
+        (WebCore::InheritedFlags::backgroundSizeType):
+        (WebCore::InheritedFlags::backgroundSizeLength):
+        (WebCore::InheritedFlags::accessBackgroundLayers):
+        (WebCore::InheritedFlags::backgroundLayers):
+        (WebCore::InheritedFlags::outlineOffset):
+        (WebCore::InheritedFlags::resetOutline):
+        (WebCore::InheritedFlags::setBackgroundColor):
+        (WebCore::InheritedFlags::setBackgroundXPosition):
+        (WebCore::InheritedFlags::setBackgroundYPosition):
+        (WebCore::InheritedFlags::setBackgroundSize):
+        (WebCore::InheritedFlags::setBackgroundSizeLength):
+        (WebCore::InheritedFlags::setOutlineWidth):
+        (WebCore::InheritedFlags::setOutlineStyle):
+        (WebCore::InheritedFlags::setOutlineColor):
+        (WebCore::InheritedFlags::clearBackgroundLayers):
+        (WebCore::InheritedFlags::inheritBackgroundLayers):
+        (WebCore::InheritedFlags::setOutlineOffset):
+        * rendering/style/StyleBackgroundData.h:
+        (WebCore::StyleBackgroundData::background):
+        (WebCore::StyleBackgroundData::color):
+        (WebCore::StyleBackgroundData::outline):
+
+2010-04-13  Stephan Aßmus  <superstippi@gmx.de>
+
+        Reviewed by David Levin.
+
+        [Haiku] Use the system clipboard instead of a private clipboard.
+                Fix various problems in the previous implementation.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37421
+
+        No new tests needed.
+
+        * platform/haiku/PasteboardHaiku.cpp:
+        (WebCore::Pasteboard::~Pasteboard):
+        (WebCore::Pasteboard::generalPasteboard):
+            - Don't leak the pasteboard at program exit.
+        (WebCore::AutoClipboardLocker::AutoClipboardLocker):
+        (WebCore::AutoClipboardLocker::~AutoClipboardLocker):
+        (WebCore::AutoClipboardLocker::isLocked):
+            - helper class for locking a BClipboard.
+        (WebCore::Pasteboard::writeSelection):
+            - Use AddData(B_MIME_TYPE) as required by clipboard protocol.
+            - Make sure we don't end up with unwanted UTF-8 characters for
+              regular line breaks.
+        (WebCore::Pasteboard::writePlainText):
+            - Use AddData(B_MIME_TYPE) as required by clipboard protocol.
+        (WebCore::Pasteboard::plainText):
+            - Use FindData(B_MIME_TYPE) as required by clipboard protocol.
+        (WebCore::Pasteboard::documentFragment):
+            - Implemented.
+        (WebCore::Pasteboard::writeURL):
+            - Needs to use AddData(B_MIME_TYPE) instead of AddString().
+        (WebCore::Pasteboard::clear):
+
+2010-04-13  Stephan Aßmus  <superstippi@gmx.de>
+
+        Reviewed by David Levin.
+
+        [Haiku] Fix bridging Widget to native top-level BView.
+        https://bugs.webkit.org/show_bug.cgi?id=37419
+
+        In the Haiku port, there is no mapping between native widgets
+        and WebCore Widget instances. There is only a top-level BView
+        which renders a web page into a bitmap. For certain WebCore widget
+        functionality, we need to access this BView, like for setting the
+        current cursor or forcing focus. On the other hand, setting a
+        platform widget pointer on Widget results into completely different
+        behavior, like ScrollView tries to forward everything instead of
+        handling stuff itself. To make this work, the pointer to a "top-level"
+        BView is stored in every Widget for the Haiku port.
+
+        No new tests needed.
+
+        * platform/Widget.h:
+            - Added the m_topLevelPlatformWidget member for the Haiku platform.
+        (WebCore::Widget::setPlatformWidget):
+        (WebCore::Widget::topLevelPlatformWidget):
+        (WebCore::Widget::setTopLevelPlatformWidget):
+        * platform/haiku/WidgetHaiku.cpp:
+        (WebCore::AutoPlatformWidgetLocker::AutoPlatformWidgetLocker):
+        (WebCore::AutoPlatformWidgetLocker::~AutoPlatformWidgetLocker):
+        (WebCore::AutoPlatformWidgetLocker::isLocked):
+            - helper class for locking the BView looper thread with a timeout
+        (WebCore::Widget::Widget):
+        (WebCore::Widget::setFocus):
+            - Make sure the top-level view receives keyboard input.
+        (WebCore::Widget::setCursor):
+            - Set the cursor on the top-level view.
+        (WebCore::Widget::show):
+        (WebCore::Widget::hide):
+            - Don't show/hide the top-level view, but make the code correct
+              for whenever we would map an individual BView per Widget.
+            - Use setSelfVisible() and isParentVisible() like in other ports.
+
+2010-04-13  Jeremy Moskovich  <jeremy@chromium.org>
+
+        Reviewed by David Levin.
+
+        Add some diagnostics to try to track down cause of crash in ArchiveFactory::isArchiveMimeType().
+
+        https://bugs.webkit.org/show_bug.cgi?id=36426
+
+        No new tests as there is no new functionality.
+
+        * loader/FrameLoader.cpp:
+        (WebCore::FrameLoader::finishedLoadingDocument): Make copy of mimeType string to isolate crash.
+
+2010-04-13  Abhishek Arya  <inferno@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add a null ptr check for m_popupClient.
+
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupListBox::abandon): Add a null ptr check
+
+2010-04-13  Stephan Aßmus  <superstippi@gmx.de>
+
+        Reviewed by David Levin.
+
+        [Haiku] Use the system's default font family as last fall back font.
+        https://bugs.webkit.org/show_bug.cgi?id=37501
+
+        No new tests needed.
+
+        * platform/graphics/haiku/FontCacheHaiku.cpp:
+        (WebCore::FontCache::getLastResortFallbackFont):
+            - Use the system's default font family (from be_plain_font global).
+
+2010-04-13  Eskil Blomfeldt <eblomfel@trolltech.com>, Jesus Sanchez-Palencia  <jesus.palencia@openbossa.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Use integer pixel metric QFont API to fix rounding errors in text rendering on the Mac
+        https://bugs.webkit.org/show_bug.cgi?id=36532
+
+        * platform/graphics/qt/FontQt.cpp:
+        (WebCore::Font::floatWidthForComplexText):
+        (WebCore::Font::font):
+
+2010-04-13  Alexander Pavlov  <apavlov@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Cannot effectively delete properties in the Styles sidebar pane
+        https://bugs.webkit.org/show_bug.cgi?id=37499
+
+        * inspector/InspectorDOMAgent.cpp:
+        (WebCore::InspectorDOMAgent::applyStyleText):
+
+2010-04-13  Stephan Aßmus  <superstippi@gmx.de>
+
+        Reviewed by David Levin.
+
+        Use the Haiku MIME type data base as a fall back for unknown file extensions.
+        https://bugs.webkit.org/show_bug.cgi?id=34686
+
+        Covered by existing tests.
+
+        * platform/haiku/MIMETypeRegistryHaiku.cpp:
+        (WebCore::):
+            - fixed coding style issues
+        (WebCore::MIMETypeRegistry::getMIMETypeForExtension):
+            - fall back to the system MIME database for unknown types.
+            - return empty String as last resort, this is used
+              elsewhere as indicator for unknown types.
+
+2010-04-13  Stephan Aßmus  <superstippi@gmx.de>
+
+        Reviewed by David Levin.
+
+        [Haiku] Use all the new system cursors available in recent Haiku revisions.
+        <https://bugs.webkit.org/show_bug.cgi?id=37385>
+
+        Covered by existing tests.
+
+        * platform/haiku/CursorHaiku.cpp:
+        (WebCore::Cursor::Cursor):
+        (WebCore::Cursor::~Cursor):
+        (WebCore::Cursor::operator=):
+            - Adapted to maintain an owned BCursor instance.
+        (WebCore::createCursorByID):
+            - helper function to create a Cursor instance by BCursorID constant.
+        (WebCore::pointerCursor):
+            - NULL BCursor triggers using the system cursor.
+        (WebCore::moveCursor):
+        (WebCore::crossCursor):
+        (WebCore::handCursor):
+        (WebCore::iBeamCursor):
+        (WebCore::waitCursor):
+        (WebCore::helpCursor):
+        (WebCore::eastResizeCursor):
+        (WebCore::northResizeCursor):
+        (WebCore::northEastResizeCursor):
+        (WebCore::northWestResizeCursor):
+        (WebCore::southResizeCursor):
+        (WebCore::southEastResizeCursor):
+        (WebCore::southWestResizeCursor):
+        (WebCore::westResizeCursor):
+        (WebCore::northSouthResizeCursor):
+        (WebCore::eastWestResizeCursor):
+        (WebCore::northEastSouthWestResizeCursor):
+        (WebCore::northWestSouthEastResizeCursor):
+        (WebCore::columnResizeCursor):
+        (WebCore::rowResizeCursor):
+        (WebCore::verticalTextCursor):
+        (WebCore::cellCursor):
+        (WebCore::contextMenuCursor):
+        (WebCore::noDropCursor):
+        (WebCore::copyCursor):
+        (WebCore::progressCursor):
+        (WebCore::aliasCursor):
+        (WebCore::noneCursor):
+        (WebCore::notAllowedCursor):
+        (WebCore::zoomInCursor):
+        (WebCore::zoomOutCursor):
+        (WebCore::grabCursor):
+        (WebCore::grabbingCursor):
+            - Use the new system cursors.
+
+2010-04-13  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        <clipPath> doesn't correctly handle <text> elements
+        https://bugs.webkit.org/show_bug.cgi?id=12571
+
+        Adds support for text elements as clipPath, heterogenous clip rules, as well
+        as clipping of clipPath.
+        A fast code path let platforms clip simple shapes directly. All other variants
+        are drawn to a seperate ImageBuffer, which is used as a mask. This happens the same
+        way we like we do it on SVG Masking. This needs temporary changes to the RenderStyle
+        of clipPath childs. Values like stroke, resources, opacity have to be ignored.
+
+        Tests: svg/clip-path/clip-path-child-clipped.svg
+               svg/clip-path/clip-path-childs-clipped.svg
+               svg/clip-path/clip-path-clipped-evenodd-twice.svg
+               svg/clip-path/clip-path-clipped-no-content.svg
+               svg/clip-path/clip-path-clipped-nonzero.svg
+               svg/clip-path/clip-path-clipped.svg
+               svg/clip-path/clip-path-evenodd-nonzero.svg
+               svg/clip-path/clip-path-evenodd.svg
+               svg/clip-path/clip-path-nonzero-evenodd.svg
+               svg/clip-path/clip-path-nonzero.svg
+               svg/clip-path/clip-path-objectBoundingBox.svg
+               svg/clip-path/clip-path-on-clipped-use.svg
+               svg/clip-path/clip-path-on-g-and-child.svg
+               svg/clip-path/clip-path-on-g.svg
+               svg/clip-path/clip-path-on-svg-and-child.svg
+               svg/clip-path/clip-path-on-svg.svg
+               svg/clip-path/clip-path-recursive-call-by-child.svg
+               svg/clip-path/clip-path-recursive-call.svg
+               svg/clip-path/clip-path-text-and-shape.svg
+               svg/clip-path/clip-path-text-and-stroke.svg
+               svg/clip-path/clip-path-text.svg
+               svg/clip-path/clip-path-use-as-child.svg
+               svg/clip-path/clip-path-use-as-child2.svg
+               svg/clip-path/clip-path-use-as-child3.svg
+               svg/clip-path/clip-path-use-as-child4.svg
+               svg/clip-path/clip-path-use-as-child5.svg
+               svg/clip-path/clip-path-userSpaceOnUse.svg
+               svg/clip-path/clip-path-with-container.svg
+               svg/clip-path/clip-path-with-different-unittypes.svg
+               svg/clip-path/clip-path-with-different-unittypes2.svg
+               svg/clip-path/clip-path-with-invisibile-child.svg
+               svg/clip-path/clip-path-with-text-clipped.svg
+
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::isSVGShadowTreeRootContainer): identify use-element renderer
+        * rendering/RenderSVGResourceClipper.cpp:
+        (WebCore::RenderSVGResourceClipper::invalidateClients):
+        (WebCore::RenderSVGResourceClipper::invalidateClient):
+        (WebCore::RenderSVGResourceClipper::applyResource):
+        (WebCore::RenderSVGResourceClipper::pathOnlyClipping): direct clipping for simple shapes
+        (WebCore::RenderSVGResourceClipper::applyClippingToContext): direct clipping or maskImage?
+        (WebCore::RenderSVGResourceClipper::createClipData): creates maskImage for clipping
+        (WebCore::RenderSVGResourceClipper::resourceBoundingBox):
+        * rendering/RenderSVGResourceClipper.h:
+        * rendering/RenderSVGShadowTreeRootContainer.h: identify use-Element by renderer
+        (WebCore::RenderSVGShadowTreeRootContainer::isSVGShadowTreeRootContainer):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::renderSubtreeToImage): hack to get texts working on clipping (masks and pattern)
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::rendererClipChild): get renderer of referenced object
+        * svg/SVGUseElement.h:
+
+2010-04-13  Nikolas Zimmermann  <nzimmermann@rim.com>
+
+        Reviewed by Dirk Schulze.
+
+        SVG renderers should track transform/path changes, instead of pulling every time from SVG DOM
+        https://bugs.webkit.org/show_bug.cgi?id=15389
+
+        RenderPath caches repaint rectangles (fill/stroke bbox etc.) though this caching
+        was effectively useless because every layout() call caused them to be reset to empty rects.
+        Furthermore RenderPath::layout() queried the SVG DOM upon every invocation to retrieve
+        the Path object, instead of only doing it when necessary. Even the TransformationMatrix
+        was polled everytime from the SVG DOM.
+
+        Move the knownledge wheter we need to update path/transform into the render tree and
+        only update when necessary. This should result in a huge performance increase, with
+        the drawback of adding slightly more memory, because we need to add booleans indicating
+        the status of path/transform (is dirty?).
+
+        Doesn't affect any tests, only performance.
+
+        * rendering/RenderForeignObject.cpp:
+        (WebCore::RenderForeignObject::RenderForeignObject):
+        (WebCore::RenderForeignObject::layout):
+        * rendering/RenderForeignObject.h:
+        (WebCore::RenderForeignObject::setNeedsTransformUpdate):
+        * rendering/RenderObject.h:
+        (WebCore::RenderObject::setNeedsTransformUpdate):
+        (WebCore::RenderObject::setNeedsBoundariesUpdate):
+        * rendering/RenderPath.cpp:
+        (WebCore::RenderPath::RenderPath):
+        (WebCore::RenderPath::layout):
+        (WebCore::RenderPath::invalidateCachedBoundaries):
+        (WebCore::RenderPath::styleWillChange):
+        * rendering/RenderPath.h:
+        (WebCore::RenderPath::setNeedsBoundariesUpdate):
+        (WebCore::RenderPath::setNeedsPathUpdate):
+        (WebCore::RenderPath::setNeedsTransformUpdate):
+        (WebCore::RenderPath::localToParentTransform):
+        (WebCore::RenderPath::localTransform):
+        * rendering/RenderSVGImage.cpp:
+        (WebCore::RenderSVGImage::RenderSVGImage):
+        (WebCore::RenderSVGImage::layout):
+        * rendering/RenderSVGImage.h:
+        (WebCore::RenderSVGImage::setNeedsTransformUpdate):
+        * rendering/RenderSVGResourceClipper.cpp:
+        (WebCore::RenderSVGResourceClipper::invalidateClients):
+        * rendering/RenderSVGResourceMarker.cpp:
+        (WebCore::RenderSVGResourceMarker::invalidateClients):
+        * rendering/RenderSVGResourceMasker.cpp:
+        (WebCore::RenderSVGResourceMasker::invalidateClients):
+        * rendering/RenderSVGText.cpp:
+        (WebCore::RenderSVGText::RenderSVGText):
+        (WebCore::RenderSVGText::layout):
+        * rendering/RenderSVGText.h:
+        (WebCore::RenderSVGText::setNeedsTransformUpdate):
+        * rendering/RenderSVGTransformableContainer.cpp:
+        (WebCore::RenderSVGTransformableContainer::RenderSVGTransformableContainer):
+        (WebCore::RenderSVGTransformableContainer::calculateLocalTransform):
+        * rendering/RenderSVGTransformableContainer.h:
+        (WebCore::RenderSVGTransformableContainer::localToParentTransform):
+        (WebCore::RenderSVGTransformableContainer::setNeedsTransformUpdate):
+        (WebCore::RenderSVGTransformableContainer::localTransform):
+        * svg/SVGAnimateMotionElement.cpp:
+        (WebCore::SVGAnimateMotionElement::calculateAnimatedValue):
+        (WebCore::SVGAnimateMotionElement::applyResultsToTarget):
+        * svg/SVGAnimateTransformElement.cpp:
+        (WebCore::SVGAnimateTransformElement::applyResultsToTarget):
+        * svg/SVGCircleElement.cpp:
+        (WebCore::SVGCircleElement::svgAttributeChanged):
+        * svg/SVGEllipseElement.cpp:
+        (WebCore::SVGEllipseElement::svgAttributeChanged):
+        * svg/SVGForeignObjectElement.cpp:
+        (WebCore::SVGForeignObjectElement::svgAttributeChanged):
+        * svg/SVGGElement.cpp:
+        (WebCore::SVGGElement::svgAttributeChanged):
+        * svg/SVGImageElement.cpp:
+        (WebCore::SVGImageElement::svgAttributeChanged):
+        * svg/SVGLineElement.cpp:
+        (WebCore::SVGLineElement::svgAttributeChanged):
+        * svg/SVGPathElement.cpp:
+        (WebCore::SVGPathElement::svgAttributeChanged):
+        * svg/SVGPolyElement.cpp:
+        (WebCore::SVGPolyElement::svgAttributeChanged):
+        * svg/SVGRectElement.cpp:
+        (WebCore::SVGRectElement::svgAttributeChanged):
+        * svg/SVGTextElement.cpp:
+        (WebCore::SVGTextElement::svgAttributeChanged):
+        * svg/SVGUseElement.cpp:
+        (WebCore::SVGUseElement::svgAttributeChanged):
+
+2010-04-13  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Unreviewed Qt build fix: add new .idl files to WebCore.pri
+
+        * WebCore.pri:
+
+2010-04-12  Mikhail Naganov  <mnaganov@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        Replace hand-written JavaScriptProfile* bindings with idl-based, and
+        in Chromium port, bind them to the new V8's profiler API that is
+        aligned with JSC.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37448
+
+        * DerivedSources.cpp:
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * WebCore.gypi:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSBindingsAllInOne.cpp:
+        * bindings/js/JSConsoleCustom.cpp:
+        * bindings/js/JSScriptProfileNodeCustom.cpp: Added.
+        (WebCore::JSScriptProfileNode::callUID):
+        (WebCore::JSScriptProfileNode::children):
+        * bindings/js/JavaScriptProfile.cpp: Removed.
+        * bindings/js/JavaScriptProfile.h: Removed.
+        * bindings/js/JavaScriptProfileNode.cpp: Removed.
+        * bindings/js/JavaScriptProfileNode.h: Removed.
+        * bindings/js/ScriptProfileNode.h: Added.
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bindings/scripts/CodeGeneratorV8.pm:
+        * bindings/v8/ScriptProfile.cpp: Added.
+        (WebCore::ScriptProfile::title):
+        (WebCore::ScriptProfile::uid):
+        (WebCore::ScriptProfile::head):
+        * bindings/v8/ScriptProfile.h:
+        (WebCore::ScriptProfile::create):
+        (WebCore::ScriptProfile::ScriptProfile):
+        * bindings/v8/ScriptProfileNode.cpp: Added.
+        (WebCore::ScriptProfileNode::functionName):
+        (WebCore::ScriptProfileNode::url):
+        (WebCore::ScriptProfileNode::lineNumber):
+        (WebCore::ScriptProfileNode::totalTime):
+        (WebCore::ScriptProfileNode::selfTime):
+        (WebCore::ScriptProfileNode::numberOfCalls):
+        (WebCore::ScriptProfileNode::children):
+        (WebCore::ScriptProfileNode::visible):
+        (WebCore::ScriptProfileNode::callUID):
+        * bindings/v8/ScriptProfileNode.h: Added.
+        (WebCore::ScriptProfileNode::create):
+        (WebCore::ScriptProfileNode::~ScriptProfileNode):
+        (WebCore::ScriptProfileNode::ScriptProfileNode):
+        * bindings/v8/ScriptProfiler.cpp:
+        (WebCore::ScriptProfiler::start):
+        (WebCore::ScriptProfiler::stop):
+        * bindings/v8/custom/V8ConsoleCustom.cpp: Added.
+        (WebCore::V8Console::profilesAccessorGetter):
+        * bindings/v8/custom/V8ScriptProfileCustom.cpp: Added.
+        (WebCore::toV8):
+        * bindings/v8/custom/V8ScriptProfileNodeCustom.cpp: Added.
+        (WebCore::V8ScriptProfileNode::childrenAccessorGetter):
+        (WebCore::V8ScriptProfileNode::callUIDAccessorGetter):
+        (WebCore::toV8):
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::getProfile):
+        * inspector/ScriptProfile.idl: Added.
+        * inspector/ScriptProfileNode.idl: Added.
+        * inspector/front-end/InspectorBackendStub.js:
+        (.WebInspector.InspectorBackendStub.prototype.getProfile):
+        * inspector/front-end/ProfilesPanel.js:
+        (WebInspector.ProfilesPanel.prototype.populateInterface):
+        (WebInspector.ProfilesPanel.prototype.profilerWasEnabled):
+        * page/Console.idl:
+        * platform/android/TemporaryLinkStubs.cpp:
+
+2010-04-12  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        Spatial Navigation: make renderRectRelativeToRootDocument method to fallback to getRect() of Element when needed
+        https://bugs.webkit.org/show_bug.cgi?id=37461
+
+        getRect() of Element can be used instead of absoluteClippedOverflowRect of RenderObject when
+        the node is currently offscreen in an scroll overflowed content.
+
+        Test: fast/events/spatial-navigation/snav-simple-content-overflow.html
+
+        * page/SpatialNavigation.cpp:
+        (WebCore::renderRectRelativeToRootDocument):
+
+2010-04-12  Antonio Gomes  <tonikitoo@webkit.org>
+
+        Unreviewed style fix.
+
+        * page/FocusController.cpp:
+        (WebCore::updateFocusCandidateIfCloser):
+
+2010-04-08  yael aharon  <yael.aharon@nokia.com>
+
+        Reviewed by Darin Adler.
+
+        Accessibility support for progress element
+        https://bugs.webkit.org/show_bug.cgi?id=37275
+
+        Implement AccessibilityProgressIndicator to hook up progress element to accessibility framework.
+
+        Test: platform/mac/accessibility/progressbar.html
+
+        * GNUmakefile.am:
+        * WebCore.gypi:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * accessibility/AXObjectCache.cpp:
+        (WebCore::AXObjectCache::getOrCreate):
+        * accessibility/AccessibilityProgressIndicator.cpp: Added.
+        (WebCore::AccessibilityProgressIndicator::AccessibilityProgressIndicator):
+        (WebCore::AccessibilityProgressIndicator::create):
+        (WebCore::AccessibilityProgressIndicator::accessibilityIsIgnored):
+        (WebCore::AccessibilityProgressIndicator::valueForRange):
+        (WebCore::AccessibilityProgressIndicator::maxValueForRange):
+        (WebCore::AccessibilityProgressIndicator::minValueForRange):
+        (WebCore::AccessibilityProgressIndicator::element):
+        * accessibility/AccessibilityProgressIndicator.h: Added.
+        (WebCore::AccessibilityProgressIndicator::roleValue):
+        (WebCore::AccessibilityProgressIndicator::isProgressIndicator):
+        * rendering/RenderProgress.cpp:
+        (WebCore::RenderProgress::updateFromElement):
+        (WebCore::RenderProgress::progressElement):
+        * rendering/RenderProgress.h:
+
+2010-04-12  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Throwing a SECURITY_ERR when openDatabase() cannot open a database
+        for whatever reason, as required by the spec.
+        https://bugs.webkit.org/show_bug.cgi?id=33916
+
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::openDatabase):
+        * bindings/v8/custom/V8DOMWindowCustom.cpp:
+        (WebCore::V8DOMWindow::openDatabaseCallback):
+
+2010-04-12  Steve Falkenburg  <sfalken@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        WebKit should have more robust last-chance font fallback on Windows
+        https://bugs.webkit.org/show_bug.cgi?id=37473
+        <rdar://problem/7789438> Crash in FontFallbackList::determinePitch
+        <rdar://problem/7233762> Crash in FontFallbackList::fontDataAt
+        
+        Look harder for a suitable last-resort font. Previously, we checked for
+        "Times New Roman" followed by DEFAULT_GUI_FONT.
+        
+        We now look for:
+        - Typically installed Unicode-capable fonts, in order of coverage
+        - DEFAULT_GUI_FONT
+        - SPI_GETNONCLIENTMETRICS fonts
+        
+        * platform/graphics/win/FontCacheWin.cpp:
+        (WebCore::FontCache::fontDataFromDescriptionAndLogFont):
+        (WebCore::FontCache::getLastResortFallbackFont):
+
+2010-04-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37469, clean up ShadowData to be encapsulated properly.
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::CSSComputedStyleDeclaration::valueForShadow):
+        * page/animation/AnimationBase.cpp:
+        (WebCore::blendFunc):
+        (WebCore::PropertyWrapperShadow::PropertyWrapperShadow):
+        (WebCore::PropertyWrapperShadow::equals):
+        (WebCore::PropertyWrapperShadow::blend):
+        * page/mac/FrameMac.mm:
+        (WebCore::Frame::fontAttributesForSelectionStart):
+        * rendering/EllipsisBox.cpp:
+        (WebCore::EllipsisBox::paint):
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::placeBoxesHorizontally):
+        (WebCore::InlineFlowBox::computeVerticalOverflow):
+        (WebCore::InlineFlowBox::paintTextDecorations):
+        * rendering/InlineTextBox.cpp:
+        (WebCore::paintTextWithShadows):
+        (WebCore::InlineTextBox::paint):
+        (WebCore::InlineTextBox::paintDecoration):
+        * rendering/InlineTextBox.h:
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintBoxShadow):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::calculateRects):
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::adjustRectForOutlineAndShadow):
+        * rendering/SVGInlineTextBox.cpp:
+        (WebCore::SVGInlineTextBox::paintCharacters):
+        * rendering/SVGRenderSupport.cpp:
+        (WebCore::SVGRenderBase::prepareToRenderSVGContent):
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::setTextShadow):
+        (WebCore::RenderStyle::setBoxShadow):
+        (WebCore::RenderStyle::getBoxShadowExtent):
+        (WebCore::RenderStyle::getBoxShadowHorizontalExtent):
+        (WebCore::RenderStyle::getBoxShadowVerticalExtent):
+        * rendering/style/RenderStyle.h:
+        (WebCore::InheritedFlags::textShadow):
+        (WebCore::InheritedFlags::boxShadow):
+        * rendering/style/SVGRenderStyle.cpp:
+        (WebCore::getSVGShadowExtent):
+        * rendering/style/ShadowData.cpp:
+        (WebCore::ShadowData::ShadowData):
+        (WebCore::ShadowData::operator==):
+        * rendering/style/ShadowData.h:
+        (WebCore::ShadowData::ShadowData):
+        (WebCore::ShadowData::~ShadowData):
+        (WebCore::ShadowData::x):
+        (WebCore::ShadowData::y):
+        (WebCore::ShadowData::blur):
+        (WebCore::ShadowData::spread):
+        (WebCore::ShadowData::style):
+        (WebCore::ShadowData::color):
+        (WebCore::ShadowData::next):
+        (WebCore::ShadowData::setNext):
+
+2010-04-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37463, clean up NinePieceImage.
+
+        * css/CSSComputedStyleDeclaration.cpp:
+        (WebCore::valueForNinePieceImage):
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::mapNinePieceImage):
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintNinePieceImage):
+        * rendering/style/NinePieceImage.h:
+        (WebCore::NinePieceImage::setImage):
+        (WebCore::NinePieceImage::slices):
+        (WebCore::NinePieceImage::setSlices):
+        (WebCore::NinePieceImage::setHorizontalRule):
+        (WebCore::NinePieceImage::verticalRule):
+        (WebCore::NinePieceImage::setVerticalRule):
+
+2010-04-12  David Hyatt  <hyatt@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37455, :visited doesn't work with multiple classes/ids.
+
+        Added fast/history/multiple-classes-visited.html.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::SelectorChecker::checkSelector):
+
+2010-04-12  Dirk Schulze  <krit@webkit.org>
+
+        Unreviewed build fix.
+
+        Make comma/whitespace around arc flags optional in SVG path syntax
+        https://bugs.webkit.org/show_bug.cgi?id=37431
+
+        Fix the SL build.
+
+        * svg/SVGParserUtilities.cpp:
+        (WebCore::parseArcFlag):
+
+2010-04-12  Jeff Schiller  <codedread@gmail.com>
+
+        Reviewed by Dirk Schulze.
+
+        Make comma/whitespace around arc flags optional in SVG path syntax and ensure flags are
+        either 0 or 1: https://bugs.webkit.org/show_bug.cgi?id=37431
+
+        * svg/SVGParserUtilities.cpp:
+        (WebCore::parseArcFlag): function to read in a 0 or 1 for largeArcFlag and sweepFlag
+        (WebCore::SVGPathParser::parseSVG): modify/simplify arc parsing by using parseArcFlag()
+
 2010-04-12  Sheriff Bot  <webkit.review.bot@gmail.com>
 
         Unreviewed, rolling out r57468.

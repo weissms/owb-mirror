@@ -90,3 +90,8 @@ WebScriptWorld* WebScriptWorld::scriptWorldForGlobalContext(JSGlobalContextRef c
 {
     return findOrCreateWorld(currentWorld(toJS(context)));
 }
+
+void WebScriptWorld::unregisterWorld()
+{
+    m_world->unregisterWorld();
+}

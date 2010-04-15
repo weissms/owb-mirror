@@ -2570,6 +2570,7 @@ bool Node::dispatchEvent(PassRefPtr<Event> prpEvent)
     return dispatchGenericEvent(event.release());
 }
 
+#if ENABLE(INSPECTOR)
 static bool eventHasListeners(const AtomicString& eventType, DOMWindow* window, Node* node, Vector<RefPtr<ContainerNode> >& ancestors)
 {
     if (window && window->hasEventListeners(eventType))
@@ -2586,6 +2587,7 @@ static bool eventHasListeners(const AtomicString& eventType, DOMWindow* window, 
 
    return false;    
 }
+#endif
 
 bool Node::dispatchGenericEvent(PassRefPtr<Event> prpEvent)
 {

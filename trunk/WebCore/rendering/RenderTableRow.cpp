@@ -68,7 +68,7 @@ void RenderTableRow::addChild(RenderObject* child, RenderObject* beforeChild)
     if (!beforeChild && isAfterContent(lastChild()))
         beforeChild = lastChild();
 
-    bool isTableRow = node() && node()->hasTagName(trTag);
+    //bool isTableRow = node() && node()->hasTagName(trTag);
 
     if (!child->isTableCell()) {
         RenderObject* last = beforeChild;

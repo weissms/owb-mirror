@@ -72,6 +72,7 @@ committers_unable_to_review = [
     Committer("Andre Boule", "aboule@apple.com"),
     Committer("Andrew Wellington", ["andrew@webkit.org", "proton@wiretapped.net"], "proton"),
     Committer("Andras Becsi", "abecsi@webkit.org", "bbandix"),
+    Committer("Andy Estes", "aestes@apple.com", "estes"),
     Committer("Anthony Ricaud", "rik@webkit.org", "rik"),
     Committer("Anton Muhin", "antonm@chromium.org", "antonm"),
     Committer("Antonio Gomes", "tonikitoo@webkit.org", "tonikitoo"),
@@ -118,7 +119,6 @@ committers_unable_to_review = [
     Committer("John Abd-El-Malek", "jam@chromium.org", "jam"),
     Committer("John Gregg", ["johnnyg@google.com", "johnnyg@chromium.org"], "johnnyg"),
     Committer("Joost de Valk", ["joost@webkit.org", "webkit-dev@joostdevalk.nl"], "Altha"),
-    Committer("Joseph Pecoraro", "joepeck@webkit.org", "JoePeck"),
     Committer("Julie Parent", ["jparent@google.com", "jparent@chromium.org"], "jparent"),
     Committer("Julien Chaffraix", ["jchaffraix@webkit.org", "julien.chaffraix@gmail.com"]),
     Committer("Jungshik Shin", "jshin@chromium.org"),
@@ -164,7 +164,6 @@ committers_unable_to_review = [
     Committer("Yuzo Fujishima", "yuzo@google.com", "yuzo"),
     Committer("Zoltan Herczeg", "zherczeg@webkit.org", "zherczeg"),
     Committer("Zoltan Horvath", "zoltan@webkit.org", "zoltan"),
-    Committer("Andy Estes", "aestes@apple.com", "estes"),
 ]
 
 
@@ -213,6 +212,7 @@ reviewers_list = [
     Reviewer("Jian Li", "jianli@chromium.org", "jianli"),
     Reviewer("John Sullivan", "sullivan@apple.com", "sullivan"),
     Reviewer("Jon Honeycutt", "jhoneycutt@apple.com", "jhoneycutt"),
+    Reviewer("Joseph Pecoraro", "joepeck@webkit.org", "JoePeck"),
     Reviewer("Justin Garcia", "justin.garcia@apple.com", "justing"),
     Reviewer("Ken Kocienda", "kocienda@apple.com"),
     Reviewer("Kenneth Rohde Christiansen", ["kenneth@webkit.org", "kenneth.christiansen@openbossa.org"], "kenne"),

@@ -1492,14 +1492,24 @@ public:
     bool isStopped() { return m_isStopped; }
 
     /**
-     * @method whiteListAccessFromOrigin
-     * @discussion whiteListAccessFromOrigin white list access to an host matching a protocol and an host name
+     * @method addOriginAccessWhitelistEntry
+     * @discussion addOriginAccessWhitelistEntry white list access to an host matching a protocol and an host name
      * @param sourceOrigin the source host name that is given access to a destination host
      * @param destinationProtocol the destination protocol used for the request (http, ftp ...)
      * @param destinationHost the destination host
      * @param allowDestinationSubDomain whether to authorize destination sub-domains
      */
-    void whiteListAccessFromOrigin(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomain) const;
+    void addOriginAccessWhitelistEntry(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomain) const;
+
+    /**
+     * @method removeOriginAccessWhitelistEntry
+     * @discussion removeOriginAccessWhitelistEntry white list access to an host matching a protocol and an host name
+     * @param sourceOrigin the source host name that is removed access to a destination host
+     * @param destinationProtocol the destination protocol used for the request (http, ftp ...)
+     * @param destinationHost the destination host
+     * @param allowDestinationSubDomain whether to authorize destination sub-domains
+     */
+    void removeOriginAccessWhitelistEntry(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomain) const;
 
     enum WebUserScriptInjectionTime {
         WebUserScriptInjectAtDocumentStart,
@@ -1686,10 +1696,10 @@ protected:
     bool invalidateBackingStore(const WebCore::IntRect*);
 
     /**
-     * @method resetOriginAccessWhiteLists
-     * @discussion resetOriginAccessWhiteLists reset (i.e. remove all) the white list accesses set up with whiteListAccessFromOrigin
+     * @method resetOriginAccessWhitelists
+     * @discussion resetOriginAccessWhitelists reset (i.e. remove all) the white list accesses set up with addOriginAccessWhitelistEntry
      */
-    void resetOriginAccessWhiteLists() const;
+    void resetOriginAccessWhitelists() const;
 
     /**
      * @method addVisitedLinks

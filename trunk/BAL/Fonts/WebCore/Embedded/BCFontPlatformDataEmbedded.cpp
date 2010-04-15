@@ -35,6 +35,40 @@
 #include "PlatformString.h"
 #include "fonts/pixelfont.h"
 
+
+static PixelFontType NormalPixelFont = {
+  7,
+  13,
+  font7x13_normal,
+};
+
+static PixelFontType NormalBoldPixelFont = {
+  7,
+  13,
+  font7x13_bold,
+};
+
+static PixelFontType NormalItalicPixelFont = {
+  7,
+  13,
+  font7x13_italic,
+};
+
+/*
+static PixelFontType SmallPixelFont = {
+  5,
+  7,
+  font5x7_normal,
+};
+
+static PixelFontType BigPixelFont = {
+  10,
+  20,
+  font10x20_normal,
+};
+*/
+
+
 namespace WebCore {
 
 FontPlatformData::FontPlatformData(WTF::HashTableDeletedValueType)

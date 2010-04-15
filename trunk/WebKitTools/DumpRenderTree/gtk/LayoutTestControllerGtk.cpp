@@ -255,7 +255,7 @@ void LayoutTestController::setScrollbarPolicy(JSStringRef orientation, JSStringR
     // FIXME: implement
 }
 
-void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, JSStringRef protocol, JSStringRef host, bool includeSubdomains)
+void LayoutTestController::addOriginAccessWhitelistEntry(JSStringRef sourceOrigin, JSStringRef protocol, JSStringRef host, bool includeSubdomains)
 {
     gchar* sourceOriginGChar = JSStringCopyUTF8CString(sourceOrigin);
     gchar* protocolGChar = JSStringCopyUTF8CString(protocol);
@@ -264,6 +264,11 @@ void LayoutTestController::whiteListAccessFromOrigin(JSStringRef sourceOrigin, J
     g_free(sourceOriginGChar);
     g_free(protocolGChar);
     g_free(hostGChar);
+}
+
+void LayoutTestController::removeOriginAccessWhitelistEntry(JSStringRef sourceOrigin, JSStringRef protocol, JSStringRef host, bool includeSubdomains)
+{
+    // FIXME: implement
 }
 
 void LayoutTestController::setMainFrameIsFirstResponder(bool flag)

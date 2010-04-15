@@ -3310,14 +3310,19 @@ bool WebView::invalidateBackingStore(const WebCore::IntRect* rect)
 */
 }
 
-void WebView::whiteListAccessFromOrigin(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomains) const
+void WebView::addOriginAccessWhitelistEntry(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubDomains) const
 {
-    SecurityOrigin::whiteListAccessFromOrigin(*SecurityOrigin::createFromString(sourceOrigin), destinationProtocol, destinationHost, allowDestinationSubDomains);
+    SecurityOrigin::addOriginAccessWhitelistEntry(*SecurityOrigin::createFromString(sourceOrigin), destinationProtocol, destinationHost, allowDestinationSubDomains);
 }
 
-void WebView::resetOriginAccessWhiteLists() const
+void WebView::removeOriginAccessWhitelistEntry(const char* sourceOrigin, const char* destinationProtocol, const char* destinationHost, bool allowDestinationSubdomains) const
 {
-    SecurityOrigin::resetOriginAccessWhiteLists();
+    SecurityOrigin::removeOriginAccessWhitelistEntry(*SecurityOrigin::createFromString(sourceOrigin), destinationProtocol, destinationHost, allowDestinationSubdomains);
+}
+
+void WebView::resetOriginAccessWhitelists() const
+{
+    SecurityOrigin::resetOriginAccessWhitelists();
 }
 
 void WebView::setHistoryDelegate(TransferSharedPtr<WebHistoryDelegate> historyDelegate)

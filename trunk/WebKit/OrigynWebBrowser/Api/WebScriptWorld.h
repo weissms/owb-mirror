@@ -47,6 +47,8 @@ public:
 
     WebCore::DOMWrapperWorld* world() const { return m_world; }
 
+    void unregisterWorld();
+
 private:
     static WebScriptWorld* createInstance(WebCore::DOMWrapperWorld* world);
     WebScriptWorld(WebCore::DOMWrapperWorld*);

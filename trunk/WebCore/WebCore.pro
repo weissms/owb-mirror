@@ -261,6 +261,7 @@ SOURCES += \
     accessibility/AccessibilityList.cpp \    
     accessibility/AccessibilityListBox.cpp \    
     accessibility/AccessibilityListBoxOption.cpp \    
+    accessibility/AccessibilityProgressIndicator.cpp \    
     accessibility/AccessibilityRenderObject.cpp \    
     accessibility/AccessibilityScrollbar.cpp \
     accessibility/AccessibilitySlider.cpp \    
@@ -341,6 +342,7 @@ SOURCES += \
     bindings/js/JSNodeIteratorCustom.cpp \
     bindings/js/JSNodeListCustom.cpp \
     bindings/js/JSOptionConstructor.cpp \
+    bindings/js/JSScriptProfileNodeCustom.cpp \
     bindings/js/JSStyleSheetCustom.cpp \
     bindings/js/JSStyleSheetListCustom.cpp \
     bindings/js/JSTextCustom.cpp \
@@ -364,10 +366,6 @@ SOURCES += \
     bindings/js/JSPluginElementFunctions.cpp \
     bindings/js/JSPopStateEventCustom.cpp \
     bindings/js/JSWorkerContextErrorHandler.cpp \
-    bindings/js/JavaScriptProfile.h \
-    bindings/js/JavaScriptProfileNode.h \
-    bindings/js/JavaScriptProfile.cpp \
-    bindings/js/JavaScriptProfileNode.cpp \
     bindings/js/ScriptArray.cpp \
     bindings/js/ScriptCachedFrameData.cpp \
     bindings/js/ScriptCallFrame.cpp \
@@ -377,7 +375,6 @@ SOURCES += \
     bindings/js/ScriptEventListener.cpp \
     bindings/js/ScriptFunctionCall.cpp \
     bindings/js/ScriptObject.cpp \
-    bindings/js/ScriptProfiler.cpp \
     bindings/js/ScriptState.cpp \
     bindings/js/ScriptValue.cpp \
     bindings/js/ScheduledAction.cpp \
@@ -1018,6 +1015,7 @@ HEADERS += \
     accessibility/AccessibilityList.h \
     accessibility/AccessibilityMediaControls.h \
     accessibility/AccessibilityObject.h \
+    accessibility/AccessibilityProgressIndicator.h \
     accessibility/AccessibilityRenderObject.h \
     accessibility/AccessibilityScrollbar.h \
     accessibility/AccessibilitySlider.h \
@@ -1088,6 +1086,9 @@ HEADERS += \
     bindings/js/ScriptFunctionCall.h \
     bindings/js/ScriptGCEvent.h \
     bindings/js/ScriptObject.h \
+    bindings/js/ScriptProfile.h \
+    bindings/js/ScriptProfileNode.h \
+    bindings/js/ScriptProfiler.h \
     bindings/js/ScriptSourceCode.h \
     bindings/js/ScriptSourceProvider.h \
     bindings/js/ScriptState.h \
@@ -2726,6 +2727,7 @@ contains(DEFINES, ENABLE_SVG=1) {
 contains(DEFINES, ENABLE_JAVASCRIPT_DEBUGGER=1) {
     SOURCES += \
         bindings/js/JSJavaScriptCallFrameCustom.cpp \
+        bindings/js/ScriptProfiler.cpp \
         inspector/JavaScriptCallFrame.cpp \
 }
 
