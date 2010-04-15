@@ -1,3 +1,10 @@
+2010-04-15  Gilles Bertal  <gbertal@connected-labs.com>
+
+        JIT-specific flags cleanup: removed flags definitions which are
+        set as needed/supported on a per platform/CPU-arch. basis within Platform.h
+
+        * cmake/AddGlobalCompilerFlags.cmake:
+
 2010-03-19  Mario Bensi  <mbensi@connected-labs.com>
 
         fix jit on x86_64
