@@ -15,6 +15,7 @@ endforeach(files)
 
 include_directories(
     ${API_INCLUDE_DIRS}
+    ${BASE_INCLUDE_DIRS}
     ${EXTERNAL_DEPS_INCLUDE_DIRS}
 )
 #FIXME
