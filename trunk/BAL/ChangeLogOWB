@@ -1,3 +1,9 @@
+2010-04-15  Olivier DOLE  <odole@connected-labs.com>
+
+        Fix in drt.py for DAE tests.
+
+        * Scripts/Drt/drt.py:
+
 2010-04-14  Olivier DOLE  <odole@sand-labs.org>
 
         Reviewed by Mario BENSI.
