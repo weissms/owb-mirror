@@ -80,6 +80,7 @@ list(APPEND WEBCORE_SRC
     dom/UIEvent.cpp
     dom/UIEventWithKeyState.cpp
     dom/UserGestureIndicator.cpp
+    dom/ViewportArguments.cpp
     dom/WebKitAnimationEvent.cpp
     dom/WebKitTransitionEvent.cpp
     dom/WheelEvent.cpp

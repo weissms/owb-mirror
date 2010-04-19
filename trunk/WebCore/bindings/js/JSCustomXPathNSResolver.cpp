@@ -104,7 +104,7 @@ String JSCustomXPathNSResolver::lookupNamespaceURI(const String& prefix)
         reportCurrentException(exec);
     else {
         if (!retval.isUndefinedOrNull())
-            result = retval.toString(exec);
+            result = ustringToString(retval.toString(exec));
     }
 
     Document::updateStyleForAllDocuments();

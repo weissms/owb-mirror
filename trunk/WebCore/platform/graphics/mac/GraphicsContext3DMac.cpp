@@ -75,14 +75,16 @@ static void setPixelFormat(Vector<CGLPixelFormatAttribute>& attribs, int colorBi
     attribs.append(static_cast<CGLPixelFormatAttribute>(0));
 }
 
-PassOwnPtr<GraphicsContext3D> GraphicsContext3D::create(GraphicsContext3D::Attributes attrs)
+PassOwnPtr<GraphicsContext3D> GraphicsContext3D::create(GraphicsContext3D::Attributes attrs, HostWindow* hostWindow)
 {
-    OwnPtr<GraphicsContext3D> context(new GraphicsContext3D(attrs));
+    OwnPtr<GraphicsContext3D> context(new GraphicsContext3D(attrs, hostWindow));
     return context->m_contextObj ? context.release() : 0;
 }
 
-GraphicsContext3D::GraphicsContext3D(GraphicsContext3D::Attributes attrs)
-    : m_attrs(attrs)
+GraphicsContext3D::GraphicsContext3D(GraphicsContext3D::Attributes attrs, HostWindow* hostWindow)
+    : m_currentWidth(0)
+    , m_currentHeight(0)
+    , m_attrs(attrs)
     , m_contextObj(0)
     , m_texture(0)
     , m_fbo(0)
@@ -92,6 +94,8 @@ GraphicsContext3D::GraphicsContext3D(GraphicsContext3D::Attributes attrs)
     , m_multisampleDepthStencilBuffer(0)
     , m_multisampleColorBuffer(0)
 {
+    UNUSED_PARAM(hostWindow);
+
     Vector<CGLPixelFormatAttribute> attribs;
     CGLPixelFormatObj pixelFormatObj = 0;
     GLint numPixelFormats = 0;
@@ -168,6 +172,7 @@ GraphicsContext3D::GraphicsContext3D(GraphicsContext3D::Attributes attrs)
             ::glGenRenderbuffersEXT(1, &m_multisampleDepthStencilBuffer);
     }
     
+    ::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     ::glClearColor(0, 0, 0, 0);
 }
 
@@ -340,8 +345,8 @@ void GraphicsContext3D::prepareTexture()
         ::glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_fbo);
         ::glBlitFramebufferEXT(0, 0, m_currentWidth, m_currentHeight, 0, 0, m_currentWidth, m_currentHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
         ::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_boundFBO);
-        ::glFinish();
     }
+    ::glFinish();
 }
 
 void GraphicsContext3D::activeTexture(unsigned long texture)

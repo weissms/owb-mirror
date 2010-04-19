@@ -43,9 +43,11 @@ WebCore/dom/KeyboardEvent.h
 WebCore/dom/KeyboardEvent.idl
 WebCore/dom/ScriptExecutionContext.cpp
 WebCore/dom/make_names.pl
+WebCore/dom/ViewportArguments.cpp
 WebCore/editing/Editor.cpp
 WebCore/editing/TextIterator.cpp
 WebCore/editing/gtk/SelectionControllerGtk.cpp BAL/Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp
+WebCore/html/FileStreamProxy.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLFormElement.cpp
 WebCore/html/HTMLInputElement.cpp
@@ -65,6 +67,7 @@ WebCore/loader/ThreadableLoader.cpp
 WebCore/loader/ResourceLoader.cpp
 WebCore/loader/ResourceLoader.h
 WebCore/loader/icon/IconDatabase.cpp
+WebCore/mathml/RenderMathMLOperator.cpp
 WebCore/notifications/Notification.cpp
 WebCore/notifications/NotificationCenter.cpp
 WebCore/notifications/NotificationCenter.h

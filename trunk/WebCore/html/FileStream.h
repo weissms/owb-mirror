@@ -53,6 +53,7 @@ public:
     virtual ~FileStream();
 
     void start();
+    void stop();
 
     void openForRead(Blob*);
     void openForWrite(const String& path);

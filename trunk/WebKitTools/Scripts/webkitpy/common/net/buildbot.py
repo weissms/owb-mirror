@@ -110,6 +110,8 @@ class Builder(object):
             # FIXME: This method is horribly slow due to the huge network load.
             # FIXME: This is a poor way to do revision -> build mapping.
             # Better would be to ask buildbot through some sort of API.
+            print "Loading revision/build list from %s." % self.results_url()
+            print "This may take a while..."
             result_files = self._buildbot._fetch_twisted_directory_listing(self.results_url())
         except urllib2.HTTPError, error:
             if error.code != 404:
@@ -307,9 +309,9 @@ class BuildBot(object):
         self.buildbot_host = host
         self._builder_by_name = {}
 
-        # If any Leopard builder/tester, Windows builder or Chromium builder is
-        # red we should not be landing patches.  Other builders should be added
-        # to this list once they are known to be reliable.
+        # If any core builder is red we should not be landing patches.  Other
+        # builders should be added to this list once they are known to be
+        # reliable.
         # See https://bugs.webkit.org/show_bug.cgi?id=33296 and related bugs.
         self.core_builder_names_regexps = [
             "SnowLeopard.*Build",
@@ -317,6 +319,8 @@ class BuildBot(object):
             "Leopard",
             "Tiger",
             "Windows.*Build",
+            "Windows.*Debug.*Test",
+            "GTK",
             "Qt",
             "Chromium",
         ]

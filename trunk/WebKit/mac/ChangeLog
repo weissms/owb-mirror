@@ -1,3 +1,96 @@
+2010-04-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig & Oliver Hunt.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37675
+        Remove casts/constructors to/from JSC::UString type from WebCore::String
+        
+        WebCore's strings should not know about JSC::UString, this should be abstracted
+        away in the bindings.  Add explicit conversion methods rather than relying on
+        overloaded cast operators / constructors being implicitly called.
+
+        This patch only changes the class String, once this has landed StringImpl, and
+        hopefully AtomicString too, should follow suit.
+
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (identifierFromIdentifierRep):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::addValueToArray):
+        (WebKit::NetscapePluginInstanceProxy::moveGlobalExceptionToExecState):
+        * Plugins/Hosted/ProxyInstance.mm:
+        (WebKit::ProxyInstance::getPropertyNames):
+        * WebView/WebFrame.mm:
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:forceUserGesture:]):
+        (-[WebFrame _stringByEvaluatingJavaScriptFromString:withGlobalObject:inScriptWorld:]):
+        * WebView/WebScriptDebugDelegate.mm:
+        (-[WebScriptCallFrame evaluateWebScript:]):
+        * WebView/WebScriptDebugger.mm:
+        (toNSURL):
+        * WebView/WebView.mm:
+        (aeDescFromJSValue):
+
+2010-04-16  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by John Sullivan.
+
+        Expose the extremal shrink factors WebHTMLView uses when shrinking pages to fit in the
+        printing width as SPI.
+
+        * WebView/WebHTMLView.mm:
+        Replaced two macros with constants.
+        (-[WebHTMLView _beginPrintModeWithPageWidth:shrinkToFit:]): Changed to use the constants.
+        (-[WebHTMLView _scaleFactorForPrintOperation:]): Ditto.
+        * WebView/WebHTMLViewPrivate.h: Declared _WebHTMLViewPrintingMinimumShrinkFactor and
+        _WebHTMLViewPrintingMaximumShrinkFactor.
+
+2010-04-15  Mark Rowe  <mrowe@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/7870651> WebDynamicScrollBarsView.h generates compile errors when included in plain Objective-C files.
+
+        * WebView/WebDynamicScrollBarsView.h:
+
+2010-04-15  Adam Roben  <aroben@apple.com>
+
+        Export WebUserContentURLPattern from WebKit
+
+        Rubber-stamped by Mark Rowe.
+
+        * WebKit.exp:
+
+2010-04-15  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Made consecutive calls to -[WebHTMLView _beginPrintModeWithPageWidth:shrinkToFit:] work
+        without intermediate calls -[WebHTMLView _endPrintMode].
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView _setPrinting:minimumPageWidth:maximumPageWidth:adjustViewSize:]):
+
+2010-04-15  Adam Roben  <aroben@apple.com>
+
+        Expose UserContentURLPattern as WebKit SPI
+
+        Fixes <http://webkit.org/b/37354>.
+
+        Reviewed by Tim Hatcher.
+
+        * Misc/WebUserContentURLPattern.h: Added.
+
+        * Misc/WebUserContentURLPattern.mm: Added.
+        (-[WebUserContentURLPattern initWithPatternString:]): Initialize
+        _private and then parse the passed-in string into a
+        UserContentURLPattern.
+        (-[WebUserContentURLPattern dealloc]): Release _private.
+
+        (-[WebUserContentURLPattern isValid]):
+        (-[WebUserContentURLPattern scheme]):
+        (-[WebUserContentURLPattern host]):
+        (-[WebUserContentURLPattern matchesSubdomains]):
+        Call through to UserContentURLPattern.
+
 2010-04-15  Geoffrey Garen  <ggaren@apple.com>
 
         Reviewed by Oliver Hunt.

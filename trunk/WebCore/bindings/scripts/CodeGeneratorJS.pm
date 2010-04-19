@@ -1509,12 +1509,21 @@ sub GenerateImplementation
                         } elsif ($type eq "EventListener") {
                             $implIncludes{"JSEventListener.h"} = 1;
                             push(@implContent, "    UNUSED_PARAM(exec);\n");
+                            my $windowEventListener = $attribute->signature->extendedAttributes->{"WindowEventListener"};
+                            if ($windowEventListener) {
+                                push(@implContent, "    ${className}* castedThis = static_cast<${className}*>(thisObject);\n");
+                                push(@implContent, "    JSDOMGlobalObject* globalObject = castedThis->globalObject();\n");
+                            }
                             push(@implContent, "    $implClassName* imp = static_cast<$implClassName*>(static_cast<$className*>(thisObject)->impl());\n");
                             if ($interfaceName eq "WorkerContext" and $name eq "onerror") {
                                 $implIncludes{"JSWorkerContextErrorHandler.h"} = 1;
                                 push(@implContent, "    imp->set$implSetterFunctionName(createJSWorkerContextErrorHandler(exec, value, thisObject));\n");
                             } else {
-                                push(@implContent, "    imp->set$implSetterFunctionName(createJSAttributeEventListener(exec, value, thisObject));\n");
+                                if ($windowEventListener) {
+                                    push(@implContent, "    imp->set$implSetterFunctionName(createJSAttributeEventListener(exec, value, globalObject));\n");
+                                } else {
+                                    push(@implContent, "    imp->set$implSetterFunctionName(createJSAttributeEventListener(exec, value, thisObject));\n");
+                                }
                             }
                         } elsif ($attribute->signature->type =~ /Constructor$/) {
                             my $constructorType = $attribute->signature->type;
@@ -1876,7 +1885,7 @@ sub GetNativeTypeFromSignature
 
 my %nativeType = (
     "CompareHow" => "Range::CompareHow",
-    "DOMString" => "const UString&",
+    "DOMString" => "const String&",
     "DOMObject" => "ScriptValue",
     "NodeFilter" => "RefPtr<NodeFilter>",
     "SVGAngle" => "SVGAngle",
@@ -1928,7 +1937,7 @@ sub JSValueToNative
     if ($type eq "DOMString") {
         return "valueToStringWithNullCheck(exec, $value)" if $signature->extendedAttributes->{"ConvertNullToNullString"};
         return "valueToStringWithUndefinedOrNullCheck(exec, $value)" if $signature->extendedAttributes->{"ConvertUndefinedOrNullToNullString"};
-        return "$value.toString(exec)";
+        return "ustringToString($value.toString(exec))";
     }
 
     if ($type eq "DOMObject") {

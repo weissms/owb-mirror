@@ -1,3 +1,303 @@
+2010-04-19  Vangelis Kokkevis  <vangelis@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Adding the implementation of GLES2Context class which provides WebCore access to a GL ES context.
+        https://bugs.webkit.org/show_bug.cgi?id=37541
+
+        * WebKit.gyp:
+        * public/WebGLES2Context.h: Added.
+        (WebKit::WebGLES2Context::~WebGLES2Context):
+        * src/GLES2Context.cpp: Added.
+        (WebCore::GLES2ContextInternal::GLES2ContextInternal):
+        (WebCore::GLES2ContextInternal::~GLES2ContextInternal):
+        (WebCore::GLES2ContextInternal::getWebGLES2Context):
+        (WebCore::GLES2ContextInternal::initialize):
+        (WebCore::GLES2Context::create):
+        (WebCore::GLES2Context::~GLES2Context):
+        (WebCore::GLES2Context::initialize):
+        (WebCore::GLES2Context::makeCurrent):
+        (WebCore::GLES2Context::destroy):
+        (WebCore::GLES2Context::swapBuffers):
+
+2010-04-16  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Get rid of the UNUSED_PARAM macro in GraphicsContext3D.cpp.
+        https://bugs.webkit.org/show_bug.cgi?id=37733
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3D::GraphicsContext3D):
+
+2010-04-16  Dumitru Daniliuc  <dumi@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        Changing the return type of WebSecurityOrigin::createFromDatabaseIdentifier().
+        https://bugs.webkit.org/show_bug.cgi?id=34466
+
+        Changing the return type of
+        WebSecurityOrigin::createFromDatabaseIdentifier() from
+        WebSecurityOrigin* to WebSecurityOrigin, to make it more
+        consistent with the other WebSecurityOrigin methods.
+
+        * public/WebSecurityOrigin.h:
+        * src/WebDatabase.cpp:
+        (WebKit::WebDatabase::closeDatabaseImmediately):
+        * src/WebSecurityOrigin.cpp:
+        (WebKit::WebSecurityOrigin::createFromDatabaseIdentifier):
+
+2010-04-16  Dmitry Titov  <dimich@chromium.org>
+
+        Reviewed by Yury Semikhatsky.
+
+        [v8] In Workers, script errors right after close() are not delivered to the Worker.onerror
+        https://bugs.webkit.org/show_bug.cgi?id=37691
+
+        * src/WebWorkerClientImpl.cpp:
+        (WebKit::WebWorkerClientImpl::createWorkerContextProxy): Don't need to pull V8 proxy to retrieve current WorkerContext.
+
+2010-04-16  Albert J. Wong  <ajwong@chromium.org>
+
+        Not reviewed. Build fix.
+
+        [chromium] Compile fix. Missing include header, and missing type conversion.
+
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3DInternal::beginPaint):
+
+2010-04-16  Jarkko Sakkinen  <jarkko.j.sakkinen@gmail.com>
+ 
+        Reviewed by Simon Hausmann.
+ 
+        [Qt] WebGL is not visible when QGLWidget viewport is used
+        https://bugs.webkit.org/show_bug.cgi?id=37070
+ 
+        Added HostWindow parameter to the constructor of GraphicsContext3D.
+        Shared OpenGL context is initialized with parent QGLWidget.
+ 
+        * src/GraphicsContext3D.cpp:
+        (WebCore::GraphicsContext3D::GraphicsContext3D):
+
+2010-04-16  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Jian Li.
+
+        [chromium] WebKit::WebURLResponse::addHTTPHeaderField will crash if response is invalid UTF-8
+        https://bugs.webkit.org/show_bug.cgi?id=37687
+
+        * src/WebURLResponse.cpp:
+        (WebKit::WebURLResponse::addHTTPHeaderField): ignore if name or value is null string.
+
+2010-04-16  Jay Civelli  <jcivelli@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] Select popups would assert when destroyed.
+        Also adding unit-tests for the select popup code.
+        https://bugs.webkit.org/show_bug.cgi?id=37436
+
+        * WebKit.gyp:
+        * src/WebViewImpl.h:
+        (WebKit::WebViewImpl::selectPopup):
+        * tests/PopupMenuTest.cpp: Added.
+
+2010-04-16  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] build DRT on Linux
+        https://bugs.webkit.org/show_bug.cgi?id=37690
+
+        * DEPS: Need to roll deps to remove a dependency on src/chrome
+        * gyp_webkit: generate makefiles for DRT.gyp on Linux
+
+2010-04-15  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        build DRT on chromium mac
+        https://bugs.webkit.org/show_bug.cgi?id=37639
+
+        * gyp_webkit: generate build files for DRT on mac
+
+2010-04-15  Yury Semikhatsky  <yurys@google.com>
+
+        Reviewed by Pavel Feldman.
+
+        Support basic debugging capabilities including step in/over/out in v8
+        implementation of ScriptDebugServer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37604
+
+        * WebKit.gypi:
+        * src/DebuggerAgent.h:
+        * src/DebuggerAgentImpl.cpp:
+        (WebKit::DebuggerAgentImpl::setDebuggerScriptSource):
+        * src/DebuggerAgentImpl.h:
+        * src/DebuggerAgentManager.cpp:
+        (WebKit::DebuggerAgentManager::hostDispatchHandler):
+        (WebKit::DebuggerAgentManager::debugAttach):
+        (WebKit::DebuggerAgentManager::debugDetach):
+        (WebKit::DebuggerAgentManager::setMessageLoopDispatchHandler):
+        * src/DebuggerAgentManager.h:
+        * src/InspectorFrontendClientImpl.cpp:
+        (WebKit::InspectorFrontendClientImpl::windowObjectCleared):
+        * src/js/DebuggerScript.js: Added.
+        (debuggerScriptConstructor.DebuggerScript.getAfterCompileScript):
+        (debuggerScriptConstructor.DebuggerScript.getScripts):
+        (debuggerScriptConstructor.DebuggerScript._formatScript):
+        (debuggerScriptConstructor.DebuggerScript.setBreakpoint):
+        (debuggerScriptConstructor.DebuggerScript.removeBreakpoint):
+        (debuggerScriptConstructor.DebuggerScript.currentCallFrame):
+        (debuggerScriptConstructor.DebuggerScript.stepIntoStatement):
+        (debuggerScriptConstructor.DebuggerScript.stepOverStatement):
+        (debuggerScriptConstructor.DebuggerScript.stepOutOfFunction):
+        (debuggerScriptConstructor.DebuggerScript.clearBreakpoints):
+        (debuggerScriptConstructor.DebuggerScript.setBreakpointsActivated):
+        (debuggerScriptConstructor.DebuggerScript._frameMirrorToJSCallFrame):
+        (debuggerScriptConstructor.DebuggerScript._webkitToV8LineNumber):
+        (debuggerScriptConstructor.DebuggerScript._v8ToWwebkitLineNumber):
+        (debuggerScriptConstructor):
+        * src/js/DevTools.js:
+        (WebInspector.loaded):
+        (.):
+        ():
+        * src/js/DevToolsHostStub.js:
+        (.RemoteDebuggerAgentStub.prototype.setDebuggerScriptSource):
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+
+2010-04-15  Matt Perry  <mpcomplete@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Implement layoutTestController's addUserStyleSheet and
+        setAuthorAndUserStylesEnabled on Chromium port.
+        https://bugs.webkit.org/show_bug.cgi?id=37595
+
+        * public/WebSettings.h:
+        * public/WebView.h:
+        * src/WebSettingsImpl.cpp:
+        (WebKit::WebSettingsImpl::setAuthorAndUserStylesEnabled):
+        * src/WebSettingsImpl.h:
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::addUserStyleSheet):
+        * src/WebViewImpl.h:
+
+2010-04-15  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Must enable GL_VERTEX_PROGRAM_POINT_SIZE during initialization
+        https://bugs.webkit.org/show_bug.cgi?id=37178
+
+        * src/WebGraphicsContext3DDefaultImpl.cpp: Enable GL_VERTEX_PROGRAM_POINT_SIZE during initialization.
+        (WebKit::WebGraphicsContext3DDefaultImpl::initialize):
+
+2010-04-15  Albert J. Wong  <ajwong@chromium.org>
+
+        Unreviewed, rolling out r57660.
+        http://trac.webkit.org/changeset/57660
+        https://bugs.webkit.org/show_bug.cgi?id=37604
+
+        Broke a large number of inspector layout tests in chromium.
+
+        * WebKit.gypi:
+        * src/DebuggerAgent.h:
+        * src/DebuggerAgentImpl.cpp:
+        * src/DebuggerAgentImpl.h:
+        * src/DebuggerAgentManager.cpp:
+        (WebKit::DebuggerAgentManager::debugAttach):
+        (WebKit::DebuggerAgentManager::debugDetach):
+        (WebKit::DebuggerAgentManager::setMessageLoopDispatchHandler):
+        * src/DebuggerAgentManager.h:
+        * src/InspectorFrontendClientImpl.cpp:
+        (WebKit::InspectorFrontendClientImpl::windowObjectCleared):
+        * src/js/DebuggerScript.js: Removed.
+        * src/js/DevTools.js:
+        (WebInspector.loaded):
+        (WebInspector.UnresolvedPropertyValue):
+        ():
+        * src/js/DevToolsHostStub.js:
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+
+2010-04-15  Yury Semikhatsky  <yurys@google.com>
+
+        Reviewed by Pavel Feldman.
+
+        Support basic debugging capabilities including step in/over/out in v8
+        implementation of ScriptDebugServer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37604
+
+        * WebKit.gypi:
+        * src/DebuggerAgent.h:
+        * src/DebuggerAgentImpl.cpp:
+        (WebKit::DebuggerAgentImpl::setDebuggerScriptSource):
+        * src/DebuggerAgentImpl.h:
+        * src/DebuggerAgentManager.cpp:
+        (WebKit::DebuggerAgentManager::hostDispatchHandler):
+        (WebKit::DebuggerAgentManager::debugAttach):
+        (WebKit::DebuggerAgentManager::debugDetach):
+        (WebKit::DebuggerAgentManager::setMessageLoopDispatchHandler):
+        * src/DebuggerAgentManager.h:
+        * src/InspectorFrontendClientImpl.cpp:
+        (WebKit::InspectorFrontendClientImpl::windowObjectCleared):
+        * src/js/DebuggerScript.js: Added.
+        (debuggerScriptConstructor.DebuggerScript.getAfterCompileScript):
+        (debuggerScriptConstructor.DebuggerScript.getScripts):
+        (debuggerScriptConstructor.DebuggerScript._formatScript):
+        (debuggerScriptConstructor.DebuggerScript.setBreakpoint):
+        (debuggerScriptConstructor.DebuggerScript.removeBreakpoint):
+        (debuggerScriptConstructor.DebuggerScript.currentCallFrame):
+        (debuggerScriptConstructor.DebuggerScript.stepIntoStatement):
+        (debuggerScriptConstructor.DebuggerScript.stepOverStatement):
+        (debuggerScriptConstructor.DebuggerScript.stepOutOfFunction):
+        (debuggerScriptConstructor.DebuggerScript.clearBreakpoints):
+        (debuggerScriptConstructor.DebuggerScript.setBreakpointsActivated):
+        (debuggerScriptConstructor.DebuggerScript._frameMirrorToJSCallFrame):
+        (debuggerScriptConstructor.DebuggerScript._webkitToV8LineNumber):
+        (debuggerScriptConstructor.DebuggerScript._v8ToWwebkitLineNumber):
+        (debuggerScriptConstructor):
+        * src/js/DevTools.js:
+        (WebInspector.loaded):
+        (.):
+        ():
+        * src/js/DevToolsHostStub.js:
+        (.RemoteDebuggerAgentStub.prototype.setDebuggerScriptSource):
+        * src/js/InspectorControllerImpl.js:
+        (devtools.InspectorBackendImpl):
+
+2010-04-15  Ben Murdoch  <benm@google.com>
+
+        Unreviewed, rolling out r57652.
+        http://trac.webkit.org/changeset/57652
+        https://bugs.webkit.org/show_bug.cgi?id=37609
+
+        Caused a build break on Chromium Mac and Layout Test fail on
+        Qt
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::toPlatformTouchPointState):
+
+2010-04-14  Ben Murdoch  <benm@google.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        The TouchStationary state of WebCore::PlatformTouchPoint is not
+        handled inside the touch event handler.
+        https://bugs.webkit.org/show_bug.cgi?id=37609
+
+        After discussions at the WebKit contributors meeting, we decided that
+        this is a currently unused state without a good future use case in the
+        Touch API and thus decided to remove it. This patch actions that decision.
+
+        * src/WebInputEventConversion.cpp:
+        (WebKit::toPlatformTouchPointState): Remove TouchStationary.
+
 2010-04-15  Tony Chang  <tony@chromium.org>
 
         Reviewed by Darin Fisher.

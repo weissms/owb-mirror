@@ -148,7 +148,7 @@ public:
     // popups on other platforms.
     void show(const IntRect&, FrameView*, int index);
 
-    // Hide the popup.
+    // Hides the popup.
     void hidePopup();
 
     // The popup was hidden.
@@ -194,6 +194,8 @@ private:
 
     PopupContainerSettings m_settings;
     PopupType m_popupType;
+    // Whether the popup is currently open.
+    bool m_popupOpen;
 };
 
 } // namespace WebCore

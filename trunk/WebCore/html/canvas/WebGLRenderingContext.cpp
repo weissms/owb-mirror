@@ -30,6 +30,7 @@
 #include "WebGLRenderingContext.h"
 
 #include "CanvasPixelArray.h"
+#include "FrameView.h"
 #include "HTMLCanvasElement.h"
 #include "HTMLImageElement.h"
 #include "ImageBuffer.h"
@@ -73,7 +74,9 @@ private:
 
 PassOwnPtr<WebGLRenderingContext> WebGLRenderingContext::create(HTMLCanvasElement* canvas, WebGLContextAttributes* attrs)
 {
-    OwnPtr<GraphicsContext3D> context(GraphicsContext3D::create(attrs->attributes()));
+    HostWindow* hostWindow = canvas->document()->view()->root()->hostWindow();
+    OwnPtr<GraphicsContext3D> context(GraphicsContext3D::create(attrs->attributes(), hostWindow));
+
     if (!context)
         return 0;
         
@@ -693,12 +696,20 @@ bool WebGLRenderingContext::validateIndexArrayPrecise(unsigned long count, unsig
 
 bool WebGLRenderingContext::validateRenderingState(long numElementsRequired)
 {
+    if (!m_currentProgram)
+        return false;
+
     // Look in each enabled vertex attrib and find the smallest buffer size
     long smallestNumElements = LONG_MAX;
-    for (unsigned i = 0; i < m_vertexAttribState.size(); ++i) {
-        const VertexAttribState& state = m_vertexAttribState[i];
-        if (state.enabled && state.numElements < smallestNumElements)
-            smallestNumElements = state.numElements;
+    int numActiveAttribLocations = m_currentProgram->numActiveAttribLocations();
+    int numAttribStates = static_cast<int>(m_vertexAttribState.size());
+    for (int i = 0; i < numActiveAttribLocations; ++i) {
+        int loc = m_currentProgram->getActiveAttribLocation(i);
+        if (loc >=0 && loc < numAttribStates) {
+            const VertexAttribState& state = m_vertexAttribState[loc];
+            if (state.enabled && state.numElements < smallestNumElements)
+                smallestNumElements = state.numElements;
+        }
     }
     
     if (smallestNumElements == LONG_MAX)
@@ -1569,6 +1580,7 @@ void WebGLRenderingContext::linkProgram(WebGLProgram* program, ExceptionCode& ec
     if (!validateWebGLObject(program))
         return;
     m_context->linkProgram(program);
+    program->cacheActiveAttribLocations();
     cleanupAfterGraphicsCall(false);
 }
 

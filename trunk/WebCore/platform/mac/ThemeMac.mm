@@ -213,6 +213,7 @@ static void paintCheckbox(ControlStates states, GraphicsContext* context, const 
 
     // Determine the width and height needed for the control and prepare the cell for painting.
     NSButtonCell *checkboxCell = checkbox(states, zoomedRect, zoomFactor);
+    LocalCurrentGraphicsContext localContext(context);
 
     context->save();
 
@@ -230,7 +231,7 @@ static void paintCheckbox(ControlStates states, GraphicsContext* context, const 
         context->translate(-inflatedRect.x(), -inflatedRect.y());
     }
     
-    [checkboxCell drawWithFrame:NSRect(inflatedRect) inView:scrollView->documentView()];
+    [checkboxCell drawWithFrame:NSRect(inflatedRect) inView:ThemeMac::ensuredView(scrollView)];
     [checkboxCell setControlView:nil];
 
     context->restore();
@@ -290,6 +291,7 @@ static void paintRadio(ControlStates states, GraphicsContext* context, const Int
 {
     // Determine the width and height needed for the control and prepare the cell for painting.
     NSButtonCell *radioCell = radio(states, zoomedRect, zoomFactor);
+    LocalCurrentGraphicsContext localContext(context);
 
     context->save();
 
@@ -308,7 +310,7 @@ static void paintRadio(ControlStates states, GraphicsContext* context, const Int
     }
     
     BEGIN_BLOCK_OBJC_EXCEPTIONS
-    [radioCell drawWithFrame:NSRect(inflatedRect) inView:scrollView->documentView()];
+    [radioCell drawWithFrame:NSRect(inflatedRect) inView:ThemeMac::ensuredView(scrollView)];
     [radioCell setControlView:nil];
     END_BLOCK_OBJC_EXCEPTIONS
 

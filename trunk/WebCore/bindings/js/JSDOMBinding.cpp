@@ -423,6 +423,13 @@ static void stringWrapperDestroyed(JSString* str, void* context)
     cacheKey->deref();
 }
 
+static inline UString stringimplToUString(StringImpl* impl)
+{
+    if (SharedUChar* sharedBuffer = impl->sharedBuffer())
+        return UString::Rep::create(impl->characters(), impl->length(), sharedBuffer);
+    return UString(impl->characters(), impl->length());
+}
+
 JSValue jsStringSlowCase(ExecState* exec, JSStringCache& stringCache, StringImpl* stringImpl)
 {
     // If there is a stale entry, we have to explicitly remove it to avoid
@@ -430,7 +437,7 @@ JSValue jsStringSlowCase(ExecState* exec, JSStringCache& stringCache, StringImpl
     if (JSString* wrapper = stringCache.uncheckedGet(stringImpl))
         stringCache.uncheckedRemove(stringImpl, wrapper);
 
-    JSString* wrapper = jsStringWithFinalizer(exec, stringImpl->ustring(), stringWrapperDestroyed, stringImpl);
+    JSString* wrapper = jsStringWithFinalizer(exec, stringimplToUString(stringImpl), stringWrapperDestroyed, stringImpl);
     stringCache.set(stringImpl, wrapper);
     // ref explicitly instead of using a RefPtr-keyed hashtable because the wrapper can
     // outlive the cache, so the stringImpl has to match the wrapper's lifetime.
@@ -492,18 +499,65 @@ JSValue jsStringOrFalse(ExecState* exec, const KURL& url)
     return jsString(exec, url.string());
 }
 
-UString valueToStringWithNullCheck(ExecState* exec, JSValue value)
+String ustringToString(const UString& u)
 {
-    if (value.isNull())
-        return UString();
-    return value.toString(exec);
+    if (u.isNull())
+        return String();
+    if (SharedUChar* sharedBuffer = u.rep()->sharedBuffer())
+        return StringImpl::create(u.data(), u.size(), sharedBuffer);
+    return StringImpl::create(u.data(), u.size());
 }
 
-UString valueToStringWithUndefinedOrNullCheck(ExecState* exec, JSValue value)
+UString stringToUString(const String& s)
+{
+    if (s.isNull())
+        return UString();
+    return stringimplToUString(s.impl());
+}
+
+String identifierToString(const Identifier& i)
+{
+    return ustringToString(i.ustring());
+}
+
+AtomicString ustringToAtomicString(const UString& u)
+{
+    UStringImpl* impl = u.rep();
+    if (!impl)
+        return AtomicString();
+    return AtomicString(impl->characters(), impl->length(), impl->hash());
+}
+
+AtomicString identifierToAtomicString(const Identifier& identifier)
+{
+    if (identifier.isNull())
+        return AtomicString();
+    UStringImpl* impl = identifier.ustring().rep();
+    ASSERT(impl->existingHash());
+    return AtomicString(impl->characters(), impl->length(), impl->existingHash());
+}
+
+AtomicStringImpl* findAtomicString(const Identifier& identifier)
+{
+    if (identifier.isNull())
+        return 0;
+    UStringImpl* impl = identifier.ustring().rep();
+    ASSERT(impl->existingHash());
+    return AtomicString::find(impl->characters(), impl->length(), impl->existingHash());
+}
+
+String valueToStringWithNullCheck(ExecState* exec, JSValue value)
+{
+    if (value.isNull())
+        return String();
+    return ustringToString(value.toString(exec));
+}
+
+String valueToStringWithUndefinedOrNullCheck(ExecState* exec, JSValue value)
 {
     if (value.isUndefinedOrNull())
-        return UString();
-    return value.toString(exec);
+        return String();
+    return ustringToString(value.toString(exec));
 }
 
 JSValue jsDateOrNull(ExecState* exec, double value)
@@ -534,7 +588,7 @@ void reportException(ExecState* exec, JSValue exception)
     exec->clearException();
 
     if (ExceptionBase* exceptionBase = toExceptionBase(exception))
-        errorMessage = exceptionBase->message() + ": "  + exceptionBase->description();
+        errorMessage = stringToUString(exceptionBase->message() + ": "  + exceptionBase->description());
 
     ScriptExecutionContext* scriptExecutionContext = static_cast<JSDOMGlobalObject*>(exec->lexicalGlobalObject())->scriptExecutionContext();
     ASSERT(scriptExecutionContext);
@@ -544,7 +598,7 @@ void reportException(ExecState* exec, JSValue exception)
     if (!scriptExecutionContext)
         return;
 
-    scriptExecutionContext->reportException(errorMessage, lineNumber, exceptionSourceURL);
+    scriptExecutionContext->reportException(ustringToString(errorMessage), lineNumber, ustringToString(exceptionSourceURL));
 }
 
 void reportCurrentException(ExecState* exec)

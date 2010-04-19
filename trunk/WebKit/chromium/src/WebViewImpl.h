@@ -181,6 +181,7 @@ public:
     virtual void performCustomContextMenuAction(unsigned action);
     virtual void addUserScript(const WebString& sourceCode,
                                bool runAtStart);
+    virtual void addUserStyleSheet(const WebString& sourceCode);
     virtual void removeAllUserContent();
 
     // WebViewImpl
@@ -310,6 +311,8 @@ public:
     void setRootLayerNeedsDisplay();
     void setRootGraphicsLayer(WebCore::PlatformLayer*);
 #endif
+
+    WebCore::PopupContainer* selectPopup() const { return m_selectPopup.get(); }
 
 private:
     friend class WebView;  // So WebView::Create can call our constructor

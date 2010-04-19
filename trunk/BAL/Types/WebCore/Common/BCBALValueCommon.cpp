@@ -36,6 +36,7 @@
 #include "CString.h"
 #include "DOMCoreException.h"
 #include "Frame.h"
+#include "JSDOMBinding.h"
 #include "JSDOMCoreException.h"
 #include "PlatformString.h"
 #include "runtime_object.h"
@@ -165,7 +166,7 @@ int BALValue::toInt(bool& ok) const
 String BALValue::toString() const
 {
     ASSERT(isString());
-    return m_val.toString(m_exec);
+    return ustringToString(m_val.toString(m_exec));
 }
 
 JSObject* BALValue::toJSObject(ExecState* exec) const
@@ -226,7 +227,7 @@ void BALValue::balNumber(double dd)
 
 void BALValue::balString(const String& s)
 {
-    m_val = JSC::jsString(m_exec, s);
+    m_val = JSC::jsString(m_exec, stringToUString(s));
 }
 
 void BALValue::balObject(BALObject* obj)

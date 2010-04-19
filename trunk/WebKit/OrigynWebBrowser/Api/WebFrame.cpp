@@ -1357,10 +1357,10 @@ void WebFrame::addToJSWindowObject(BALObject* object)
     JSC::ExecState* exec = global->globalExec();
     JSC::PropertySlot pr;
 
-    if (!global->getOwnPropertySlot(exec, JSC::Identifier(exec, object->getName()), pr)) {
+    if (!global->getOwnPropertySlot(exec, JSC::Identifier(exec, stringToUString(object->getName())), pr)) {
         JSC::JSObject* runtimeObject = JSC::Bindings::BalInstance::getBalInstance(object, root)->createRuntimeObject(exec);
         JSC::PutPropertySlot prop;
-        global->put(exec, JSC::Identifier(exec, object->getName()), runtimeObject, prop);
+        global->put(exec, JSC::Identifier(exec, stringToUString(object->getName())), runtimeObject, prop);
     }
 }
 
@@ -1397,7 +1397,7 @@ bool WebFrame::stringByEvaluatingJavaScriptInScriptWorld(WebScriptWorld* world, 
         return true;
 
     JSC::JSLock lock(JSC::SilenceAssertionsOnly);
-    String resultString = String(result.toString(anyWorldGlobalObject->globalExec()));
+    String resultString = ustringToString(result.toString(anyWorldGlobalObject->globalExec()));
     *evaluationResult = strdup(resultString.utf8().data());
 
     return true;

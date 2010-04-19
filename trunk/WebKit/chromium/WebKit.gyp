@@ -130,6 +130,7 @@
                 'public/WebGeolocationService.h',
                 'public/WebGeolocationServiceBridge.h',
                 'public/WebGlyphCache.h',
+                'public/WebGLES2Context.h',
                 'public/WebGraphicsContext3D.h',
                 'public/WebHistoryItem.h',
                 'public/WebHTTPBody.h',
@@ -254,6 +255,7 @@
                 'src/EventListenerWrapper.h',
                 'src/FrameLoaderClientImpl.cpp',
                 'src/FrameLoaderClientImpl.h',
+                'src/GLES2Context.cpp',
                 'src/gtk/WebFontInfo.cpp',
                 'src/gtk/WebFontInfo.h',
                 'src/gtk/WebInputEventFactory.cpp',
@@ -507,6 +509,8 @@
             'conditions': [
                 ['OS=="win"', {
                     'sources': [
+                        # FIXME: Port PopupMenuTest to Linux and Mac.
+                        'tests/PopupMenuTest.cpp',
                         'tests/TransparencyWinTest.cpp',
                         'tests/UniscribeHelperTest.cpp',
                     ],

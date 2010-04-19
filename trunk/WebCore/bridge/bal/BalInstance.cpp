@@ -251,10 +251,10 @@ void BalInstance::getPropertyNames(ExecState* exec, PropertyNameArray& nameArray
     const Vector<String>& properties = m_object->properties();
 
     for (size_t i = 0; i < methods.size(); ++i)
-        nameArray.add(Identifier(exec, methods[i]));
+        nameArray.add(Identifier(exec, stringToUString(methods[i])));
 
     for (size_t i = 0; i < properties.size(); ++i)
-        nameArray.add(Identifier(exec, properties[i]));
+        nameArray.add(Identifier(exec, stringToUString(properties[i])));
 }
 
 RuntimeObject* BalInstance::newRuntimeObject(ExecState* exec)

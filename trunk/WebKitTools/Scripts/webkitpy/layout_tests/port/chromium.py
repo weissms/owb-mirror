@@ -113,6 +113,9 @@ class ChromiumPort(base.Port):
         return check_file_exists(image_diff_path, 'image diff exe',
                                  override_step, logging)
 
+    def driver_name(self):
+        return "test_shell"
+
     def path_from_chromium_base(self, *comps):
         """Returns the full path to path made by joining the top of the
         Chromium source tree and the list of path components in |*comps|."""
@@ -130,8 +133,13 @@ class ChromiumPort(base.Port):
             'chromium', 'test_expectations.txt')
 
     def results_directory(self):
-        return self.path_from_chromium_base('webkit', self._options.configuration,
-                                            self._options.results_directory)
+        try:
+            return self.path_from_chromium_base('webkit',
+                self._options.configuration, self._options.results_directory)
+        except AssertionError:
+            return self.path_from_webkit_base('WebKit', 'chromium',
+                'xcodebuild', self._options.configuration,
+                self._options.results_directory)
 
     def setup_test_run(self):
         # Delete the disk cache if any to ensure a clean test run.
@@ -178,8 +186,11 @@ class ChromiumPort(base.Port):
         return file(expectations_file, "r").read()
 
     def test_expectations_overrides(self):
-        overrides_file = self.path_from_chromium_base('webkit', 'tools',
-            'layout_tests', 'test_expectations.txt')
+        try:
+            overrides_file = self.path_from_chromium_base('webkit', 'tools',
+                'layout_tests', 'test_expectations.txt')
+        except AssertionError:
+            return None
         if os.path.exists(overrides_file):
             return file(overrides_file, "r").read()
         else:

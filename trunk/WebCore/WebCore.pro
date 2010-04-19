@@ -99,15 +99,6 @@ win32-msvc2005|win32-msvc2008:{
     QMAKE_CXXFLAGS_RELEASE -= -GL
 }
 
-wince* {
-#    DEFINES += ENABLE_SVG=0 ENABLE_XPATH=0 ENABLE_XBL=0 \
-#               ENABLE_SVG_ANIMATION=0 ENABLE_SVG_USE=0  \
-#               ENABLE_SVG_FOREIGN_OBJECT=0 ENABLE_SVG_AS_IMAGE=0
-
-    INCLUDEPATH += $$PWD/../JavaScriptCore/os-wince
-    INCLUDEPATH += $$PWD/../JavaScriptCore/os-win32
-}
-
 # Pick up 3rdparty libraries from INCLUDE/LIB just like with MSVC
 win32-g++ {
     TMPPATH            = $$quote($$(INCLUDE))
@@ -537,6 +528,7 @@ SOURCES += \
     dom/UIEvent.cpp \
     dom/UIEventWithKeyState.cpp \
     dom/UserGestureIndicator.cpp \
+    dom/ViewportArguments.cpp \
     dom/WebKitAnimationEvent.cpp \
     dom/WebKitTransitionEvent.cpp \
     dom/WheelEvent.cpp \
@@ -612,6 +604,7 @@ SOURCES += \
     html/File.cpp \
     html/FileList.cpp \
     html/FileStream.cpp \
+    html/FileStreamProxy.cpp \
     html/FileThread.cpp \
     html/FormDataList.cpp \
     html/HTMLAllCollection.cpp \
@@ -1076,6 +1069,7 @@ HEADERS += \
     bindings/js/JSWorkerContextErrorHandler.h \
     bindings/js/JSXMLHttpRequestConstructor.h \
     bindings/js/JSXSLTProcessorConstructor.h \
+    bindings/js/JavaScriptCallFrame.h \
     bindings/js/ScheduledAction.h \
     bindings/js/ScriptArray.h \
     bindings/js/ScriptCachedFrameData.h \
@@ -1258,6 +1252,7 @@ HEADERS += \
     dom/UIEvent.h \
     dom/UIEventWithKeyState.h \
     dom/UserGestureIndicator.h \
+    dom/ViewportArguments.h \
     dom/WebKitAnimationEvent.h \
     dom/WebKitTransitionEvent.h \
     dom/WheelEvent.h \
@@ -1329,7 +1324,9 @@ HEADERS += \
     html/FileList.h \
     html/FileStream.h \
     html/FileStreamClient.h \
+    html/FileStreamProxy.h \
     html/FileThread.h \
+    html/FileThreadTask.h \
     html/FormDataList.h \
     html/HTMLAllCollection.h \
     html/HTMLAnchorElement.h \
@@ -1435,7 +1432,6 @@ HEADERS += \
     inspector/InspectorFrontendHost.h \
     inspector/InspectorResource.h \
     inspector/InspectorTimelineAgent.h \
-    inspector/JavaScriptCallFrame.h \
     inspector/ScriptGCEventListener.h \
     inspector/TimelineRecordFactory.h \
     loader/appcache/ApplicationCacheGroup.h \
@@ -2728,7 +2724,7 @@ contains(DEFINES, ENABLE_JAVASCRIPT_DEBUGGER=1) {
     SOURCES += \
         bindings/js/JSJavaScriptCallFrameCustom.cpp \
         bindings/js/ScriptProfiler.cpp \
-        inspector/JavaScriptCallFrame.cpp \
+        bindings/js/JavaScriptCallFrame.cpp \
 }
 
 contains(DEFINES, ENABLE_OFFLINE_WEB_APPLICATIONS=1) {

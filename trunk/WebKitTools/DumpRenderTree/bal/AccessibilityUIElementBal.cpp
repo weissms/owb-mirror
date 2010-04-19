@@ -575,3 +575,8 @@ void AccessibilityUIElement::removeSelection()
 {
     // FIXME: implement
 }
+
+JSStringRef AccessibilityUIElement::helpText() const
+{
+    return 0;
+}

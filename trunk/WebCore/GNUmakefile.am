@@ -390,7 +390,7 @@ webcore_sources += \
 	WebCore/bindings/js/JSCustomXPathNSResolver.h \
 	WebCore/bindings/js/JSDOMBinding.cpp \
 	WebCore/bindings/js/JSDOMBinding.h \
-  WebCore/bindings/js/JSDOMFormDataCustom.cpp \
+	WebCore/bindings/js/JSDOMFormDataCustom.cpp \
 	WebCore/bindings/js/JSDOMGlobalObject.cpp \
 	WebCore/bindings/js/JSDOMGlobalObject.h \
 	WebCore/bindings/js/JSDOMWindowBase.cpp \
@@ -490,6 +490,8 @@ webcore_sources += \
 	WebCore/bindings/js/JSXSLTProcessorConstructor.cpp \
 	WebCore/bindings/js/JSXSLTProcessorConstructor.h \
 	WebCore/bindings/js/JSXSLTProcessorCustom.cpp \
+	WebCore/bindings/js/JavaScriptCallFrame.cpp \
+	WebCore/bindings/js/JavaScriptCallFrame.h \
 	WebCore/bindings/js/ScheduledAction.cpp \
 	WebCore/bindings/js/ScheduledAction.h \
 	WebCore/bindings/js/ScriptArray.cpp \
@@ -876,6 +878,8 @@ webcore_sources += \
 	WebCore/dom/UIEventWithKeyState.h \
 	WebCore/dom/UserGestureIndicator.cpp \
 	WebCore/dom/UserGestureIndicator.h \
+	WebCore/dom/ViewportArguments.cpp \
+	WebCore/dom/ViewportArguments.h \
 	WebCore/dom/WebKitAnimationEvent.cpp \
 	WebCore/dom/WebKitAnimationEvent.h \
 	WebCore/dom/WebKitTransitionEvent.cpp \
@@ -1034,8 +1038,11 @@ webcore_sources += \
 	WebCore/html/FileStream.cpp \
 	WebCore/html/FileStream.h \
 	WebCore/html/FileStreamClient.h \
+	WebCore/html/FileStreamProxy.cpp \
+	WebCore/html/FileStreamProxy.h \
 	WebCore/html/FileThread.cpp \
 	WebCore/html/FileThread.h \
+	WebCore/html/FileThreadTask.h \
 	WebCore/html/FormDataList.cpp \
 	WebCore/html/FormDataList.h \
 	WebCore/html/HTMLAllCollection.cpp \
@@ -1270,8 +1277,6 @@ webcore_sources += \
 	WebCore/inspector/InspectorTimelineAgent.cpp \
 	WebCore/inspector/InspectorTimelineAgent.h \
 	WebCore/inspector/InspectorWorkerResource.h \
-	WebCore/inspector/JavaScriptCallFrame.cpp \
-	WebCore/inspector/JavaScriptCallFrame.h \
 	WebCore/inspector/ScriptBreakpoint.h \
 	WebCore/inspector/ScriptDebugListener.h \
 	WebCore/inspector/ScriptGCEventListener.h \

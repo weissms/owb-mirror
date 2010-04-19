@@ -29549,6 +29549,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\dom\ViewportArguments.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dom\ViewportArguments.h"
+				>
+			</File>
+			<File
 				RelativePath="..\dom\WebKitAnimationEvent.cpp"
 				>
 			</File>
@@ -30305,11 +30313,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\html\FileStreamProxy.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileStreamProxy.h"
+				>
+			</File>
+			<File
 				RelativePath="..\html\FileThread.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\html\FileThread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileThreadTask.h"
 				>
 			</File>
 			<File
@@ -43269,14 +43289,6 @@
 			</File>
 			<File
 				RelativePath="..\inspector\InspectorWorkerResource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\inspector\JavaScriptCallFrame.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\inspector\JavaScriptCallFrame.h"
 				>
 			</File>
 			<File

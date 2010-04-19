@@ -143,7 +143,7 @@ JSValue nonCachingStaticFunctionGetter(ExecState* exec, JSValue, const Identifie
 
 static JSValue childFrameGetter(ExecState* exec, JSValue slotBase, const Identifier& propertyName)
 {
-    return toJS(exec, static_cast<JSDOMWindow*>(asObject(slotBase))->impl()->frame()->tree()->child(AtomicString(propertyName))->domWindow());
+    return toJS(exec, static_cast<JSDOMWindow*>(asObject(slotBase))->impl()->frame()->tree()->child(identifierToAtomicString(propertyName))->domWindow());
 }
 
 static JSValue indexGetter(ExecState* exec, JSValue slotBase, unsigned index)
@@ -162,7 +162,7 @@ static JSValue namedItemGetter(ExecState* exec, JSValue slotBase, const Identifi
     ASSERT(document->isHTMLDocument());
 #endif
 
-    RefPtr<HTMLCollection> collection = document->windowNamedItems(propertyName);
+    RefPtr<HTMLCollection> collection = document->windowNamedItems(identifierToString(propertyName));
     if (collection->length() == 1)
         return toJS(exec, collection->firstItem());
     return toJS(exec, collection.get());
@@ -276,7 +276,7 @@ bool JSDOMWindow::getOwnPropertySlot(ExecState* exec, const Identifier& property
     // naming frames things that conflict with window properties that
     // are in Moz but not IE. Since we have some of these, we have to do
     // it the Moz way.
-    if (impl()->frame()->tree()->child(propertyName)) {
+    if (impl()->frame()->tree()->child(identifierToAtomicString(propertyName))) {
         slot.setCustom(this, childFrameGetter);
         return true;
     }
@@ -314,7 +314,7 @@ bool JSDOMWindow::getOwnPropertySlot(ExecState* exec, const Identifier& property
     // Allow shortcuts like 'Image1' instead of document.images.Image1
     Document* document = impl()->frame()->document();
     if (document->isHTMLDocument()) {
-        AtomicStringImpl* atomicPropertyName = AtomicString::find(propertyName);
+        AtomicStringImpl* atomicPropertyName = findAtomicString(propertyName);
         if (atomicPropertyName && (static_cast<HTMLDocument*>(document)->hasNamedItem(atomicPropertyName) || document->hasElementWithId(atomicPropertyName))) {
             slot.setCustom(this, namedItemGetter);
             return true;
@@ -379,7 +379,7 @@ bool JSDOMWindow::getOwnPropertyDescriptor(ExecState* exec, const Identifier& pr
     // naming frames things that conflict with window properties that
     // are in Moz but not IE. Since we have some of these, we have to do
     // it the Moz way.
-    if (impl()->frame()->tree()->child(propertyName)) {
+    if (impl()->frame()->tree()->child(identifierToAtomicString(propertyName))) {
         PropertySlot slot;
         slot.setCustom(this, childFrameGetter);
         descriptor.setDescriptor(slot.getValue(exec, propertyName), ReadOnly | DontDelete | DontEnum);
@@ -398,7 +398,7 @@ bool JSDOMWindow::getOwnPropertyDescriptor(ExecState* exec, const Identifier& pr
     // Allow shortcuts like 'Image1' instead of document.images.Image1
     Document* document = impl()->frame()->document();
     if (document->isHTMLDocument()) {
-        AtomicStringImpl* atomicPropertyName = AtomicString::find(propertyName);
+        AtomicStringImpl* atomicPropertyName = findAtomicString(propertyName);
         if (atomicPropertyName && (static_cast<HTMLDocument*>(document)->hasNamedItem(atomicPropertyName) || document->hasElementWithId(atomicPropertyName))) {
             PropertySlot slot;
             slot.setCustom(this, namedItemGetter);
@@ -545,7 +545,7 @@ void JSDOMWindow::setLocation(ExecState* exec, JSValue value)
     Frame* frame = impl()->frame();
     ASSERT(frame);
 
-    KURL url = completeURL(exec, value.toString(exec));
+    KURL url = completeURL(exec, ustringToString(value.toString(exec)));
     if (url.isNull())
         return;
 
@@ -764,7 +764,7 @@ static bool domWindowAllowPopUp(Frame* activeFrame, ExecState* exec)
 JSValue JSDOMWindow::open(ExecState* exec, const ArgList& args)
 {
     String urlString = valueToStringWithUndefinedOrNullCheck(exec, args.at(0));
-    AtomicString frameName = args.at(1).isUndefinedOrNull() ? "_blank" : AtomicString(args.at(1).toString(exec));
+    AtomicString frameName = args.at(1).isUndefinedOrNull() ? "_blank" : ustringToAtomicString(args.at(1).toString(exec));
     WindowFeatures windowFeatures(valueToStringWithUndefinedOrNullCheck(exec, args.at(2)));
 
     Frame* frame = impl()->frame();
@@ -983,7 +983,7 @@ JSValue JSDOMWindow::addEventListener(ExecState* exec, const ArgList& args)
     if (!listener.isObject())
         return jsUndefined();
 
-    impl()->addEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), this, false, currentWorld(exec)), args.at(2).toBoolean(exec));
+    impl()->addEventListener(ustringToAtomicString(args.at(0).toString(exec)), JSEventListener::create(asObject(listener), this, false, currentWorld(exec)), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
 
@@ -997,7 +997,7 @@ JSValue JSDOMWindow::removeEventListener(ExecState* exec, const ArgList& args)
     if (!listener.isObject())
         return jsUndefined();
 
-    impl()->removeEventListener(args.at(0).toString(exec), JSEventListener::create(asObject(listener), this, false, currentWorld(exec)).get(), args.at(2).toBoolean(exec));
+    impl()->removeEventListener(ustringToAtomicString(args.at(0).toString(exec)), JSEventListener::create(asObject(listener), this, false, currentWorld(exec)).get(), args.at(2).toBoolean(exec));
     return jsUndefined();
 }
 
@@ -1015,7 +1015,7 @@ JSValue JSDOMWindow::openDatabase(ExecState* exec, const ArgList& args)
     if ((args.size() >= 5) && args.at(4).isObject())
         creationCallback = JSDatabaseCallback::create(asObject(args.at(4)), globalObject());
 
-    JSValue result = toJS(exec, globalObject(), WTF::getPtr(impl()->openDatabase(name, version, displayName, estimatedSize, creationCallback.release(), ec)));
+    JSValue result = toJS(exec, globalObject(), WTF::getPtr(impl()->openDatabase(ustringToString(name), ustringToString(version), ustringToString(displayName), estimatedSize, creationCallback.release(), ec)));
     if (!ec && result.isNull())
         ec = SECURITY_ERR;
 

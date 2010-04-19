@@ -1,3 +1,497 @@
+2010-04-19  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Make failure-reason more forgiving
+        https://bugs.webkit.org/show_bug.cgi?id=37525
+
+        Removed search_limit, which wasn't very useful anyway.
+        Added a log about the long load time loading from the builders.
+        Prompt the user for what revision to start walking from (makes it easy to restart upon failure).
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/tool/commands/queries.py:
+
+2010-04-18  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        Created a class for check-webkit-style that encapsulates iterating
+        over text files and reading them.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37754
+
+        This revision is an intermediate step towards separating our
+        style-checking code from the logic of iterating over files and
+        reading them.
+
+        * Scripts/webkitpy/common/system/logtesting.py:
+          - Added a logMessages() method to the LoggingTestCase class.
+            This method provides unit tests with access to the raw list
+            of log messages in case the tester needs to do something more
+            than simply assert the list of existing messages.
+
+        * Scripts/webkitpy/style/checker.py:
+          - Added a ProcessorBase class that processors of lists of lines
+            should eventually inherit from.
+          - Also added a FIXME to use the ProcessorBase class and the
+            TextFileReader class added below.
+
+        * Scripts/webkitpy/style/filereader.py: Added.
+          - Created a TextFileReader class that encapsulates reading
+            and iterating over text files.
+
+        * Scripts/webkitpy/style/filereader_unittest.py: Added.
+          - Added a TextFileReaderTest class to unit-test the
+            new TextFileReader class.
+
+2010-04-15  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        [chromium] new-run-webkit-tests should be able to use chromium DRT
+        https://bugs.webkit.org/show_bug.cgi?id=37645
+
+        Make sure that the lack of a chromium checkout doesn't cause the script to
+        fail.
+
+        * Scripts/webkitpy/layout_tests/layout_package/json_results_generator.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py: Fix up a few paths
+            to be relative to an upstream output dir.
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py: Add --use-drt flag.
+
+2010-04-18  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, fixing the Qt bot.
+
+        Add a layer of indirection when calling run-webkit-tests to allow testing new-run-webkit-tests on various platforms
+        https://bugs.webkit.org/show_bug.cgi?id=37632
+
+        * Scripts/run-webkit-tests:
+         - Exit non-zero of launching the harness fails.
+
+2010-04-18  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, fixing the Qt bot.
+
+        Add a layer of indirection when calling run-webkit-tests to allow testing new-run-webkit-tests on various platforms
+        https://bugs.webkit.org/show_bug.cgi?id=37632
+
+        * Scripts/run-webkit-tests:
+         - Fix the wrapper to work for users who do not
+           have WebKitTools/Scripts in their path.
+
+2010-04-14  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add a layer of indirection when calling run-webkit-tests to
+        allow testing new-run-webkit-tests on various platforms.
+        https://bugs.webkit.org/show_bug.cgi?id=37632
+
+        This will let us test and fix bugs in new-run-webkit-tests
+        without needing to restart the buildbot master between tests.
+
+        Currently this change leaves run-webkit-tests as-is, but once
+        its landed we will easily be able to turn on/off
+        new-run-webkit-tests for various ports/configurations.
+
+        I will send a note out to webkit-dev about how we will
+        be using this launcher script to test on the bots.
+
+        * Scripts/old-run-webkit-tests: Copied from WebKitTools/Scripts/run-webkit-tests.
+        * Scripts/run-webkit-tests:
+         - A new script which decides whether to run new- or old-
+           run-webkit-tests based on the platform.
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+         - Add some dummy argument handling for arguments which
+           old-run-webkit-tests supports but new-run-webkit-tests
+           does not yet.
+
+2010-04-18  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add Gtk bots to the list of "core builders" (builders which stop the commit-queue when they turn red)
+        https://bugs.webkit.org/show_bug.cgi?id=33295
+
+        The Gtk builders have been green every time I've looked
+        at them in the last 5 days or so.  It would appear webkit
+        is now keeping them green and we should update the core
+        builder list to match reality.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        * Scripts/webkitpy/common/net/buildbot_unittest.py:
+
+2010-04-18  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add support for LayoutTestController commands:
+                   setSmartInsertDeleteEnabled
+                   setSelectTrailingWhitespaceEnabled
+                   execCommand
+                   isCommandEnabled
+
+        https://bugs.webkit.org/show_bug.cgi?id=35844
+
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        (LayoutTestController::setSmartInsertDeleteEnabled):
+        (LayoutTestController::setSelectTrailingWhitespaceEnabled):
+        (LayoutTestController::execCommand):
+        (LayoutTestController::isCommandEnabled):
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+
+2010-04-17  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove steps_references and commands_references
+        https://bugs.webkit.org/show_bug.cgi?id=37758
+
+        We tried using the mumble_references convention to manage our
+        dependencies, but it doesn't seem to be providing much value for the
+        steps and commands module because these modules are small pieces of the
+        larger tool module.  In this patch, I've removed the references file
+        for these modules.
+ 
+        I've left the style_references file for the style module because that
+        module seems better isolated from the rest of webkitpy and the
+        style_references file appears to be providing some value.
+
+        * Scripts/webkitpy/tool/commands/commandtest.py:
+        * Scripts/webkitpy/tool/commands/download_unittest.py:
+        * Scripts/webkitpy/tool/commands/earlywarningsystem_unittest.py:
+        * Scripts/webkitpy/tool/commands/queries_unittest.py:
+        * Scripts/webkitpy/tool/commands/queues_unittest.py:
+        * Scripts/webkitpy/tool/commands/queuestest.py:
+        * Scripts/webkitpy/tool/commands/upload.py:
+        * Scripts/webkitpy/tool/commands/upload_unittest.py:
+        * Scripts/webkitpy/tool/commands_references.py: Removed.
+        * Scripts/webkitpy/tool/steps/closebugforlanddiff_unittest.py:
+        * Scripts/webkitpy/tool/steps/steps_unittest.py:
+        * Scripts/webkitpy/tool/steps/updatechangelogswithreview_unittest.py:
+        * Scripts/webkitpy/tool/steps/validatereviewer_unittest.py:
+        * Scripts/webkitpy/tool/steps_references.py: Removed.
+
+2010-04-17  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        WebKit needs a Chromium Mac EWS Builder
+        https://bugs.webkit.org/show_bug.cgi?id=37742
+
+        * Scripts/webkitpy/tool/commands/earlywarningsystem.py:
+
+2010-04-17  Adam Barth  <abarth@webkit.org>
+
+        Fix expected results for unit test broken by
+        http://trac.webkit.org/changeset/57772
+
+        * Scripts/webkitpy/common/net/buildbot_unittest.py:
+
+2010-04-17  Sam Weinig  <weinig@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Teach windows MiniBrowser how to work with window.open()
+        and targeted links.
+
+        * MiniBrowser/win/BrowserView.cpp:
+        (createNewPage): Create a new BrowserWindow and return its page.
+        (showPage): Show the page.
+        (closePage): Empty implementation.
+        (runJavaScriptAlert): Empty implementation.
+        (BrowserView::create): Register a UIClient.
+        * MiniBrowser/win/BrowserView.h:
+        (BrowserView::webView): Added.
+        Change create to take a BrowserWindow instead of an HWND.
+
+        * MiniBrowser/win/BrowserWindow.cpp:
+        (BrowserWindow::wndProc): Respond to WM_NCDESTROY.
+        (BrowserWindow::goToURL): Added. Forwards to BrowserView.
+        (BrowserWindow::onCreate): Don't always go to the default
+        url. Let the caller do this.
+        (BrowserWindow::onNCDestroy): Delete the window.
+        * MiniBrowser/win/BrowserWindow.h:
+        (BrowserWindow::view): Added.
+        (BrowserWindow::window): Added.
+
+        * MiniBrowser/win/main.cpp:
+        (_tWinMain):
+        Go to the default URL for the initial page. Allocate the initial
+        window on the heap for correctness.
+
+2010-04-16  Adam Roben  <aroben@apple.com>
+
+        Add the Windows Debug (Test) builder to the list of core builders
+
+        It's been green for a few days now, and all the known Windows
+        flakiness is Release-only.
+
+        Rubber-stamped by Mark Rowe.
+
+        * Scripts/webkitpy/common/net/buildbot.py:
+        (BuildBot.core_builder_name_regexps): Added a regular expression to
+        match the "Windows Debug (Test)" builder.
+
+2010-04-16  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix window.open() and targeted links.
+
+        * MiniBrowser/mac/BrowserWindowController.m:
+        (_createNewPage): Use the correct initializer to and load the window.
+
+2010-04-16  Adam Roben  <aroben@apple.com>
+
+        Fix links to layout test results from build status pages
+
+        Reviewed by Mark Rowe.
+
+        * BuildSlaveSupport/build.webkit.org-config/master.cfg:
+        (ExtractTestResults.finished): Prepend "/" on the URL of the test
+        results page so that it is treated as an absolute URL.
+
+2010-04-16  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] build DRT on Linux
+        https://bugs.webkit.org/show_bug.cgi?id=37690
+
+        * Scripts/build-dumprendertree: Add support for win and linux
+
+2010-04-16  Sam Weinig  <weinig@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Use the threaded process model for MiniBrowser if holding down
+        the shift key on startup.
+
+        * MiniBrowser/win/BrowserView.cpp:
+        (BrowserView::create): 
+
+2010-04-15  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] Add TestShellGtk.cpp so we can link on Linux
+        https://bugs.webkit.org/show_bug.cgi?id=37561
+
+        * DumpRenderTree/DumpRenderTree.gyp/DumpRenderTree.gyp: Add new file and
+            add platform file exceptions.
+        * DumpRenderTree/chromium/TestShellGtk.cpp: Added.
+        (AlarmHandler):
+        (TestShell::waitTestFinished):
+
+2010-04-15  Tony Chang  <tony@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        build DRT on chromium mac
+        https://bugs.webkit.org/show_bug.cgi?id=37639
+
+        * DumpRenderTree/DumpRenderTree.gyp/DumpRenderTree.gyp:
+        * Scripts/build-dumprendertree: enable build-dumprendertree --chromium
+
+2010-04-15  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add LayoutTestHelper for Mac
+        https://bugs.webkit.org/show_bug.cgi?id=37668
+
+        LayouTestHelper.mm is based on webkit/tools/test_shell/mac/layout_test_helper.mm
+        of Chromium.
+
+        * DumpRenderTree/DumpRenderTree.gyp/DumpRenderTree.gyp:
+        * DumpRenderTree/chromium/LayoutTestHelper.mm: Added.
+
+2010-04-15  Alexey Proskuryakov  <ap@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37494
+        <rdar://problem/7857060> REGRESSION (r57340): fast/events/mouse-drag-from-frame-to-other-frame.html
+        fails on Windows
+
+        * DumpRenderTree/win/EventSender.cpp: (makeEventSender):
+        * DumpRenderTree/win/EventSender.h:
+        Tell EventSender if it's being created for a top frame.
+        
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        (FrameLoadDelegate::didClearWindowObjectForFrameInStandardWorld): We only want to reset
+        EventSender machinery when a new test is loaded, not when an iframe (or just its global
+        object) is created.
+
+2010-04-15  Adam Roben  <aroben@apple.com>
+
+        Fix Windows WebKit2 build.
+
+        * MiniBrowser/win/MiniBrowser.cpp:
+
+2010-04-15  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Include codereview issue number in patch description
+        https://bugs.webkit.org/show_bug.cgi?id=37677
+
+        This lets us know which rietveld issue this patch is tied to.
+
+        Also, make it so that --fancy-review overrides --no-review.
+
+        * Scripts/webkitpy/tool/steps/postcodereview.py:
+        * Scripts/webkitpy/tool/steps/postdiff.py:
+
+2010-04-15  Adam Roben  <aroben@apple.com>
+
+        Make --exit-after-n-failures work when all tests are timing out or crashing
+
+        Fixes <http://webkit.org/b/37679>.
+
+        Reviewed by Jon Honeycutt.
+
+        * Scripts/run-webkit-tests:
+        (top level): When a test crashes or times out, break out of the main loop if
+        stopRunningTestsEarlyIfNeeded returns true. Moved some code from the bottom of the main loop
+        from here...
+        (stopRunningTestsEarlyIfNeeded): ...to here.
+
+2010-04-15  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Add WebHistoryClient support.
+        https://bugs.webkit.org/show_bug.cgi?id=37671
+
+        Add HistoryClient logging.
+
+        * MiniBrowser/mac/BrowserWindowController.m:
+        (_didNavigateWithNavigationData):
+        (_didPerformClientRedirect):
+        (_didPerformServerRedirect):
+        (_didUpdateHistoryTitle):
+        (-[BrowserWindowController awakeFromNib]):
+
+2010-04-15  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Start the mini browser in threaded mode if shift is pressed during startup.
+        https://bugs.webkit.org/show_bug.cgi?id=37670
+
+        * MiniBrowser/mac/AppDelegate.m:
+        (-[BrowserAppDelegate init]):
+
+2010-04-15  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        AXHelp is being appended from ancestors incorrectly
+        https://bugs.webkit.org/show_bug.cgi?id=37659
+
+        * DumpRenderTree/AccessibilityUIElement.cpp:
+        (getHelpTextCallback):
+        (AccessibilityUIElement::getJSClass):
+        * DumpRenderTree/AccessibilityUIElement.h:
+        * DumpRenderTree/gtk/AccessibilityUIElementGtk.cpp:
+        (AccessibilityUIElement::helpText):
+        * DumpRenderTree/mac/AccessibilityUIElementMac.mm:
+        (AccessibilityUIElement::helpText):
+        * DumpRenderTree/win/AccessibilityUIElementWin.cpp:
+        (AccessibilityUIElement::helpText):
+
+2010-04-15  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Re-format run-webkit-tests to fit in 80-columns for PEP-8 compliance.
+        (broken by r57463 and r57381, at least). I've also filed bug 37477
+        to fix check-webkit-style to catch these things.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38586
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-04-15  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Add a way to override the user-visible name for the test binary since
+        some ports don't call it DumpRenderTree (e.g., Chromium Win uses
+        test_shell, Chromium Mac uses TestShell) by adding a driver_name()
+        method to the Port interface.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37631
+
+        * Scripts/webkitpy/layout_tests/port/base.py:
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_mac.py:
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-04-14  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add "Force Repaint" to debug menu.
+        https://bugs.webkit.org/show_bug.cgi?id=37627
+
+        * MiniBrowser/mac/BrowserWindowController.h:
+        * MiniBrowser/mac/BrowserWindowController.m:
+        (-[BrowserWindowController forceRepaint:]):
+        * MiniBrowser/mac/English.lproj/MainMenu.xib:
+
+2010-04-15  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Adam Roben.
+
+        Add debug-minibrowser script.
+
+        * Scripts/debug-minibrowser: Copied from Scripts/run-minibrowser.
+        * Scripts/webkitdirs.pm:
+
+2010-04-15  Roland Steiner  <rolandsteiner@chromium.org>
+ 
+        Reviewed by Dimitri Glazkov.
+
+        Bug 37636 - [DRT/Chromium] Implement DRT/Chromium for Windows
+        https://bugs.webkit.org/show_bug.cgi?id=37636
+ 
+        Second patch: add Windows-specific implementation parts
+        of TestShell.
+
+        * DumpRenderTree/DumpRenderTree.gyp/DumpRenderTree.gyp:
+        * DumpRenderTree/chromium/TestShell.h:
+        (TestShell::finishedEvent):
+        * DumpRenderTree/chromium/TestShellWin.cpp:
+        (watchDogThread):
+        (TestShell::waitTestFinished):
+
+2010-04-15  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 37636 - [DRT/Chromium] Implement DRT/Chromium for Windows
+        https://bugs.webkit.org/show_bug.cgi?id=37636
+
+        First patch: fix compiler errors.
+
+        * DumpRenderTree/chromium/EventSender.cpp:
+        (EventSender::reset):
+        (EventSender::dispatchMessage):
+        * DumpRenderTree/chromium/LayoutTestController.cpp:
+        (LayoutTestController::pathToLocalResource):
+        * DumpRenderTree/chromium/TestWebWorker.h:
+        * DumpRenderTree/chromium/TextInputController.cpp:
+        * DumpRenderTree/chromium/WebViewHost.h:
+        * DumpRenderTree/DumpRenderTree.gyp/DumpRenderTree.gyp:
+
 2010-04-15  Luiz Agostini  <luiz.agostini@openbossa.org>
 
         Reviewed by Simon Hausmann.

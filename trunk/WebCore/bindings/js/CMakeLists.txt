@@ -13,6 +13,7 @@ list(APPEND WEBCORE_SRC
     bindings/js/DOMWrapperWorld.cpp
     bindings/js/DOMObjectHashTableMap.cpp
     bindings/js/GCController.cpp
+    bindings/js/JavaScriptCallFrame.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCoordinatesCustom.cpp

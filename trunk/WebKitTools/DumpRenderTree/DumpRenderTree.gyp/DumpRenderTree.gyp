@@ -48,6 +48,26 @@
             }],
         ],
     },
+    'target_defaults': {
+        'target_conditions': [
+            ['OS!="linux" and OS!="freebsd" and OS!="openbsd"', {
+                'sources/': [
+                    ['exclude', '(Gtk|Linux)\\.cpp$']
+                ]
+            }],
+            ['OS!="win"', {
+                'sources/': [
+                    ['exclude', 'Win\\.cpp$'],
+                ]
+            }],
+            ['OS!="mac"', {
+                'sources/': [
+                    # .mm is already excluded by common.gypi
+                    ['exclude', 'Mac\\.cpp$'],
+                ]
+            }],
+        ],
+    },
     'targets': [
         {
             'target_name': 'DumpRenderTree',
@@ -55,9 +75,10 @@
             'mac_bundle': 1,
             'dependencies': [
                 '<(webkit_api_dir)/WebKit.gyp:webkit',
+                '<(webkit_top)/JavaScriptCore/JavaScriptCore.gyp/JavaScriptCore.gyp:wtf_config',
                 '<(chromium_src_dir)/third_party/npapi/npapi.gyp:npapi',
                 '<(chromium_src_dir)/skia/skia.gyp:skia',
-                '<(chromium_src_dir)/webkit/webkit.gyp:webkit_support',
+                '<(chromium_src_dir)/webkit/support/webkit_support.gyp:webkit_support',
             ],
             'include_dirs': [
                 '.',
@@ -91,7 +112,9 @@
                 '../chromium/TestNavigationController.h',
                 '../chromium/TestShell.cpp',
                 '../chromium/TestShell.h',
+                '../chromium/TestShellGtk.cpp',
                 '../chromium/TestShellMac.mm',
+                '../chromium/TestShellWin.cpp',
                 '../chromium/TextInputController.cpp',
                 '../chromium/TextInputController.h',
                 '../chromium/WebViewHost.cpp',
@@ -109,8 +132,30 @@
                 '../fonts/WebKitWeightWatcher800.ttf',
                 '../fonts/WebKitWeightWatcher900.ttf',
             ],
+            'conditions': [
+                ['OS=="mac"', {
+                    'dependencies': ['LayoutTestHelper'],
+                }],
+            ],
         },
     ], # targets
+
+    'conditions': [
+        ['OS=="mac"', {
+            'targets': [
+                {
+                    'target_name': 'LayoutTestHelper',
+                    'type': 'executable',
+                    'sources': ['../chromium/LayoutTestHelper.mm'],
+                    'link_settings': {
+                        'libraries': [
+                            '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
+                        ],
+                    },
+                },
+            ],
+        }],
+    ], # conditions
 }
 
 # Local Variables:

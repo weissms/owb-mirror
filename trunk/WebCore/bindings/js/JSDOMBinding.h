@@ -258,8 +258,16 @@ namespace WebCore {
     // object, to let the engine know that collecting the JSString wrapper is unlikely to save memory.
     JSC::JSValue jsOwnedStringOrNull(JSC::ExecState*, const JSC::UString&); 
 
-    JSC::UString valueToStringWithNullCheck(JSC::ExecState*, JSC::JSValue); // null if the value is null
-    JSC::UString valueToStringWithUndefinedOrNullCheck(JSC::ExecState*, JSC::JSValue); // null if the value is null or undefined
+    String identifierToString(const JSC::Identifier&);
+    String ustringToString(const JSC::UString&);
+    JSC::UString stringToUString(const String&);
+
+    AtomicString identifierToAtomicString(const JSC::Identifier&);
+    AtomicString ustringToAtomicString(const JSC::UString&);
+    AtomicStringImpl* findAtomicString(const JSC::Identifier&);
+
+    String valueToStringWithNullCheck(JSC::ExecState*, JSC::JSValue); // null if the value is null
+    String valueToStringWithUndefinedOrNullCheck(JSC::ExecState*, JSC::JSValue); // null if the value is null or undefined
 
     // Returns a Date instance for the specified value, or null if the value is NaN or infinity.
     JSC::JSValue jsDateOrNull(JSC::ExecState*, double);
@@ -317,7 +325,7 @@ namespace WebCore {
             return jsEmptyString(exec);
 
         if (stringImpl->length() == 1 && stringImpl->characters()[0] <= 0xFF)
-            return jsString(exec, stringImpl->ustring());
+            return jsString(exec, stringToUString(s));
 
         JSStringCache& stringCache = currentWorld(exec)->m_stringCache;
         if (JSC::JSString* wrapper = stringCache.get(stringImpl))
