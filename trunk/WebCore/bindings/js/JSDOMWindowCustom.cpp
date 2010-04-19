@@ -36,6 +36,7 @@
 #include "History.h"
 #include "JSAudioConstructor.h"
 #include "JSDatabaseCallback.h"
+#include "JSDOMBinding.h"
 #include "JSDOMWindowShell.h"
 #include "JSEvent.h"
 #include "JSEventListener.h"
@@ -177,7 +178,7 @@ static JSValue idItemGetter(ExecState* exec, JSValue slotBase, const Identifier&
     ASSERT(thisObj->allowsAccessFrom(exec));
     ASSERT(document);
 
-    return toJS(exec, document->getElementById(propertyName));
+    return toJS(exec, document->getElementById(identifierToAtomicString(propertyName)));
 }
 #endif
 
@@ -323,7 +324,7 @@ bool JSDOMWindow::getOwnPropertySlot(ExecState* exec, const Identifier& property
 #if ENABLE(CEHTML)
     else {
         if (document->isCEHTMLDocument()) {
-            AtomicStringImpl* atomicPropertyName = AtomicString::find(propertyName);
+            AtomicStringImpl* atomicPropertyName = findAtomicString(propertyName);
             if (atomicPropertyName) {
                 if (document->hasElementWithId(atomicPropertyName))
                     slot.setCustom(this, idItemGetter);

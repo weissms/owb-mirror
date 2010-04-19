@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include "KeyboardEvent.h"
+#include "JSDOMBinding.h"
 #include "JSKeyboardEvent.h"
 #include "JSDOMWindowCustom.h"
 #include <runtime/Error.h>
@@ -42,7 +43,7 @@ JSValue JSKeyboardEvent::initKeyEvent(ExecState* exec, const ArgList& args)
         throwError(exec, SyntaxError, "Not enough arguments");
 
     DOMWindow* window = asJSDOMWindow(exec->lexicalGlobalObject())->impl(); 
-    static_cast<KeyboardEvent*>(impl())->initKeyEvent(args.at(0).toString(exec), args.at(1).toBoolean(exec), args.at(2).toBoolean(exec), window, args.at(3).toBoolean(exec), args.at(4).toBoolean(exec), args.at(5).toBoolean(exec), args.at(6).toBoolean(exec), args.at(7).toNumber(exec));
+    static_cast<KeyboardEvent*>(impl())->initKeyEvent(ustringToString(args.at(0).toString(exec)), args.at(1).toBoolean(exec), args.at(2).toBoolean(exec), window, args.at(3).toBoolean(exec), args.at(4).toBoolean(exec), args.at(5).toBoolean(exec), args.at(6).toBoolean(exec), args.at(7).toNumber(exec));
 
     return jsUndefined();
 }
