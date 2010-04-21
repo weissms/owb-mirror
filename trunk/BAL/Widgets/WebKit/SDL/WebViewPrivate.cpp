@@ -62,6 +62,26 @@
 
 using namespace WebCore;
 
+static void postWebKitTimerEvent()
+{
+    SDL_Event event;
+    memset(&event, 0, sizeof(event));
+    event.type = SDL_USEREVENT;
+    event.user.type = SDL_USEREVENT;
+    event.user.code = SDLUserEventCode_Timer;
+    SDL_PushEvent(&event);
+}
+
+static void postWebKitMainThreadEvent()
+{
+    SDL_Event event;
+    memset(&event, 0, sizeof(event));
+    event.type = SDL_USEREVENT;
+    event.user.type = SDL_USEREVENT;
+    event.user.code = SDLUserEventCode_Thread;
+    SDL_PushEvent(&event);
+}
+
 WebViewPrivate::WebViewPrivate(WebView *webView)
     : m_webView(webView)
     , isInitialized(false)
@@ -71,6 +91,9 @@ WebViewPrivate::WebViewPrivate(WebView *webView)
     , m_closeWindowTimer(this, &WebViewPrivate::closeWindowTimerFired)
 {
     gettimeofday(&m_timerClick, NULL);
+    
+    setTimerEventCallback(postWebKitTimerEvent);
+    WTF::setMainThreadFiredFunction(postWebKitMainThreadEvent);
 }
 
 WebViewPrivate::~WebViewPrivate() 
@@ -87,7 +110,6 @@ void WebViewPrivate::fireWebKitTimerEvents()
     if (glibContext)
         g_main_context_iteration(glibContext, FALSE);
 #endif
-    usleep(10000);
 }
 
 void WebViewPrivate::fireWebKitThreadEvents()

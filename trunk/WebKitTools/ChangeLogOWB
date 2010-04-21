@@ -1,3 +1,11 @@
+2010-04-21  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Updated main event loop so that WebCore timer/thread events get
+        processed on a per-requested basis.
+
+        * OWBLauncher/SDL/main.cpp:
+        (waitEvent):
+
 2010-04-14  Olivier DOLE  <odole@sand-labs.org>
 
         Reviewed by Mario BENSI.

@@ -49,22 +49,14 @@ namespace WebCore {
     };
 
 
-    // Single timer, shared to implement all the timers managed by the Timer class.
-    // Not intended to be used directly; use the Timer class instead.
-
+    // Implemented by port (since it provides the run loop for the main thread).
+    // FIXME: make ports implement MainThreadSharedTimer directly instead.
     void setSharedTimerFiredFunction(void (*)());
-    void setIncrementTimerCountCallback(void(*)());
-
-    // The fire time is relative to the classic POSIX epoch of January 1, 1970,
-    // as the result of currentTime() is.
-
-    void setSharedTimerFireTime(double fireTime);
+    void setSharedTimerFireTime(double);
     void stopSharedTimer();
 
-#if !PLATFORM(GTK)
-    int fireTimerCount();
+    void setTimerEventCallback(void(*)());
     void fireTimerIfNeeded();
-#endif
 
     // Implementation of SharedTimer for the main thread.
     class MainThreadSharedTimer : public SharedTimer {

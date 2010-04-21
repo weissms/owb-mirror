@@ -1,3 +1,28 @@
+2010-04-21  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Reviewed by Guillaume and Mario.
+
+        Re-implemented support for shared timers for Linux platforms:
+        a separate 'timer' thread is created to handle delivering notices
+        about timer expiration. This basically allows the main thread to
+        wait (blocked state) for events rather than having to poll events in
+        order to process WebCore timer requests.        
+
+        * Timer/WebCore/Linux/BCSharedTimerLinux.cpp:
+        (WebCore::fireTimerIfNeeded):
+        (WebCore::setTimerEventCallback):
+        (WebCore::signalHandler):
+        (WebCore::timerThreadEntryPoint):
+        (WebCore::setSharedTimerFiredFunction):
+        (WebCore::setSharedTimerFireTime):
+        (WebCore::stopSharedTimer):
+        * Timer/WebCore/Linux/BCSharedTimerLinux.h:
+        * Widgets/WebKit/SDL/WebViewPrivate.cpp:
+        (postWebKitTimerEvent):
+        (postWebKitMainThreadEvent):
+        (WebViewPrivate::WebViewPrivate):
+        (WebViewPrivate::fireWebKitTimerEvents):
+
 2010-04-15  Olivier DOLE  <odole@connected-labs.com>
 
         Fix in drt.py for DAE tests.

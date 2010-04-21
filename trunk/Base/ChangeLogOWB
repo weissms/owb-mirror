@@ -1,3 +1,9 @@
+2010-04-21  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Added event type codes for timer and thread events.
+
+        * WebKitTypes.h.in:
+
 2010-01-14  Mario Bensi  <mbensi@pleyo.com>
 
         Fix some tests in Editing.

@@ -176,6 +176,9 @@ typedef struct _BalPoint{
 } BalPoint;
 typedef SDL_Rect BalRectangle;
 
+#define SDLUserEventCode_Timer         0xCAFECAFE
+#define SDLUserEventCode_Thread        0xCCAAFFEE
+
 #elif PLATFORM(@CUSTOMER@)
 #include "@WEBKIT_TYPES_CUSTOMER_INCLUDE@"
 

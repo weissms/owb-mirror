@@ -164,7 +164,7 @@ void waitEvent()
     SDL_Surface* scr;
     while (!quit) {
         //printf("waitEvent \n");
-        if (SDL_PollEvent(&event) != 0)
+        if (SDL_WaitEvent(&event) != 0)
         {
             switch (event.type) {
                 case SDL_ACTIVEEVENT:
@@ -220,7 +220,12 @@ void waitEvent()
                     break;
                 case SDL_USEREVENT:
                     //printf("user event\n");
-                    webView->onUserEvent(event.user);
+                    if (event.user.code == SDLUserEventCode_Timer)
+                        webAppMgr().fireWebKitTimerEvents();
+                    else if (event.user.code == SDLUserEventCode_Thread)
+                        webAppMgr().fireWebKitThreadEvents();
+                    else
+                        webView->onUserEvent(event.user);
                     break;
                 case SDL_SYSWMEVENT:
                     //printf("sys wm event\n");
@@ -232,9 +237,6 @@ void waitEvent()
                 default:
                     ;//printf("other event\n");
             }
-        } else {
-            webView->fireWebKitThreadEvents();
-            webView->fireWebKitTimerEvents();
         }
     }
 }
