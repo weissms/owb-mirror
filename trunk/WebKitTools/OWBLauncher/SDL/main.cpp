@@ -221,9 +221,9 @@ void waitEvent()
                 case SDL_USEREVENT:
                     //printf("user event\n");
                     if (event.user.code == SDLUserEventCode_Timer)
-                        webAppMgr().fireWebKitTimerEvents();
+                        webView->fireWebKitTimerEvents();
                     else if (event.user.code == SDLUserEventCode_Thread)
-                        webAppMgr().fireWebKitThreadEvents();
+                        webView->fireWebKitThreadEvents();
                     else
                         webView->onUserEvent(event.user);
                     break;
