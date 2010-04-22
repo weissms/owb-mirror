@@ -580,8 +580,8 @@ JSValue Interpreter::execute(ProgramExecutable* program, CallFrame* callFrame, S
 {
     ASSERT(!scopeChain->globalData->exception);
 
-    if (m_reentryDepth >= MaxSecondaryThreadReentryDepth) {
-        if (!isMainThread() || m_reentryDepth >= MaxMainThreadReentryDepth) {
+    if (m_reentryDepth >= MaxSmallThreadReentryDepth) {
+        if (m_reentryDepth >= callFrame->globalData().maxReentryDepth) {
             *exception = createStackOverflowError(callFrame);
             return jsNull();
         }
@@ -641,8 +641,8 @@ JSValue Interpreter::execute(FunctionExecutable* functionExecutable, CallFrame* 
 {
     ASSERT(!scopeChain->globalData->exception);
 
-    if (m_reentryDepth >= MaxSecondaryThreadReentryDepth) {
-        if (!isMainThread() || m_reentryDepth >= MaxMainThreadReentryDepth) {
+    if (m_reentryDepth >= MaxSmallThreadReentryDepth) {
+        if (m_reentryDepth >= callFrame->globalData().maxReentryDepth) {
             *exception = createStackOverflowError(callFrame);
             return jsNull();
         }
@@ -703,8 +703,8 @@ CallFrameClosure Interpreter::prepareForRepeatCall(FunctionExecutable* FunctionE
 {
     ASSERT(!scopeChain->globalData->exception);
     
-    if (m_reentryDepth >= MaxSecondaryThreadReentryDepth) {
-        if (!isMainThread() || m_reentryDepth >= MaxMainThreadReentryDepth) {
+    if (m_reentryDepth >= MaxSmallThreadReentryDepth) {
+        if (m_reentryDepth >= callFrame->globalData().maxReentryDepth) {
             *exception = createStackOverflowError(callFrame);
             return CallFrameClosure();
         }
@@ -779,8 +779,8 @@ JSValue Interpreter::execute(EvalExecutable* eval, CallFrame* callFrame, JSObjec
 {
     ASSERT(!scopeChain->globalData->exception);
 
-    if (m_reentryDepth >= MaxSecondaryThreadReentryDepth) {
-        if (!isMainThread() || m_reentryDepth >= MaxMainThreadReentryDepth) {
+    if (m_reentryDepth >= MaxSmallThreadReentryDepth) {
+        if (m_reentryDepth >= callFrame->globalData().maxReentryDepth) {
             *exception = createStackOverflowError(callFrame);
             return jsNull();
         }
@@ -1235,20 +1235,6 @@ JSValue Interpreter::privateExecute(ExecutionFlag flag, RegisterFile* registerFi
         callFrame->r(dst) = JSValue(constructArray(callFrame, args));
 
         vPC += OPCODE_LENGTH(op_new_array);
-        NEXT_INSTRUCTION();
-    }
-    DEFINE_OPCODE(op_new_regexp) {
-        /* new_regexp dst(r) regExp(re)
-
-           Constructs a new RegExp instance using the original
-           constructor from regexp regExp, and puts the result in
-           register dst.
-        */
-        int dst = vPC[1].u.operand;
-        int regExp = vPC[2].u.operand;
-        callFrame->r(dst) = JSValue(new (globalData) RegExpObject(callFrame->scopeChain()->globalObject->regExpStructure(), callFrame->codeBlock()->regexp(regExp)));
-
-        vPC += OPCODE_LENGTH(op_new_regexp);
         NEXT_INSTRUCTION();
     }
     DEFINE_OPCODE(op_mov) {

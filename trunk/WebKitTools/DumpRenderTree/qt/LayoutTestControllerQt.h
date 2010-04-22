@@ -40,6 +40,7 @@
 #include <QVariant>
 
 #include <qwebdatabase.h>
+#include <qwebelement.h>
 #include <qwebframe.h>
 #include <qwebhistory.h>
 #include <qwebpage.h>
@@ -143,6 +144,7 @@ public slots:
     void resetLoadFinished() { m_loadFinished = false; }
     void setWindowIsKey(bool isKey);
     void setMainFrameIsFirstResponder(bool isFirst);
+    void setJavaScriptCanAccessClipboard(bool enable);
     void setXSSAuditorEnabled(bool enable);
     void setCaretBrowsingEnabled(bool enable);
     void setViewModeMediaFeature(const QString& mode);
@@ -181,6 +183,11 @@ public slots:
         Orientation values: 'vertical' or 'horizontal'.
     */
     void setScrollbarPolicy(const QString& orientation, const QString& policy);
+
+    QString markerTextForListItem(const QWebElement& listItem);
+
+    // Simulate a request an embedding application could make, populating per-session credential storage.
+    void authenticateSession(const QString& url, const QString& username, const QString& password);
 
 private slots:
     void processWork();

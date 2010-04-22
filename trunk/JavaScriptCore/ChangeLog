@@ -1,3 +1,598 @@
+2010-04-22  Andy Estes  <aestes@apple.com>
+
+        Rubber stamped by Mark Rowe.
+
+        Export WTF::deleteOwnedPtr(HFONT).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-04-21  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber Stamped by Oliver Hunt.
+
+        Make SmallStrings store an array of RefPtr<StringImpl>,
+        instead of a direct array of StringImpls.  This allows
+        us to remove a friend (and a layering violation) from
+        WTF::StringImpl, and makes it so that all StringImpls
+        are individually heap allocated.
+
+        * runtime/SmallStrings.cpp:
+        (JSC::SmallStringsStorage::rep):
+        (JSC::SmallStringsStorage::SmallStringsStorage):
+        * wtf/text/StringImpl.h:
+
+2010-04-21  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Geoffrey Garen.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=37937
+        Wean JavaScriptCore off calls to isMainThread()
+
+        - Replace use of isMainThread() for interpreter reentry checks
+          with a stored value on the JSGlobalData.
+        - Replace use of isMainThread() for useMainThread only check in the
+          collector with a stored exclusive thread.
+
+        * API/JSContextRef.cpp:
+        (JSContextGroupCreate):
+        Always default to a small stack type for uses of the JSC API. It is
+        unlikely that the interpreter reentry required on the web will be as
+        important for other uses of JavaScriptCore. 
+
+        * JavaScriptCore.exp: 
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        Update exports.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::execute):
+        (JSC::Interpreter::prepareForRepeatCall):
+        Use new stored JSGlobalData::maxReentryDepth instead of isMainThread().
+
+        * interpreter/Interpreter.h:
+        Rename MaxMainThreadReentryDepth to MaxLargeThreadReentryDepth and 
+        MaxSecondaryThreadReentryDepth to MaxSmallThreadReentryDepth.
+
+        * jsc.cpp:
+        (main): Use the a large stack for jsc since it is always using the
+        main thread.
+        
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncToString):
+        (JSC::arrayProtoFuncToLocaleString):
+        (JSC::arrayProtoFuncJoin):
+        Use new stored JSGlobalData::maxReentryDepth instead of isMainThread().
+
+        * runtime/Collector.cpp:
+        (JSC::Heap::registerThread):
+        Use the concept of making JSC run on an exclusiveThread instead of
+        forcing a mainThreadOnly assertion.
+        
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        (JSC::JSGlobalData::createNonDefault):
+        (JSC::JSGlobalData::create):
+        (JSC::JSGlobalData::createLeaked):
+        (JSC::JSGlobalData::sharedInstance):
+        * runtime/JSGlobalData.h:
+        Add ThreadStackType argument to JSGlobalData constructors and set
+        maxReentryDepth based on it.
+
+2010-04-21  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (windows build fix pt. 3).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-04-21  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (windows build fix pt. 2).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-04-21  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (Qt build fix).
+
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pro:
+        * wtf/qt/StringQt.cpp: Copied from WebCore/platform/text/qt/StringQt.cpp.
+
+2010-04-21  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (windows build fix).
+
+        * API/JSValueRef.cpp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * runtime/Identifier.cpp:
+        (JSC::IdentifierTable::~IdentifierTable):
+        (JSC::IdentifierTable::add):
+        * runtime/Identifier.h:
+        * wtf/WTFThreadData.h:
+        (JSC::IdentifierTable::remove):
+        (JSC::IdentifierTable::literalTable):
+        * wtf/text/StringImpl.cpp:
+        (WebCore::StringImpl::~StringImpl):
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt, Darin Adler.
+
+        Bug 37906 - Remove JSC::UStringImpl; unify with StringImpl.
+
+        JSC::UStringImpl and WebCore::StringImpl (soon to be renamed to
+        WTF::StringImpl) are almost identical.  Remove duplication of code by unifying
+        the two, move missing features from UStringImpl into StringImpl & delete the
+        class UStringImpl.
+
+        * API/JSClassRef.cpp:
+        * API/JSContextRef.cpp:
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.pro:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * bytecode/EvalCodeCache.h:
+        * bytecode/JumpTable.cpp:
+        * profiler/ProfileNode.cpp:
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::add):
+        * runtime/Identifier.h:
+        (JSC::Identifier::equal):
+        * runtime/UString.cpp:
+        * runtime/UString.h:
+        (WTF::):
+        * runtime/UStringImpl.cpp: Removed.
+        * runtime/UStringImpl.h:
+        * wtf/text/StringHash.h:
+        (WebCore::StringHash::equal):
+        (WebCore::CaseFoldingHash::equal):
+        * wtf/text/StringImpl.cpp:
+        (WebCore::StringImpl::~StringImpl):
+        (WebCore::StringImpl::empty):
+        (WebCore::StringImpl::sharedBuffer):
+        (WebCore::equal):
+        * wtf/text/StringImpl.h:
+        (WebCore::StringImpl::StringImpl):
+        (WebCore::StringImpl::create):
+        (WebCore::StringImpl::tryCreateUninitialized):
+        (WebCore::StringImpl::cost):
+        (WebCore::StringImpl::isIdentifier):
+        (WebCore::StringImpl::setIsIdentifier):
+        (WebCore::StringImpl::computeHash):
+        (WebCore::StringImpl::copyChars):
+        (WebCore::StringImpl::):
+
+2010-04-21  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Darin Adler.
+
+        Added missing #include "Lookup.h" in LUT source files.
+        https://bugs.webkit.org/show_bug.cgi?id=37903
+
+        * runtime/ArrayPrototype.cpp:
+        * runtime/DatePrototype.cpp:
+        * runtime/JSONObject.cpp:
+        * runtime/MathObject.cpp:
+        * runtime/NumberConstructor.cpp:
+        * runtime/RegExpConstructor.cpp:
+        * runtime/RegExpObject.cpp:
+        * runtime/StringPrototype.cpp:
+
+2010-04-21  Gustavo Sverzut Barbieri  <barbieri@profusion.mobi>
+
+        Reviewed by Nikolas Zimmermann.
+
+        Add missing EFL JavaScriptCore file.
+        http://webkit.org/b/37854
+
+        * wtf/efl: Added.
+        * wtf/efl/MainThreadEfl.cpp: Added.
+        (WTF::initializeMainThreadPlatform):
+        (WTF::timeoutFired):
+        (WTF::scheduleDispatchFunctionsOnMainThread):
+
+2010-04-20  Xan Lopez  <xlopez@igalia.com>
+
+        Another attempt to fix the build.
+
+        * GNUmakefile.am:
+
+2010-04-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        [ES5] RegExp literals are constants that should be persistent across multiple function calls.
+        https://bugs.webkit.org/show_bug.cgi?id=37908
+
+        Dump the separate RegExp constant pool, and just use the standard JS constant pool
+        in codeblock.  This allows us to drop op_new_regexp and all associated code as well.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::shrinkToFit):
+        * bytecode/CodeBlock.h:
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitLoad):
+        * bytecompiler/BytecodeGenerator.h:
+        * bytecompiler/NodesCodegen.cpp:
+        (JSC::RegExpNode::emitBytecode):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JIT.h:
+        * jit/JITOpcodes.cpp:
+        * jit/JITStubs.cpp:
+        * jit/JITStubs.h:
+        (JSC::):
+
+2010-04-20  Oliver Hunt  <oliver@apple.com>
+
+        Fix license on create_regex_tables
+
+        * create_regex_tables:
+
+2010-04-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by NOBODY (Build fix).
+
+        Fix gtk
+
+        * GNUmakefile.am:
+        * make-generated-sources.sh:
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 37895 - Share common code from UStringImplBase with StringImpl
+
+        The implementation of StringImpl & UStringImpl is very similar.  Restructure
+        StringImpl to match UStringImpl, moving the flags and length into a base class,
+        so that this can be shared between both string types to increase code reuse.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/RopeImpl.h:
+        (JSC::RopeImpl::RopeImpl):
+        * runtime/UStringImpl.h:
+        (JSC::UStringImpl::UStringImpl):
+        * wtf/text/StringImpl.h:
+        (WebCore::StringImpl::StringImpl):
+        (WebCore::StringImpl::characters):
+        * wtf/text/StringImplBase.h: Copied from JavaScriptCore/runtime/UStringImpl.h.
+        (WTF::StringImplBase::length):
+        (WTF::StringImplBase::operator new):
+        (WTF::StringImplBase::StringImplBase):
+
+2010-04-20  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Autogenerate yarr character tables
+        https://bugs.webkit.org/show_bug.cgi?id=37877
+
+        Use a python script to automatically generate character tables
+        for the builtin YARR character classes.  This allows us to generate
+        actual tables as well, by using these tables we can both increase
+        performance of the check (for complex builtins) and reduce the actual
+        code size.
+
+        4-8% win on string-unpack-code, but lots of noise on other tests so
+        i'm only confident saying its a 1% win overall.
+
+        * DerivedSources.make:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * assembler/AbstractMacroAssembler.h:
+        (JSC::AbstractMacroAssembler::ExtendedAddress::ExtendedAddress):
+        * assembler/MacroAssembler.h:
+        (JSC::MacroAssembler::branchTest8):
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::branchTest8):
+        * assembler/MacroAssemblerX86_64.h:
+        (JSC::MacroAssemblerX86_64::branchTest8):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::cmpb_im):
+        (JSC::X86Assembler::testb_im):
+        * bytecode/SamplingTool.cpp:
+        (JSC::SamplingTool::dump):
+        * create_regex_tables: Added.
+        * yarr/RegexCompiler.cpp:
+        (JSC::Yarr::CharacterClassConstructor::charClass):
+        * yarr/RegexJIT.cpp:
+        (JSC::Yarr::RegexGenerator::matchCharacterClass):
+        (JSC::Yarr::RegexGenerator::generatePatternCharacterGreedy):
+        (JSC::Yarr::RegexGenerator::generatePatternCharacterNonGreedy):
+        (JSC::Yarr::RegexGenerator::generateCharacterClassGreedy):
+        * yarr/RegexPattern.h:
+        (JSC::Yarr::CharacterClassTable::create):
+        (JSC::Yarr::CharacterClassTable::CharacterClassTable):
+        (JSC::Yarr::CharacterClass::CharacterClass):
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (speculative windows fix - missed a bit!).
+
+        * wtf/text/AtomicString.h:
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (speculative windows fix).
+
+        * wtf/text/AtomicString.h:
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (windows build fix).
+
+        Add missing .def file entries.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 37869 - Move URopeImpl to its own .h/.cpp
+        
+        Currently Ropes are implemented by the class URopeImpl, which is defined in
+        UStringImpl.h, and then typedefed to the name JSString::Rope. Remove the
+        typedef, and rename all uses of URopeImpl and JSString::Rope to just RopeImpl.
+
+        Move RopeImpl to its own header, and remove all remaining references to ropes
+        from UStringImpl (rename UStringOrRopeImpl to UStringImplBase, rename or move
+        the isRope & deref methods from UStringOrRopeImpl).
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/JSString.cpp:
+        (JSC::JSString::resolveRope):
+        * runtime/JSString.h:
+        (JSC::):
+        (JSC::RopeBuilder::JSString):
+        (JSC::RopeBuilder::~JSString):
+        (JSC::RopeBuilder::appendStringInConstruct):
+        (JSC::RopeBuilder::JSStringFinalizerStruct::):
+        * runtime/RopeImpl.cpp: Copied from JavaScriptCore/runtime/UStringImpl.cpp.
+        (JSC::RopeImpl::derefFibersNonRecursive):
+        (JSC::RopeImpl::destructNonRecursive):
+        * runtime/RopeImpl.h: Copied from JavaScriptCore/runtime/UStringImpl.h.
+        (JSC::RopeImpl::tryCreateUninitialized):
+        (JSC::RopeImpl::isRope):
+        (JSC::RopeImpl::deref):
+        (JSC::RopeImpl::RopeImpl):
+        * runtime/UStringImpl.cpp:
+        * runtime/UStringImpl.h:
+        (JSC::UStringImplBase::isInvalid):
+        (JSC::UStringImplBase::ref):
+        (JSC::UStringImplBase::UStringImplBase):
+        (JSC::UStringImplBase::):
+        (JSC::UStringImpl::UStringImpl):
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 37828 - Move WebCore's String classes to WTF
+
+        Move these classes up to WTF so they are available to all clients of WTF (in
+        particular JSC).
+
+        As a first patch, making the most minimal change possible, since this patch
+        could easily grow rather large since we'll have to change every class forward
+        declaration ( e.g. every "namespace WebCore { class String; }" much change to
+        "namespace WTF { class String; }").
+
+        Moving the files, but leaving the classes logically in the WebCore namespace -
+        which is technically a layering violation - I'll come back and fix this up in a
+        subsequent patch.
+
+        * Android.mk:
+        * Android.v8.wtf.mk:
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pro:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * config.h:
+        * wtf/StaticConstructors.h: Copied from WebCore/platform/StaticConstructors.h.
+        * wtf/text/AtomicString.cpp: Copied from WebCore/platform/text/AtomicString.cpp.
+        * wtf/text/AtomicString.h: Copied from WebCore/platform/text/AtomicString.h.
+        * wtf/text/AtomicStringImpl.h: Copied from WebCore/platform/text/AtomicStringImpl.h.
+        * wtf/text/StringBuffer.h: Copied from WebCore/platform/text/StringBuffer.h.
+        * wtf/text/StringHash.h: Copied from WebCore/platform/text/StringHash.h.
+        * wtf/text/StringImpl.cpp: Copied from WebCore/platform/text/StringImpl.cpp.
+        * wtf/text/StringImpl.h: Copied from WebCore/platform/text/StringImpl.h.
+        * wtf/text/WTFString.cpp: Copied from WebCore/platform/text/String.cpp.
+        (WebCore::charactersToFloat):
+        * wtf/text/WTFString.h: Copied from WebCore/platform/text/PlatformString.h.
+
+2010-04-20  Csaba Osztrogonác  <ossy@webkit.org>
+
+        [Qt] Unreviewed speculative buildfix for WinCE after r57882
+        https://bugs.webkit.org/show_bug.cgi?id=37701
+
+        * JavaScriptCore.pri: missing wince* case added.
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+        Speculative Chromium/Win build fix, attempt #2.
+
+        * config.h:
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+        Speculative Chromium/Win build fix.
+
+        * config.h: JS_EXPORTDATA should do nothing on !JSC builds.
+
+2010-04-20  Csaba Osztrogonác  <ossy@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Target(WebCore,jsc,...) must depends on static library of JavaScriptCore
+        https://bugs.webkit.org/show_bug.cgi?id=37701
+
+        * JavaScriptCore.pri: dependency added.
+
+2010-04-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Rubber stamped by Maciej Stachowiak (relanding r57829).
+        Added missing JS_EXPORTDATA
+
+        * API/APIShims.h:
+        (JSC::APIEntryShimWithoutLock::APIEntryShimWithoutLock):
+        (JSC::APIEntryShimWithoutLock::~APIEntryShimWithoutLock):
+        (JSC::APICallbackShim::APICallbackShim):
+        (JSC::APICallbackShim::~APICallbackShim):
+        * API/JSContextRef.cpp:
+        * Android.mk:
+        * Android.v8.wtf.mk:
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pro:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/Completion.cpp:
+        (JSC::checkSyntax):
+        (JSC::evaluate):
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::remove):
+        (JSC::Identifier::checkCurrentIdentifierTable):
+        * runtime/Identifier.h:
+        * runtime/InitializeThreading.cpp:
+        (JSC::initializeThreadingOnce):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::create):
+        * wtf/WTFThreadData.cpp: Copied from JavaScriptCore/wtf/WTFThreadData.cpp.
+        * wtf/WTFThreadData.h: Copied from JavaScriptCore/wtf/WTFThreadData.h.
+
+2010-04-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (rolling out r57829).
+        This broke windows.
+
+        * API/APIShims.h:
+        (JSC::APIEntryShimWithoutLock::APIEntryShimWithoutLock):
+        (JSC::APIEntryShimWithoutLock::~APIEntryShimWithoutLock):
+        (JSC::APICallbackShim::APICallbackShim):
+        (JSC::APICallbackShim::~APICallbackShim):
+        * API/JSContextRef.cpp:
+        * Android.mk:
+        * Android.v8.wtf.mk:
+        * GNUmakefile.am:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pro:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/Completion.cpp:
+        (JSC::checkSyntax):
+        (JSC::evaluate):
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::remove):
+        (JSC::Identifier::checkCurrentIdentifierTable):
+        (JSC::createIdentifierTableSpecificCallback):
+        (JSC::createIdentifierTableSpecific):
+        * runtime/Identifier.h:
+        (JSC::ThreadIdentifierTableData::ThreadIdentifierTableData):
+        (JSC::defaultIdentifierTable):
+        (JSC::setDefaultIdentifierTable):
+        (JSC::currentIdentifierTable):
+        (JSC::setCurrentIdentifierTable):
+        (JSC::resetCurrentIdentifierTable):
+        * runtime/InitializeThreading.cpp:
+        (JSC::initializeThreadingOnce):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::create):
+        * wtf/WTFThreadData.cpp: Removed.
+        * wtf/WTFThreadData.h: Removed.
+
+2010-04-19  Douglas Gregor  <dgregor@apple.com>
+
+        Reviewed and landed by Anders Carlsson.
+
+        * runtime/UStringImpl.h:
+        Fix class/struct declaration mismatches.
+
+2010-04-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        Checked in these tests I wrote becuase Balazs Kelemen wanted to use them.
+
+        * tests/perf: Added.
+        * tests/perf/bench-allocate-nonretained.js: Added.
+        * tests/perf/bench-allocate-retained.js: Added.
+
+2010-04-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (windows build fix).
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-04-16  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37745
+        Move string uniquing tables to (new) WTFThreadData class.
+
+        Remove AtomicString's dependency on ThreadGlobalData so that we can move
+        WebCore's string classes up to WTF.
+
+        WTFThreadData.cpp/.h are based on ThreadGlobalData from WebCore.
+        Moved JSC & WebCore's string uniquing tables to this class.
+
+        This patch introduces a temporary layering violation in providing forward
+        declarations of classes from JSC and WTF; this will be resolved as we move
+        more string code up to WTF.
+
+        * API/APIShims.h:
+        (JSC::APIEntryShimWithoutLock::APIEntryShimWithoutLock):
+        (JSC::APIEntryShimWithoutLock::~APIEntryShimWithoutLock):
+        (JSC::APICallbackShim::APICallbackShim):
+        (JSC::APICallbackShim::~APICallbackShim):
+        * API/JSContextRef.cpp:
+        * JavaScriptCore.exp:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/Completion.cpp:
+        (JSC::checkSyntax):
+        (JSC::evaluate):
+        * runtime/Identifier.cpp:
+        (JSC::Identifier::remove):
+        (JSC::Identifier::checkCurrentIdentifierTable):
+        * runtime/Identifier.h:
+        * runtime/InitializeThreading.cpp:
+        (JSC::initializeThreadingOnce):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::create):
+        * wtf/WTFThreadData.cpp: Copied from WebCore/platform/ThreadGlobalData.cpp.
+        (WTF::WTFThreadData::WTFThreadData):
+        (WTF::WTFThreadData::~WTFThreadData):
+        * wtf/WTFThreadData.h: Copied from WebCore/platform/ThreadGlobalData.h.
+        (WTF::WTFThreadData::atomicStringTable):
+        (WTF::WTFThreadData::initializeIdentifierTable):
+        (WTF::WTFThreadData::currentIdentifierTable):
+        (WTF::WTFThreadData::setCurrentIdentifierTable):
+        (WTF::WTFThreadData::resetCurrentIdentifierTable):
+        (WTF::wtfThreadData):
+
+2010-04-19  Jocelyn Turcotte  <jocelyn.turcotte@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Build fix for WinCE.
+
+        Moved the include of the non-existing errno.h header file inside
+        platform guard macros.
+
+        * jit/ExecutableAllocatorFixedVMPool.cpp:
+
 2010-04-19  Kwang Yul Seo  <skyul@company100.net>
 
         Reviewed by Laszlo Gombos.

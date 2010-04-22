@@ -80,6 +80,7 @@ list(APPEND JSC_SRC
     runtime/RegExpConstructor.cpp
     runtime/RegExpObject.cpp
     runtime/RegExpPrototype.cpp
+    runtime/RopeImpl.cpp
     runtime/ScopeChain.cpp
     runtime/SmallStrings.cpp
     runtime/StringConstructor.cpp
@@ -89,6 +90,5 @@ list(APPEND JSC_SRC
     runtime/StructureChain.cpp
     runtime/UString.cpp
     runtime/UStringImpl.h
-    runtime/UStringImpl.cpp
     runtime/TimeoutChecker.cpp
 )

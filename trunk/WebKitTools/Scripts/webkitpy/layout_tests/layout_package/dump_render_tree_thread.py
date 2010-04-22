@@ -35,6 +35,9 @@ the output.  When there are no more URLs to process in the shared queue, the
 thread exits.
 """
 
+from __future__ import with_statement
+
+import codecs
 import copy
 import logging
 import os
@@ -54,8 +57,8 @@ _log = logging.getLogger("webkitpy.layout_tests.layout_package."
 def process_output(port, test_info, test_types, test_args, configuration,
                    output_dir, crash, timeout, test_run_time, actual_checksum,
                    output, error):
-    """Receives the output from a DumpRenderTree process, subjects it to a number
-    of tests, and returns a list of failure types the test produced.
+    """Receives the output from a DumpRenderTree process, subjects it to a
+    number of tests, and returns a list of failure types the test produced.
 
     Args:
       port: port-specific hooks
@@ -66,7 +69,7 @@ def process_output(port, test_info, test_types, test_args, configuration,
       configuration: Debug or Release
       output_dir: directory to put crash stack traces into
 
-    Returns: a list of failure objects and times for the test being processed
+    Returns: a TestResult object
     """
     failures = []
 
@@ -89,7 +92,8 @@ def process_output(port, test_info, test_types, test_args, configuration,
                                 test_info.filename))
         filename = os.path.splitext(filename)[0] + "-stack.txt"
         port.maybe_make_directory(os.path.split(filename)[0])
-        open(filename, "wb").write(error)  # FIXME: This leaks a file handle.
+        with codecs.open(filename, "wb", "utf-8") as file:
+            file.write(error)
     elif error:
         _log.debug("Previous test output extra lines after dump:\n%s" %
                    error)
@@ -111,19 +115,20 @@ def process_output(port, test_info, test_types, test_args, configuration,
             time.time() - start_diff_time)
 
     total_time_for_all_diffs = time.time() - start_diff_time
-    return TestStats(test_info.filename, failures, test_run_time,
-        total_time_for_all_diffs, time_for_diffs)
+    return TestResult(test_info.filename, failures, test_run_time,
+                      total_time_for_all_diffs, time_for_diffs)
 
 
-class TestStats:
+class TestResult(object):
 
     def __init__(self, filename, failures, test_run_time,
                  total_time_for_all_diffs, time_for_diffs):
-        self.filename = filename
         self.failures = failures
+        self.filename = filename
         self.test_run_time = test_run_time
-        self.total_time_for_all_diffs = total_time_for_all_diffs
         self.time_for_diffs = time_for_diffs
+        self.total_time_for_all_diffs = total_time_for_all_diffs
+        self.type = test_failures.determine_result_type(failures)
 
 
 class SingleTestThread(threading.Thread):
@@ -155,16 +160,16 @@ class SingleTestThread(threading.Thread):
         start = time.time()
         crash, timeout, actual_checksum, output, error = \
             driver.run_test(test_info.uri.strip(), test_info.timeout,
-                            test_info.image_hash)
+                            test_info.image_hash())
         end = time.time()
-        self._test_stats = process_output(self._port,
+        self._test_result = process_output(self._port,
             test_info, self._test_types, self._test_args,
             self._configuration, self._output_dir, crash, timeout, end - start,
             actual_checksum, output, error)
         driver.stop()
 
-    def get_test_stats(self):
-        return self._test_stats
+    def get_test_result(self):
+        return self._test_result
 
 
 class TestShellThread(threading.Thread):
@@ -201,7 +206,7 @@ class TestShellThread(threading.Thread):
         self._canceled = False
         self._exception_info = None
         self._directory_timing_stats = {}
-        self._test_stats = []
+        self._test_results = []
         self._num_tests = 0
         self._start_time = 0
         self._stop_time = 0
@@ -218,10 +223,13 @@ class TestShellThread(threading.Thread):
         (number of tests in that directory, time to run the tests)"""
         return self._directory_timing_stats
 
-    def get_individual_test_stats(self):
-        """Returns a list of (test_filename, time_to_run_test,
-        total_time_for_all_diffs, time_for_diffs) tuples."""
-        return self._test_stats
+    def get_test_results(self):
+        """Return the list of all tests run on this thread.
+
+        This is used to calculate per-thread statistics.
+
+        """
+        return self._test_results
 
     def cancel(self):
         """Set a flag telling this thread to quit."""
@@ -286,7 +294,7 @@ class TestShellThread(threading.Thread):
         # This is created in run_webkit_tests.py:_PrepareListsAndPrintOutput.
         tests_run_filename = os.path.join(self._options.results_directory,
                                           "tests_run.txt")
-        tests_run_file = open(tests_run_filename, "a")
+        tests_run_file = codecs.open(tests_run_filename, "a", "utf-8")
 
         while True:
             if self._canceled:
@@ -317,27 +325,29 @@ class TestShellThread(threading.Thread):
             batch_count += 1
             self._num_tests += 1
             if self._options.run_singly:
-                failures = self._run_test_singly(test_info)
+                result = self._run_test_singly(test_info)
             else:
-                failures = self._run_test(test_info)
+                result = self._run_test(test_info)
 
             filename = test_info.filename
             tests_run_file.write(filename + "\n")
-            if failures:
-                # Check and kill DumpRenderTree if we need too.
-                if len([1 for f in failures if f.should_kill_dump_render_tree()]):
+            if result.failures:
+                # Check and kill DumpRenderTree if we need to.
+                if len([1 for f in result.failures
+                        if f.should_kill_dump_render_tree()]):
                     self._kill_dump_render_tree()
                     # Reset the batch count since the shell just bounced.
                     batch_count = 0
                 # Print the error message(s).
-                error_str = '\n'.join(['  ' + f.message() for f in failures])
+                error_str = '\n'.join(['  ' + f.message() for
+                                       f in result.failures])
                 _log.debug("%s %s failed:\n%s" % (self.getName(),
                            self._port.relative_test_filename(filename),
                            error_str))
             else:
                 _log.debug("%s %s passed" % (self.getName(),
                            self._port.relative_test_filename(filename)))
-            self._result_queue.put((filename, failures))
+            self._result_queue.put(result)
 
             if batch_size > 0 and batch_count > batch_size:
                 # Bounce the shell and reset count.
@@ -357,8 +367,9 @@ class TestShellThread(threading.Thread):
         Args:
           test_info: Object containing the test filename, uri and timeout
 
-        Return:
-          A list of TestFailure objects describing the error.
+        Returns:
+          A TestResult
+
         """
         worker = SingleTestThread(self._port, self._image_path,
                                   self._shell_args,
@@ -370,9 +381,9 @@ class TestShellThread(threading.Thread):
 
         worker.start()
 
-        # When we're running one test per DumpRenderTree process, we can enforce
-        # a hard timeout. the DumpRenderTree watchdog uses 2.5x the timeout
-        # We want to be larger than that.
+        # When we're running one test per DumpRenderTree process, we can
+        # enforce a hard timeout.  The DumpRenderTree watchdog uses 2.5x
+        # the timeout; we want to be larger than that.
         worker.join(int(test_info.timeout) * 3.0 / 1000.0)
         if worker.isAlive():
             # If join() returned with the thread still running, the
@@ -380,22 +391,23 @@ class TestShellThread(threading.Thread):
             # more we can do with it.  We have to kill all the
             # DumpRenderTrees to free it up. If we're running more than
             # one DumpRenderTree thread, we'll end up killing the other
-            # DumpRenderTrees too, introducing spurious crashes. We accept that
-            # tradeoff in order to avoid losing the rest of this thread's
-            # results.
+            # DumpRenderTrees too, introducing spurious crashes. We accept
+            # that tradeoff in order to avoid losing the rest of this
+            # thread's results.
             _log.error('Test thread hung: killing all DumpRenderTrees')
             worker._driver.stop()
 
         try:
-            stats = worker.get_test_stats()
-            self._test_stats.append(stats)
-            failures = stats.failures
+            result = worker.get_test_result()
         except AttributeError, e:
             failures = []
             _log.error('Cannot get results of test: %s' %
                        test_info.filename)
+            result = TestResult(test_info.filename, failures=[],
+                                test_run_time=0, total_time_for_all_diffs=0,
+                                time_for_diffs=0)
 
-        return failures
+        return result
 
     def _run_test(self, test_info):
         """Run a single test file using a shared DumpRenderTree process.
@@ -403,15 +415,16 @@ class TestShellThread(threading.Thread):
         Args:
           test_info: Object containing the test filename, uri and timeout
 
-        Return:
+        Returns:
           A list of TestFailure objects describing the error.
+
         """
         self._ensure_dump_render_tree_is_running()
         # The pixel_hash is used to avoid doing an image dump if the
         # checksums match, so it should be set to a blank value if we
         # are generating a new baseline.  (Otherwise, an image from a
         # previous run will be copied into the baseline.)
-        image_hash = test_info.image_hash
+        image_hash = test_info.image_hash()
         if image_hash and self._test_args.new_baseline:
             image_hash = ""
         start = time.time()
@@ -419,19 +432,20 @@ class TestShellThread(threading.Thread):
            self._driver.run_test(test_info.uri, test_info.timeout, image_hash)
         end = time.time()
 
-        stats = process_output(self._port, test_info, self._test_types,
-                               self._test_args, self._options.configuration,
-                               self._options.results_directory, crash,
-                               timeout, end - start, actual_checksum,
-                               output, error)
-
-        self._test_stats.append(stats)
-        return stats.failures
+        result = process_output(self._port, test_info, self._test_types,
+                                self._test_args, self._options.configuration,
+                                self._options.results_directory, crash,
+                                timeout, end - start, actual_checksum,
+                                output, error)
+        self._test_results.append(result)
+        return result
 
     def _ensure_dump_render_tree_is_running(self):
-        """Start the shared DumpRenderTree, if it's not running.  Not for use when
-        running tests singly, since those each start a separate DumpRenderTree in
-        their own thread.
+        """Start the shared DumpRenderTree, if it's not running.
+
+        This is not for use when running tests singly, since those each start
+        a separate DumpRenderTree in their own thread.
+
         """
         if (not self._driver or self._driver.poll() is not None):
             self._driver = self._port.start_driver(

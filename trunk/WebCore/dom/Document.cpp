@@ -1781,7 +1781,7 @@ void Document::close()
     if (frame) {
         // This code calls implicitClose() if all loading has completed.
         FrameLoader* frameLoader = frame->loader();
-        frameLoader->endIfNotLoadingMainResource();
+        frameLoader->writer()->endIfNotLoadingMainResource();
         frameLoader->checkCompleted();
     } else {
         // Because we have no frame, we don't know if all loading has completed,
@@ -4885,7 +4885,7 @@ bool Document::isXHTMLMPDocument() const
     // MUST accept XHTMLMP document identified as "application/vnd.wap.xhtml+xml"
     // and SHOULD accept it identified as "application/xhtml+xml" , "application/xhtml+xml" is a 
     // general MIME type for all XHTML documents, not only for XHTMLMP
-    return frame()->loader()->responseMIMEType() == "application/vnd.wap.xhtml+xml";
+    return frame()->loader()->writer()->mimeType() == "application/vnd.wap.xhtml+xml";
 }
 #endif
 

@@ -31,6 +31,7 @@
 import logging
 import os
 import subprocess
+import signal
 
 from webkitpy.layout_tests.port.webkit import WebKitPort
 
@@ -62,6 +63,7 @@ class QtPort(WebKitPort):
                             'apache2-debian-httpd.conf')
 
     def _kill_all_process(self, process_name):
+        # FIXME: This should use Executive.
         null = open(os.devnull)
         subprocess.call(['killall', '-TERM', '-u', os.getenv('USER'),
                         process_name], stderr=null)
@@ -90,6 +92,9 @@ class QtPort(WebKitPort):
                 # 'killall' web servers.
                 self._shut_down_http_server(None)
 
-    def default_configuration(self):
-        # FIXME: Do this properly
-        return "Release"
+    def _build_driver(self):
+        # The Qt port builds DRT as part of the main build step
+        return True
+
+    def _path_to_driver(self):
+        return self._build_path('bin/DumpRenderTree')

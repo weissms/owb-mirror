@@ -43,6 +43,7 @@
 #endif
 #include "Page.h"
 #include "RenderEmbeddedObject.h"
+#include "RenderIFrame.h"
 #include "RenderLayerBacking.h"
 #include "RenderReplica.h"
 #include "RenderVideo.h"
@@ -116,6 +117,8 @@ void RenderLayerCompositor::enableCompositingMode(bool enable /* = true */)
             ensureRootPlatformLayer();
         else
             destroyRootPlatformLayer();
+
+        m_renderView->compositingStateChanged(m_compositing);
     }
 }
 
@@ -129,6 +132,15 @@ void RenderLayerCompositor::cacheAcceleratedCompositingFlags()
         hasAcceleratedCompositing = settings->acceleratedCompositingEnabled();
         showDebugBorders = settings->showDebugBorders();
         showRepaintCounter = settings->showRepaintCounter();
+    }
+
+    // We allow the chrome to override the settings, in case the page is rendered
+    // on a chrome that doesn't allow accelerated compositing.
+    if (hasAcceleratedCompositing) {
+        Frame* frame = m_renderView->frameView()->frame();
+        Page* page = frame ? frame->page() : 0;
+        if (page)
+            hasAcceleratedCompositing = page->chrome()->client()->allowsAcceleratedCompositing();
     }
 
     if (hasAcceleratedCompositing != m_hasAcceleratedCompositing || showDebugBorders != m_showDebugBorders || showRepaintCounter != m_showRepaintCounter)
@@ -976,6 +988,7 @@ bool RenderLayerCompositor::requiresCompositingLayer(const RenderLayer* layer) c
              || requiresCompositingForVideo(renderer)
              || requiresCompositingForCanvas(renderer)
              || requiresCompositingForPlugin(renderer)
+             || requiresCompositingForIFrame(renderer)
              || renderer->style()->backfaceVisibility() == BackfaceVisibilityHidden
              || clipsCompositingDescendants(layer)
              || requiresCompositingForAnimation(renderer);
@@ -1081,6 +1094,11 @@ bool RenderLayerCompositor::requiresCompositingForCanvas(RenderObject* renderer)
 bool RenderLayerCompositor::requiresCompositingForPlugin(RenderObject* renderer) const
 {
     return renderer->isEmbeddedObject() && toRenderEmbeddedObject(renderer)->allowsAcceleratedCompositing();
+}
+
+bool RenderLayerCompositor::requiresCompositingForIFrame(RenderObject* renderer) const
+{
+    return renderer->isRenderIFrame() && toRenderIFrame(renderer)->requiresAcceleratedCompositing();
 }
 
 bool RenderLayerCompositor::requiresCompositingForAnimation(RenderObject* renderer) const

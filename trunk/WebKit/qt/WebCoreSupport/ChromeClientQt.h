@@ -34,7 +34,10 @@
 #include "KURL.h"
 #include "PlatformString.h"
 
+QT_BEGIN_NAMESPACE
 class QEventLoop;
+QT_END_NAMESPACE
+
 class QWebPage;
 
 namespace WebCore {
@@ -138,6 +141,7 @@ namespace WebCore {
         virtual void attachRootGraphicsLayer(Frame*, GraphicsLayer*);
         virtual void setNeedsOneShotDrawingSynchronization();
         virtual void scheduleCompositingLayerSync();
+        virtual bool allowsAcceleratedCompositing() const;
 #endif
 
 #if ENABLE(TOUCH_EVENTS)
@@ -145,7 +149,7 @@ namespace WebCore {
 #endif
 
         virtual void runOpenPanel(Frame*, PassRefPtr<FileChooser>);
-        virtual void chooseIconForFiles(const Vector<String>&, PassRefPtr<FileChooser>);
+        virtual void chooseIconForFiles(const Vector<String>&, FileChooser*);
 
         virtual void formStateDidChange(const Node*) { }
 

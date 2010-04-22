@@ -177,6 +177,7 @@ SOURCES += \
     runtime/RegExp.cpp \
     runtime/RegExpObject.cpp \
     runtime/RegExpPrototype.cpp \
+    runtime/RopeImpl.cpp \
     runtime/ScopeChain.cpp \
     runtime/SmallStrings.cpp \
     runtime/StringConstructor.cpp \
@@ -186,7 +187,6 @@ SOURCES += \
     runtime/Structure.cpp \
     runtime/TimeoutChecker.cpp \
     runtime/UString.cpp \
-    runtime/UStringImpl.cpp \
     wtf/Assertions.cpp \
     wtf/ByteArray.cpp \
     wtf/CurrentTime.cpp \
@@ -196,6 +196,7 @@ SOURCES += \
     wtf/HashTable.cpp \
     wtf/MainThread.cpp \
     wtf/qt/MainThreadQt.cpp \
+    wtf/qt/StringQt.cpp \
     wtf/qt/ThreadingQt.cpp \
     wtf/RandomNumber.cpp \
     wtf/RefCountedLeakCounter.cpp \
@@ -203,7 +204,11 @@ SOURCES += \
     wtf/ThreadingNone.cpp \
     wtf/Threading.cpp \
     wtf/TypeTraits.cpp \
+    wtf/WTFThreadData.cpp \
+    wtf/text/AtomicString.cpp \
     wtf/text/CString.cpp \
+    wtf/text/StringImpl.cpp \
+    wtf/text/WTFString.cpp \
     wtf/unicode/CollatorDefault.cpp \
     wtf/unicode/icu/CollatorICU.cpp \
     wtf/unicode/UTF8.cpp \

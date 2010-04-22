@@ -30,6 +30,9 @@
 """A class to help start/stop the PyWebSocket server used by layout tests."""
 
 
+from __future__ import with_statement
+
+import codecs
 import logging
 import optparse
 import os
@@ -64,6 +67,7 @@ def url_is_alive(url):
     Return:
       True if the url is alive.
     """
+    sleep_time = 0.5
     wait_time = 5
     while wait_time > 0:
         try:
@@ -72,9 +76,9 @@ def url_is_alive(url):
             return True
         except IOError:
             pass
-        wait_time -= 1
-        # Wait a second and try again.
-        time.sleep(1)
+        # Wait for sleep_time before trying again.
+        wait_time -= sleep_time
+        time.sleep(sleep_time)
 
     return False
 
@@ -150,7 +154,7 @@ class PyWebSocket(http_server.Lighttpd):
         error_log = os.path.join(self._output_dir, log_file_name + "-err.txt")
 
         output_log = os.path.join(self._output_dir, log_file_name + "-out.txt")
-        self._wsout = open(output_log, "w")
+        self._wsout = codecs.open(output_log, "w", "utf-8")
 
         python_interp = sys.executable
         pywebsocket_base = os.path.join(
@@ -209,16 +213,13 @@ class PyWebSocket(http_server.Lighttpd):
                                          stderr=subprocess.STDOUT,
                                          env=env)
 
-        # Wait a bit before checking the liveness of the server.
-        time.sleep(0.5)
-
         if self._use_tls:
             url = 'https'
         else:
             url = 'http'
         url = url + '://127.0.0.1:%d/' % self._port
         if not url_is_alive(url):
-            fp = open(output_log)
+            fp = codecs.open(output_log, "utf-8")
             try:
                 for line in fp:
                     _log.error(line)
@@ -233,20 +234,19 @@ class PyWebSocket(http_server.Lighttpd):
             raise PyWebSocketNotStarted(
                 'Failed to start %s server.' % self._server_name)
         if self._pidfile:
-            f = open(self._pidfile, 'w')
-            f.write("%d" % self._process.pid)
-            f.close()
+            with codecs.open(self._pidfile, "w", "ascii") as file:
+                file.write("%d" % self._process.pid)
 
     def stop(self, force=False):
         if not force and not self.is_running():
             return
 
+        pid = None
         if self._process:
             pid = self._process.pid
         elif self._pidfile:
-            f = open(self._pidfile)
-            pid = int(f.read().strip())
-            f.close()
+            with codecs.open(self._pidfile, "r", "ascii") as file:
+                pid = int(f.read().strip())
 
         if not pid:
             raise PyWebSocketNotFound(

@@ -51,6 +51,7 @@ LayoutTestController::LayoutTestController(WebCore::DumpRenderTree* drt)
     : QObject()
     , m_drt(drt)
 {
+    qRegisterMetaType<QWebElement>("QWebElement");
     reset();
     qt_dump_notification(true);
 }
@@ -409,6 +410,11 @@ void LayoutTestController::setMainFrameIsFirstResponder(bool isFirst)
     //FIXME: only need this for the moment: https://bugs.webkit.org/show_bug.cgi?id=32990
 }
 
+void LayoutTestController::setJavaScriptCanAccessClipboard(bool enable)
+{
+    m_drt->webPage()->settings()->setAttribute(QWebSettings::JavaScriptCanAccessClipboard, enable);
+}
+
 void LayoutTestController::setXSSAuditorEnabled(bool enable)
 {
     // Set XSSAuditingEnabled globally so that windows created by the test inherit it too.
@@ -608,6 +614,17 @@ bool LayoutTestController::isCommandEnabled(const QString& name) const
 {
     return DumpRenderTreeSupportQt::isCommandEnabled(m_drt->webPage(), name);
 }
+
+QString LayoutTestController::markerTextForListItem(const QWebElement& listItem)
+{
+    return DumpRenderTreeSupportQt::markerTextForListItem(listItem);
+}
+
+void LayoutTestController::authenticateSession(const QString&, const QString&, const QString&)
+{
+    // FIXME: If there is a concept per-session (per-process) credential storage, the credentials should be added to it for later use.
+}
+
 
 const unsigned LayoutTestController::maxViewWidth = 800;
 const unsigned LayoutTestController::maxViewHeight = 600;

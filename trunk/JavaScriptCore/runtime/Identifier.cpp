@@ -28,45 +28,32 @@
 #include <wtf/Assertions.h>
 #include <wtf/FastMalloc.h>
 #include <wtf/HashSet.h>
+#include <wtf/WTFThreadData.h>
+#include <wtf/text/StringHash.h>
 
 using WTF::ThreadSpecific;
 
 namespace JSC {
 
-typedef HashMap<const char*, RefPtr<UString::Rep>, PtrHash<const char*> > LiteralIdentifierTable;
-
-class IdentifierTable : public FastAllocBase {
-public:
-    ~IdentifierTable()
-    {
-        HashSet<UString::Rep*>::iterator end = m_table.end();
-        for (HashSet<UString::Rep*>::iterator iter = m_table.begin(); iter != end; ++iter)
-            (*iter)->setIsIdentifier(false);
-    }
-
-    std::pair<HashSet<UString::Rep*>::iterator, bool> add(UString::Rep* value)
-    {
-        std::pair<HashSet<UString::Rep*>::iterator, bool> result = m_table.add(value);
-        (*result.first)->setIsIdentifier(true);
-        return result;
-    }
-
-    template<typename U, typename V>
-    std::pair<HashSet<UString::Rep*>::iterator, bool> add(U value)
-    {
-        std::pair<HashSet<UString::Rep*>::iterator, bool> result = m_table.add<U, V>(value);
-        (*result.first)->setIsIdentifier(true);
-        return result;
-    }
-
-    void remove(UString::Rep* r) { m_table.remove(r); }
-
-    LiteralIdentifierTable& literalTable() { return m_literalTable; }
-
-private:
-    HashSet<UString::Rep*> m_table;
-    LiteralIdentifierTable m_literalTable;
-};
+IdentifierTable::~IdentifierTable()
+{
+    HashSet<StringImpl*>::iterator end = m_table.end();
+    for (HashSet<StringImpl*>::iterator iter = m_table.begin(); iter != end; ++iter)
+        (*iter)->setIsIdentifier(false);
+}
+std::pair<HashSet<StringImpl*>::iterator, bool> IdentifierTable::add(StringImpl* value)
+{
+    std::pair<HashSet<StringImpl*>::iterator, bool> result = m_table.add(value);
+    (*result.first)->setIsIdentifier(true);
+    return result;
+}
+template<typename U, typename V>
+std::pair<HashSet<StringImpl*>::iterator, bool> IdentifierTable::add(U value)
+{
+    std::pair<HashSet<StringImpl*>::iterator, bool> result = m_table.add<U, V>(value);
+    (*result.first)->setIsIdentifier(true);
+    return result;
+}
 
 IdentifierTable* createIdentifierTable()
 {
@@ -99,7 +86,7 @@ bool Identifier::equal(const UString::Rep* r, const UChar* s, unsigned length)
     return true;
 }
 
-struct CStringTranslator {
+struct IdentifierCStringTranslator {
     static unsigned hash(const char* c)
     {
         return UString::Rep::computeHash(c);
@@ -138,7 +125,7 @@ PassRefPtr<UString::Rep> Identifier::add(JSGlobalData* globalData, const char* c
     if (iter != literalIdentifierTable.end())
         return iter->second;
 
-    pair<HashSet<UString::Rep*>::iterator, bool> addResult = identifierTable.add<const char*, CStringTranslator>(c);
+    pair<HashSet<UString::Rep*>::iterator, bool> addResult = identifierTable.add<const char*, IdentifierCStringTranslator>(c);
 
     // If the string is newly-translated, then we need to adopt it.
     // The boolean in the pair tells us if that is so.
@@ -159,7 +146,7 @@ struct UCharBuffer {
     unsigned int length;
 };
 
-struct UCharBufferTranslator {
+struct IdentifierUCharBufferTranslator {
     static unsigned hash(const UCharBuffer& buf)
     {
         return UString::Rep::computeHash(buf.s, buf.length);
@@ -191,7 +178,7 @@ PassRefPtr<UString::Rep> Identifier::add(JSGlobalData* globalData, const UChar* 
     if (!length)
         return UString::Rep::empty();
     UCharBuffer buf = {s, length}; 
-    pair<HashSet<UString::Rep*>::iterator, bool> addResult = globalData->identifierTable->add<UCharBuffer, UCharBufferTranslator>(buf);
+    pair<HashSet<UString::Rep*>::iterator, bool> addResult = globalData->identifierTable->add<UCharBuffer, IdentifierUCharBufferTranslator>(buf);
 
     // If the string is newly-translated, then we need to adopt it.
     // The boolean in the pair tells us if that is so.
@@ -226,11 +213,6 @@ PassRefPtr<UString::Rep> Identifier::addSlowCase(ExecState* exec, UString::Rep* 
     return addSlowCase(&exec->globalData(), r);
 }
 
-void Identifier::remove(UString::Rep* r)
-{
-    currentIdentifierTable()->remove(r);
-}
-    
 Identifier Identifier::from(ExecState* exec, unsigned value)
 {
     return Identifier(exec, exec->globalData().numericStrings.add(value));
@@ -252,7 +234,7 @@ void Identifier::checkCurrentIdentifierTable(JSGlobalData* globalData)
 {
     // Check the identifier table accessible through the threadspecific matches the
     // globalData's identifier table.
-    ASSERT_UNUSED(globalData, globalData->identifierTable == currentIdentifierTable());
+    ASSERT_UNUSED(globalData, globalData->identifierTable == wtfThreadData().currentIdentifierTable());
 }
 
 void Identifier::checkCurrentIdentifierTable(ExecState* exec)
@@ -266,32 +248,6 @@ void Identifier::checkCurrentIdentifierTable(ExecState* exec)
 // This would be an ASSERT_NOT_REACHED(), but we're in NDEBUG only code here!
 void Identifier::checkCurrentIdentifierTable(JSGlobalData*) { CRASH(); }
 void Identifier::checkCurrentIdentifierTable(ExecState*) { CRASH(); }
-
-#endif
-
-ThreadSpecific<ThreadIdentifierTableData>* g_identifierTableSpecific = 0;
-
-#if ENABLE(JSC_MULTIPLE_THREADS)
-
-pthread_once_t createIdentifierTableSpecificOnce = PTHREAD_ONCE_INIT;
-static void createIdentifierTableSpecificCallback()
-{
-    ASSERT(!g_identifierTableSpecific);
-    g_identifierTableSpecific = new ThreadSpecific<ThreadIdentifierTableData>();
-}
-void createIdentifierTableSpecific()
-{
-    pthread_once(&createIdentifierTableSpecificOnce, createIdentifierTableSpecificCallback);
-    ASSERT(g_identifierTableSpecific);
-}
-
-#else 
-
-void createIdentifierTableSpecific()
-{
-    ASSERT(!g_identifierTableSpecific);
-    g_identifierTableSpecific = new ThreadSpecific<ThreadIdentifierTableData>();
-}
 
 #endif
 

@@ -27,9 +27,11 @@
 #include <QMediaPlayer>
 #include <QObject>
 
+QT_BEGIN_NAMESPACE
 class QMediaPlayerControl;
 class QGraphicsVideoItem;
 class QGraphicsScene;
+QT_END_NAMESPACE
 
 namespace WebCore {
 

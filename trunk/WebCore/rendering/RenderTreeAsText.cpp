@@ -37,6 +37,7 @@
 #include "RenderBR.h"
 #include "RenderFileUploadControl.h"
 #include "RenderInline.h"
+#include "RenderListItem.h"
 #include "RenderListMarker.h"
 #include "RenderObject.h"
 #include "RenderPart.h"
@@ -659,6 +660,19 @@ String counterValueForElement(Element* element)
         }
     }
     return stream.release();
+}
+
+String markerTextForListItem(Element* element)
+{
+    // Make sure the element is not freed during the layout.
+    RefPtr<Element> elementRef(element);
+    element->document()->updateLayout();
+
+    RenderObject* renderer = element->renderer();
+    if (!renderer || !renderer->isListItem())
+        return String();
+
+    return toRenderListItem(renderer)->markerText();
 }
 
 } // namespace WebCore

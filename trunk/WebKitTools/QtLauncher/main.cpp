@@ -143,6 +143,7 @@ protected slots:
     void showFPS(bool enable);
     void changeViewportUpdateMode(int mode);
     void toggleFrameFlattening(bool toggle);
+    void toggleInterruptingJavaScriptEnabled(bool enable);
 
 #if defined(QT_CONFIGURED_WITH_OPENGL)
     void toggleQGLWidgetViewport(bool enable);
@@ -151,8 +152,8 @@ protected slots:
     void showUserAgentDialog();
 
 public slots:
-    void newWindow();
-    void cloneWindow();
+    LauncherWindow* newWindow();
+    LauncherWindow* cloneWindow();
     void updateFPS(int fps);
 
 signals:
@@ -364,7 +365,7 @@ bool LauncherWindow::eventFilter(QObject* obj, QEvent* event)
     }
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 6, 0)
-    if (!m_touchMocking || obj != m_view)
+    if (!m_touchMocking)
         return QObject::eventFilter(obj, event);
 
     if (event->type() == QEvent::MouseButtonPress
@@ -438,7 +439,7 @@ void LauncherWindow::loadStarted()
 void LauncherWindow::loadFinished()
 {
     QUrl url = page()->mainFrame()->url();
-    setAddressUrl(url.toString());
+    setAddressUrl(url.toString(QUrl::RemoveUserInfo));
     addCompleterEntry(url);
 }
 
@@ -634,8 +635,9 @@ void LauncherWindow::initializeView(bool useGraphicsView)
 
         connect(view, SIGNAL(currentFPSUpdated(int)), this, SLOT(updateFPS(int)));
 
+        view->installEventFilter(this);
         // The implementation of QAbstractScrollArea::eventFilter makes us need
-        // to install the event filter on the viewport of a QGraphicsView.
+        // to install the event filter also on the viewport of a QGraphicsView.
         view->viewport()->installEventFilter(this);
 
         m_view = view;
@@ -699,6 +701,11 @@ void LauncherWindow::toggleFrameFlattening(bool toggle)
     page()->settings()->setAttribute(QWebSettings::FrameFlatteningEnabled, toggle);
 }
 
+void LauncherWindow::toggleInterruptingJavaScriptEnabled(bool enable)
+{
+    page()->setInterruptingJavaScriptEnabled(enable);
+}
+
 #if defined(QT_CONFIGURED_WITH_OPENGL)
 void LauncherWindow::toggleQGLWidgetViewport(bool enable)
 {
@@ -757,16 +764,18 @@ void LauncherWindow::showUserAgentDialog()
     delete dialog;
 }
 
-void LauncherWindow::newWindow()
+LauncherWindow* LauncherWindow::newWindow()
 {
     LauncherWindow* mw = new LauncherWindow(this, false);
     mw->show();
+    return mw;
 }
 
-void LauncherWindow::cloneWindow()
+LauncherWindow* LauncherWindow::cloneWindow()
 {
     LauncherWindow* mw = new LauncherWindow(this, true);
     mw->show();
+    return mw;
 }
 
 void LauncherWindow::updateFPS(int fps)
@@ -889,6 +898,10 @@ void LauncherWindow::createChrome()
     QAction* toggleFrameFlattening = toolsMenu->addAction("Toggle Frame Flattening", this, SLOT(toggleFrameFlattening(bool)));
     toggleFrameFlattening->setCheckable(true);
     toggleFrameFlattening->setChecked(settings->testAttribute(QWebSettings::FrameFlatteningEnabled));
+
+    QAction* toggleInterruptingJavaScripteEnabled = toolsMenu->addAction("Enable interrupting js scripts", this, SLOT(toggleInterruptingJavaScriptEnabled(bool)));
+    toggleInterruptingJavaScripteEnabled->setCheckable(true);
+    toggleInterruptingJavaScripteEnabled->setChecked(false);
 
 #if defined(QT_CONFIGURED_WITH_OPENGL)
     QAction* toggleQGLWidgetViewport = graphicsViewMenu->addAction("Toggle use of QGLWidget Viewport", this, SLOT(toggleQGLWidgetViewport(bool)));
@@ -1181,12 +1194,13 @@ int main(int argc, char **argv)
 
     LauncherWindow* window = 0;
     foreach (QString url, urls) {
+        LauncherWindow* newWindow;
         if (!window)
-            window = new LauncherWindow();
+            newWindow = window = new LauncherWindow();
         else
-            window->newWindow();
+            newWindow = window->newWindow();
 
-        window->load(url);
+        newWindow->load(url);
     }
 
     window->show();

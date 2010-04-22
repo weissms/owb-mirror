@@ -325,6 +325,11 @@ void FrameLoaderClientWx::dispatchDidFinishDocumentLoad()
     }
 }
 
+void FrameLoaderClientWx::dispatchDidChangeIcons()
+{
+    notImplemented();
+}
+
 void FrameLoaderClientWx::dispatchDidFinishLoad()
 {
     notImplemented();
@@ -604,7 +609,7 @@ void FrameLoaderClientWx::committedLoad(WebCore::DocumentLoader* loader, const c
         return;
     if (!m_pluginView) {
         FrameLoader* fl = loader->frameLoader();
-        fl->setEncoding(m_response.textEncodingName(), false);
+        fl->writer()->setEncoding(m_response.textEncodingName(), false);
         fl->addData(data, length);
     }
     

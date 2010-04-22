@@ -24,13 +24,13 @@
 #include "config.h"
 #include "ArrayPrototype.h"
 
-#include "CodeBlock.h"
 #include "CachedCall.h"
+#include "CodeBlock.h"
 #include "Interpreter.h"
 #include "JIT.h"
 #include "JSStringBuilder.h"
-#include "ObjectPrototype.h"
 #include "Lookup.h"
+#include "ObjectPrototype.h"
 #include "Operations.h"
 #include <algorithm>
 #include <wtf/Assertions.h>
@@ -156,9 +156,9 @@ JSValue JSC_HOST_CALL arrayProtoFuncToString(ExecState* exec, JSObject*, JSValue
     JSArray* thisObj = asArray(thisValue);
     
     HashSet<JSObject*>& arrayVisitedElements = exec->globalData().arrayVisitedElements;
-    if (arrayVisitedElements.size() >= MaxSecondaryThreadReentryDepth) {
-        if (!isMainThread() || arrayVisitedElements.size() >= MaxMainThreadReentryDepth)
-            return throwError(exec, RangeError, "Maximum call stack size exceeded.");
+    if (arrayVisitedElements.size() >= MaxSmallThreadReentryDepth) {
+        if (arrayVisitedElements.size() >= exec->globalData().maxReentryDepth)
+            return throwError(exec, RangeError, "Maximum call stack size exceeded.");    
     }
 
     bool alreadyVisited = !arrayVisitedElements.add(thisObj).second;
@@ -214,9 +214,9 @@ JSValue JSC_HOST_CALL arrayProtoFuncToLocaleString(ExecState* exec, JSObject*, J
     JSObject* thisObj = asArray(thisValue);
 
     HashSet<JSObject*>& arrayVisitedElements = exec->globalData().arrayVisitedElements;
-    if (arrayVisitedElements.size() >= MaxSecondaryThreadReentryDepth) {
-        if (!isMainThread() || arrayVisitedElements.size() >= MaxMainThreadReentryDepth)
-            return throwError(exec, RangeError, "Maximum call stack size exceeded.");
+    if (arrayVisitedElements.size() >= MaxSmallThreadReentryDepth) {
+        if (arrayVisitedElements.size() >= exec->globalData().maxReentryDepth)
+            return throwError(exec, RangeError, "Maximum call stack size exceeded.");    
     }
 
     bool alreadyVisited = !arrayVisitedElements.add(thisObj).second;
@@ -252,9 +252,9 @@ JSValue JSC_HOST_CALL arrayProtoFuncJoin(ExecState* exec, JSObject*, JSValue thi
     JSObject* thisObj = thisValue.toThisObject(exec);
 
     HashSet<JSObject*>& arrayVisitedElements = exec->globalData().arrayVisitedElements;
-    if (arrayVisitedElements.size() >= MaxSecondaryThreadReentryDepth) {
-        if (!isMainThread() || arrayVisitedElements.size() >= MaxMainThreadReentryDepth)
-            return throwError(exec, RangeError, "Maximum call stack size exceeded.");
+    if (arrayVisitedElements.size() >= MaxSmallThreadReentryDepth) {
+        if (arrayVisitedElements.size() >= exec->globalData().maxReentryDepth)
+            return throwError(exec, RangeError, "Maximum call stack size exceeded.");    
     }
 
     bool alreadyVisited = !arrayVisitedElements.add(thisObj).second;

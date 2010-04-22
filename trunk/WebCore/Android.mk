@@ -286,6 +286,7 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	loader/DocLoader.cpp \
 	loader/DocumentLoader.cpp \
 	loader/DocumentThreadableLoader.cpp \
+	loader/DocumentWriter.cpp \
 	loader/FormState.cpp \
 	loader/FrameLoader.cpp \
 	loader/HistoryController.cpp \
@@ -512,14 +513,12 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	platform/sql/SQLiteStatement.cpp \
 	platform/sql/SQLiteTransaction.cpp \
 	\
-	platform/text/AtomicString.cpp \
 	platform/text/Base64.cpp \
 	platform/text/BidiContext.cpp \
 	platform/text/RegularExpression.cpp \
 	platform/text/SegmentedString.cpp \
 	platform/text/String.cpp \
 	platform/text/StringBuilder.cpp \
-	platform/text/StringImpl.cpp \
 	platform/text/TextBreakIteratorICU.cpp \
 	platform/text/TextCodec.cpp \
 	platform/text/TextCodecICU.cpp \
@@ -573,8 +572,10 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	rendering/RenderFlexibleBox.cpp \
 	rendering/RenderForeignObject.cpp \
 	rendering/RenderFrame.cpp \
+	rendering/RenderFrameBase.cpp \
 	rendering/RenderFrameSet.cpp \
 	rendering/RenderHTMLCanvas.cpp \
+	rendering/RenderIFrame.cpp \
 	rendering/RenderImage.cpp \
 	rendering/RenderImageGeneratedContent.cpp \
 	rendering/RenderInline.cpp \
@@ -591,7 +592,6 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	rendering/RenderObject.cpp \
 	rendering/RenderObjectChildList.cpp \
 	rendering/RenderPart.cpp \
-	rendering/RenderPartObject.cpp \
 	rendering/RenderPath.cpp \
 	rendering/RenderReplaced.cpp \
 	rendering/RenderReplica.cpp \
@@ -607,6 +607,7 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	rendering/RenderSVGInlineText.cpp \
 	rendering/RenderSVGModelObject.cpp \
 	rendering/RenderSVGResourceClipper.cpp \
+	rendering/RenderSVGResourceFilter.cpp \
 	rendering/RenderSVGResourceMarker.cpp \
 	rendering/RenderSVGResourceMasker.cpp \
 	rendering/RenderSVGRoot.cpp \
@@ -861,7 +862,6 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	svg/graphics/SVGPaintServerRadialGradient.cpp \
 	svg/graphics/SVGPaintServerSolid.cpp \
 	svg/graphics/SVGResource.cpp \
-	svg/graphics/SVGResourceFilter.cpp \
 	\
 	svg/graphics/filters/SVGFEConvolveMatrix.cpp \
 	svg/graphics/filters/SVGFEDiffuseLighting.cpp \

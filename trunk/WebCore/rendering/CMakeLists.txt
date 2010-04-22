@@ -25,8 +25,10 @@ list(APPEND WEBCORE_SRC
     rendering/RenderFileUploadControl.cpp
     rendering/RenderFlexibleBox.cpp
     rendering/RenderFrame.cpp
+    rendering/RenderFrameBase.cpp
     rendering/RenderFrameSet.cpp
     rendering/RenderHTMLCanvas.cpp
+    rendering/RenderIFrame.cpp
     rendering/RenderImage.cpp
     rendering/RenderImageGeneratedContent.cpp
     rendering/RenderInline.cpp
@@ -42,7 +44,6 @@ list(APPEND WEBCORE_SRC
     rendering/RenderObject.cpp
     rendering/RenderObjectChildList.cpp
     rendering/RenderPart.cpp
-    rendering/RenderPartObject.cpp
     rendering/RenderProgress.cpp
     rendering/RenderReplaced.cpp
     rendering/RenderReplica.cpp
@@ -89,6 +90,7 @@ if(ENABLE_SVG)
         rendering/RenderSVGInlineText.cpp
         rendering/RenderSVGModelObject.cpp
         rendering/RenderSVGResourceClipper.cpp
+        rendering/RenderSVGResourceFilter.cpp
         rendering/RenderSVGResourceMarker.cpp
         rendering/RenderSVGResourceMasker.cpp
         rendering/RenderSVGRoot.cpp

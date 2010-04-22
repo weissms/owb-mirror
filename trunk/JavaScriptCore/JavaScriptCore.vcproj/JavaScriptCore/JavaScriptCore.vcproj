@@ -1141,6 +1141,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\runtime\RopeImpl.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\runtime\RopeImpl.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\runtime\ScopeChain.cpp"
 				>
 			</File>
@@ -1230,10 +1238,6 @@
 			</File>
 			<File
 				RelativePath="..\..\runtime\UString.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\runtime\UStringImpl.cpp"
 				>
 			</File>
 			<File

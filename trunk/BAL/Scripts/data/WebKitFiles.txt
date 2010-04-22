@@ -1,4 +1,5 @@
 JavaScriptCore/interpreter/RegisterFile.cpp
+JavaScriptCore/parser/Lexer.cpp
 JavaScriptCore/runtime/Collector.cpp
 JavaScriptCore/wtf/FastMalloc.cpp BAL/Memory/WTF/BCFastMallocWTF.cpp
 JavaScriptCore/wtf/FastMalloc.h BAL/Memory/WTF/BCFastMallocWTF.h
@@ -122,6 +123,7 @@ WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon
 WebCore/platform/graphics/qt/MediaPlayerPrivateQt.cpp BAL/Media/WebCore/Qt/BCMediaPlayerPrivateQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivateQt.h BAL/Media/WebCore/Qt/BCMediaPlayerPrivateQt.h
 WebCore/platform/gtk/TemporaryLinkStubs.cpp
+WebCore/platform/gtk/PasteboardHelper.cpp BAL/Widgets/WebCore/Gtk/BCPasteboardHelperGtk.cpp
 WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp BAL/ImageDecoder/WebCore/XBM/WK/BCXBMImageDecoderWK.cpp
 WebCore/platform/WindowsKeyboardCodes.h BAL/Events/WebCore/WK/BCWindowsKeyboardCodesWK.h
 WebCore/platform/mock/GeolocationServiceMock.cpp BAL/Geolocation/WebCore/Mock/BCGeolocationServiceMock.cpp

@@ -431,9 +431,21 @@ void PopupContainer::layout()
     // Place the listbox within our border.
     m_listBox->move(kBorderSize, kBorderSize);
 
+    // popupWidth is the width of <select> element. Record it before resize frame.
+    int popupWidth = frameRect().width();
     // Size ourselves to contain listbox + border.
-    resize(m_listBox->width() + kBorderSize * 2, m_listBox->height() + kBorderSize * 2);
+    int listBoxWidth = m_listBox->width() + kBorderSize * 2;
+    resize(listBoxWidth, m_listBox->height() + kBorderSize * 2);
 
+    // Adjust the starting x-axis for RTL dropdown. For RTL dropdown, the right edge
+    // of dropdown box should be aligned with the right edge of <select> element box,
+    // and the dropdown box should be expanded to left if more space needed.
+    PopupMenuClient* popupClient = m_listBox->m_popupClient;
+    if (popupClient) {
+        bool rightAligned = m_listBox->m_popupClient->menuStyle().textDirection() == RTL;
+        if (rightAligned)
+            move(x() + popupWidth - listBoxWidth, y());
+    }
     invalidate();
 }
 
@@ -724,12 +736,14 @@ bool PopupListBox::handleKeyEvent(const PlatformKeyboardEvent& event)
         setOriginalIndex(m_selectedIndex);
         if (m_settings.setTextOnIndexChange)
             m_popupClient->setTextFromItem(m_selectedIndex);
-    } else if (!m_settings.setTextOnIndexChange &&
-               event.windowsVirtualKeyCode() == VKEY_TAB) {
+    }
+    if (event.windowsVirtualKeyCode() == VKEY_TAB) {
         // TAB is a special case as it should select the current item if any and
         // advance focus.
         if (m_selectedIndex >= 0)
             m_popupClient->setTextFromItem(m_selectedIndex);
+        // Call abandon() so we honor m_acceptedIndexOnAbandon if set.
+        abandon();
         // Return false so the TAB key event is propagated to the page.
         return false;
     }

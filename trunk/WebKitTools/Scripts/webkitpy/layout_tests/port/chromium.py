@@ -29,6 +29,9 @@
 
 """Chromium implementations of the Port interface."""
 
+from __future__ import with_statement
+
+import codecs
 import logging
 import os
 import shutil
@@ -36,9 +39,18 @@ import signal
 import subprocess
 import sys
 import time
+import webbrowser
 
 import base
 import http_server
+
+# FIXME: To use the DRT-based version of this file, we need to be able to
+# run the webkit code, which uses server_process, which requires UNIX-style
+# non-blocking I/O with selects(), which requires fcntl() which doesn't exist
+# on Windows.
+if sys.platform not in ('win32', 'cygwin'):
+    import webkit
+
 import websocket_server
 
 _log = logging.getLogger("webkitpy.layout_tests.port.chromium")
@@ -77,12 +89,20 @@ class ChromiumPort(base.Port):
 
     def check_build(self, needs_http):
         result = True
+
+        # FIXME: see comment above re: import webkit
+        if (sys.platform in ('win32', 'cygwin') and self._options and
+            hasattr(self._options, 'use_drt') and self._options.use_drt):
+            _log.error('--use-drt is not supported on Windows yet')
+            _log.error('')
+            result = False
+
         dump_render_tree_binary_path = self._path_to_driver()
         result = check_file_exists(dump_render_tree_binary_path,
-                                   'test driver')
-        if result:
-            result = (self._check_driver_build_up_to_date(self._options.configuration)
-                      and result)
+                                    'test driver') and result
+        if result and self._options.build:
+            result = self._check_driver_build_up_to_date(
+                self._options.configuration)
         else:
             _log.error('')
 
@@ -123,6 +143,7 @@ class ChromiumPort(base.Port):
             abspath = os.path.abspath(__file__)
             offset = abspath.find('third_party')
             if offset == -1:
+                # FIXME: This seems like the wrong error to throw.
                 raise AssertionError('could not find Chromium base dir from ' +
                                      abspath)
             self._chromium_base_dir = abspath[0:offset]
@@ -150,11 +171,16 @@ class ChromiumPort(base.Port):
             shutil.rmtree(cachedir)
 
     def show_results_html_file(self, results_filename):
-        subprocess.Popen([self._path_to_driver(),
-                          self.filename_to_uri(results_filename)])
+        uri = self.filename_to_uri(results_filename)
+        if self._options.use_drt:
+            webbrowser.open(uri, new=1)
+        else:
+            subprocess.Popen([self._path_to_driver(), uri])
 
     def start_driver(self, image_path, options):
         """Starts a new Driver and returns a handle to it."""
+        if self._options.use_drt:
+            return webkit.WebKitDriver(self, image_path, options)
         return ChromiumDriver(self, image_path, options)
 
     def start_helper(self):
@@ -182,19 +208,20 @@ class ChromiumPort(base.Port):
 
         Basically this string should contain the equivalent of a
         test_expectations file. See test_expectations.py for more details."""
-        expectations_file = self.path_to_test_expectations_file()
-        return file(expectations_file, "r").read()
+        expectations_path = self.path_to_test_expectations_file()
+        with codecs.open(expectations_path, "r", "utf-8") as file:
+            return file.read()
 
     def test_expectations_overrides(self):
         try:
-            overrides_file = self.path_from_chromium_base('webkit', 'tools',
+            overrides_path = self.path_from_chromium_base('webkit', 'tools',
                 'layout_tests', 'test_expectations.txt')
         except AssertionError:
             return None
-        if os.path.exists(overrides_file):
-            return file(overrides_file, "r").read()
-        else:
+        if not os.path.exists(overrides_path):
             return None
+        with codecs.open(overrides_path, "r", "utf-8") as file:
+            return file.read()
 
     def test_platform_names(self):
         return self.test_base_platform_names() + ('win-xp',
@@ -243,7 +270,7 @@ class ChromiumPort(base.Port):
 
 
 class ChromiumDriver(base.Driver):
-    """Abstract interface for the DumpRenderTree interface."""
+    """Abstract interface for test_shell."""
 
     def __init__(self, port, image_path, options):
         self._port = port
@@ -299,9 +326,17 @@ class ChromiumDriver(base.Driver):
             cmd += ' ' + checksum
         cmd += "\n"
 
-        self._proc.stdin.write(cmd)
-        line = self._proc.stdout.readline()
-        while line.rstrip() != "#EOF":
+        try:
+            self._proc.stdin.write(cmd)
+            line = self._proc.stdout.readline()
+            # As far as I can tell, all output from test_shell
+            # is text output, thus we know it's all utf-8.
+            line = line.decode("utf-8")
+        except IOError, e:
+            _log.error("IOError communicating w/ test_shell: " + str(e))
+            crash = True
+
+        while not crash and line.rstrip() != "#EOF":
             # Make sure we haven't crashed.
             if line == '' and self.poll() is not None:
                 # This is hex code 0xc000001d, which is used for abrupt
@@ -334,7 +369,14 @@ class ChromiumDriver(base.Driver):
             else:
                 error.append(line)
 
-            line = self._proc.stdout.readline()
+            try:
+                line = self._proc.stdout.readline()
+                # As far as I can tell, all output from test_shell
+                # is text output, thus we know it's all utf-8.
+                line = line.decode("utf-8")
+            except IOError, e:
+                _log.error("IOError while reading: " + str(e))
+                crash = True
 
         return (crash, timeout, actual_checksum, ''.join(output),
                 ''.join(error))
@@ -358,7 +400,8 @@ class ChromiumDriver(base.Driver):
                 if self._proc.poll() is None:
                     _log.warning('stopping test driver timed out, '
                                  'killing it')
-                    null = open(os.devnull, "w")
+                    # FIXME: This should use Executive.
+                    null = open(os.devnull, "w")  # Does this need an encoding?
                     subprocess.Popen(["kill", "-9",
                                      str(self._proc.pid)], stderr=null)
                     null.close()

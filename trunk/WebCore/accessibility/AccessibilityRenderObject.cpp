@@ -1330,6 +1330,11 @@ bool AccessibilityRenderObject::hasTextAlternative() const
     return false;   
 }
     
+bool AccessibilityRenderObject::ariaHasPopup() const
+{
+    return elementAttributeValue(aria_haspopupAttr);
+}
+    
 bool AccessibilityRenderObject::supportsARIAFlowTo() const
 {
     return !getAttribute(aria_flowtoAttr).string().isEmpty();
@@ -2681,7 +2686,7 @@ AccessibilityRole AccessibilityRenderObject::determineAriaRoleAttribute() const
     
     AccessibilityRole role = ariaRoleToWebCoreRole(ariaRole);
 
-    if (role == ButtonRole && elementAttributeValue(aria_haspopupAttr))
+    if (role == ButtonRole && ariaHasPopup())
         role = PopUpButtonRole;
     
     if (role)
@@ -2795,7 +2800,12 @@ AccessibilityRole AccessibilityRenderObject::determineAccessibilityRole()
 
     if (node && node->hasTagName(tableTag))
         return TableRole;
-#endif   
+#endif
+
+#if PLATFORM(GTK)
+    if (m_renderer->isHR())
+        return SplitterRole;
+#endif
 
     if (m_renderer->isBlockFlow() || (node && node->hasTagName(labelTag)))
         return GroupRole;

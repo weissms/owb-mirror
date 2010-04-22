@@ -31,6 +31,7 @@
 #include "CSSProperty.h"
 #include "CSSPropertyNames.h"
 #include "CSSReflectValue.h"
+#include "CSSSelector.h"
 #include "CSSTimingFunctionValue.h"
 #include "CSSValueList.h"
 #include "Document.h"
@@ -516,10 +517,13 @@ static PassRefPtr<CSSValue> getTimingFunctionValue(const AnimationList* animList
     return list.release();
 }
 
-CSSComputedStyleDeclaration::CSSComputedStyleDeclaration(PassRefPtr<Node> n, bool allowVisitedStyle)
+CSSComputedStyleDeclaration::CSSComputedStyleDeclaration(PassRefPtr<Node> n, bool allowVisitedStyle, const String& pseudoElementName)
     : m_node(n)
     , m_allowVisitedStyle(allowVisitedStyle)
 {
+    unsigned nameWithoutColonsStart = pseudoElementName[0] == ':' ? (pseudoElementName[1] == ':' ? 2 : 1) : 0;
+    m_pseudoElementSpecifier = CSSSelector::pseudoId(CSSSelector::parsePseudoType(
+        AtomicString(pseudoElementName.substring(nameWithoutColonsStart))));
 }
 
 CSSComputedStyleDeclaration::~CSSComputedStyleDeclaration()
@@ -562,7 +566,7 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getFontSizeCSSValuePreferringK
 
     node->document()->updateLayoutIgnorePendingStylesheets();
 
-    RefPtr<RenderStyle> style = node->computedStyle();
+    RefPtr<RenderStyle> style = node->computedStyle(m_pseudoElementSpecifier);
     if (!style)
         return 0;
 
@@ -680,10 +684,15 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
     RenderObject* renderer = node->renderer();
 
     RefPtr<RenderStyle> style;
-    if (renderer && hasCompositedLayer(renderer) && AnimationController::supportsAcceleratedAnimationOfProperty(static_cast<CSSPropertyID>(propertyID)))
+    if (renderer && hasCompositedLayer(renderer) && AnimationController::supportsAcceleratedAnimationOfProperty(static_cast<CSSPropertyID>(propertyID))) {
         style = renderer->animation()->getAnimatedStyleForRenderer(renderer);
-    else
-       style = node->computedStyle();
+        if (m_pseudoElementSpecifier) {
+            // FIXME: This cached pseudo style will only exist if the animation has been run at least once.
+            style = style->getCachedPseudoStyle(m_pseudoElementSpecifier);
+        }
+    } else
+        style = node->computedStyle(m_pseudoElementSpecifier);
+
     if (!style)
         return 0;
 
@@ -1522,7 +1531,7 @@ unsigned CSSComputedStyleDeclaration::length() const
     if (!node)
         return 0;
 
-    RenderStyle* style = node->computedStyle();
+    RenderStyle* style = node->computedStyle(m_pseudoElementSpecifier);
     if (!style)
         return 0;
 
@@ -1541,7 +1550,7 @@ bool CSSComputedStyleDeclaration::cssPropertyMatches(const CSSProperty* property
 {
     if (property->id() == CSSPropertyFontSize && property->value()->isPrimitiveValue() && m_node) {
         m_node->document()->updateLayoutIgnorePendingStylesheets();
-        RenderStyle* style = m_node->computedStyle();
+        RenderStyle* style = m_node->computedStyle(m_pseudoElementSpecifier);
         if (style && style->fontDescription().keywordSize()) {
             int sizeValue = cssIdentifierForFontSizeKeyword(style->fontDescription().keywordSize());
             CSSPrimitiveValue* primitiveValue = static_cast<CSSPrimitiveValue*>(property->value());

@@ -220,7 +220,7 @@ static void printRangeDescription(const WebRange& range)
     WebNode startNode = range.startContainer(exception);
     printNodeDescription(startNode, exception);
     printf(" to %d of ", range.endOffset());
-    WebNode endNode = range.startContainer(exception);
+    WebNode endNode = range.endContainer(exception);
     printNodeDescription(endNode, exception);
 }
 
@@ -428,8 +428,11 @@ bool WebViewHost::handleCurrentKeyboardEvent()
 
 void WebViewHost::spellCheck(const WebString& text, int& misspelledOffset, int& misspelledLength)
 {
+    // Check the spelling of the given text.
 #if OS(MAC_OS_X)
-    // FIXME: Port mock_spellck.{cc,h}
+    // FIXME: rebaseline layout-test results of Windows and Linux so we
+    // can enable this mock spellchecker on them.
+    m_spellcheck.spellCheckWord(text, &misspelledOffset, &misspelledLength);
 #endif
 }
 

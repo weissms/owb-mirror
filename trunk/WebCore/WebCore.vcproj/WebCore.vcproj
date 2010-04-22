@@ -8389,6 +8389,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -18833,6 +18834,7 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug_All|Win32"
+
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -21453,6 +21455,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\loader\DocumentWriter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\loader\DocumentWriter.h"
+				>
+			</File>
+			<File
 				RelativePath="..\loader\DocumentThreadableLoader.cpp"
 				>
 			</File>
@@ -23475,7 +23485,7 @@
 						>
 					</File>
 					<File
-						RelativePath="..\platform\graphics\win\RefCountedHFONT.h"
+						RelativePath="..\platform\graphics\win\RefCountedGDIHandle.h"
 						>
 					</File>
 					<File
@@ -25644,10 +25654,6 @@
 				Name="text"
 				>
 				<File
-					RelativePath="..\platform\text\AtomicString.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\platform\text\AtomicString.h"
 					>
 				</File>
@@ -25725,10 +25731,6 @@
 				</File>
 				<File
 					RelativePath="..\platform\text\StringHash.h"
-					>
-				</File>
-				<File
-					RelativePath="..\platform\text\StringImpl.cpp"
 					>
 				</File>
 				<File
@@ -27553,6 +27555,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\RenderFrameBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderFrameBase.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\RenderFrameSet.cpp"
 				>
 			</File>
@@ -27566,6 +27576,14 @@
 			</File>
 			<File
 				RelativePath="..\rendering\RenderHTMLCanvas.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderIFrame.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderIFrame.h"
 				>
 			</File>
 			<File
@@ -27734,14 +27752,6 @@
 			</File>
 			<File
 				RelativePath="..\rendering\RenderPart.h"
-				>
-			</File>
-			<File
-				RelativePath="..\rendering\RenderPartObject.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\rendering\RenderPartObject.h"
 				>
 			</File>
 			<File
@@ -27918,6 +27928,14 @@
 			</File>
 			<File
 				RelativePath="..\rendering\RenderSVGResourceClipper.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderSVGResourceFilter.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\RenderSVGResourceFilter.h"
 				>
 			</File>
 			<File
@@ -31723,6 +31741,7 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+
 			</File>
 			<File
 				RelativePath="..\html\HTMLFormElement.h"
@@ -42344,14 +42363,6 @@
 				</File>
 				<File
 					RelativePath="..\svg\graphics\SVGResource.h"
-					>
-				</File>
-				<File
-					RelativePath="..\svg\graphics\SVGResourceFilter.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\svg\graphics\SVGResourceFilter.h"
 					>
 				</File>
 				<File

@@ -709,7 +709,7 @@ bool WebView::ensureBackingStore()
         BitmapInfo bitmapInfo = BitmapInfo::createBottomUp(IntSize(m_backingStoreSize));
 
         void* pixels = NULL;
-        m_backingStoreBitmap.set(::CreateDIBSection(NULL, &bitmapInfo, DIB_RGB_COLORS, &pixels, NULL, 0));
+        m_backingStoreBitmap = RefCountedHBITMAP::create(::CreateDIBSection(0, &bitmapInfo, DIB_RGB_COLORS, &pixels, 0, 0));
         return true;
     }*/
 
@@ -2880,6 +2880,9 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
 
     enabled = preferences->allowFileAccessFromFileURLs();
     settings->setAllowFileAccessFromFileURLs(!!enabled);
+
+    enabled = preferences->javaScriptCanAccessClipboard();
+    settings->setJavaScriptCanAccessClipboard(!!enabled);
 
     enabled = preferences->isXSSAuditorEnabled();
     settings->setXSSAuditorEnabled(!!enabled);

@@ -297,10 +297,9 @@ WebInspector.ScriptsPanel.prototype = {
             // Move breakpoints to the resource's frame.
             if (script._scriptView) {
                 var sourceFrame = script._scriptView.sourceFrame;
-                for (var j = 0; j < sourceFrame.breakpoints; ++j) {
-                    var resourceFrame = this._sourceFrameForScriptOrResource(resource);
+                var resourceFrame = this._sourceFrameForScriptOrResource(resource);
+                for (var j = 0; j < sourceFrame.breakpoints; ++j)
                     resourceFrame.addBreakpoint(sourceFrame.breakpoints[j]);
-                }
             }
         }
         // Adding first script will add resource.
@@ -349,6 +348,40 @@ WebInspector.ScriptsPanel.prototype = {
 
         if (sourceFrame)
             sourceFrame.removeBreakpoint(breakpoint);
+    },
+
+    canEditScripts: function()
+    {
+        return !!InspectorBackend.editScriptLine;
+    },
+
+    editScriptLine: function(sourceID, line, newContent, callback)
+    {
+        if (!this.canEditScripts())
+            return;
+
+        // Need to clear breakpoints and re-create them later when editing source.
+        var breakpointsPanel = this.sidebarPanes.breakpoints;
+        var newBreakpoints = [];
+        for (var id in breakpointsPanel.breakpoints) {
+            var breakpoint = breakpointsPanel.breakpoints[id];
+            breakpointsPanel.removeBreakpoint(breakpoint);
+            newBreakpoints.push(breakpoint);
+        }
+
+        var linesCountToShift = newContent.split("\n").length - 1;
+        function mycallback(newBody)
+        {
+            callback(newBody);
+            for (var i = 0; i < newBreakpoints.length; ++i) {
+                var breakpoint = newBreakpoints[i];
+                if (breakpoint.line >= line)
+                    breakpoint.line += linesCountToShift;
+                this.addBreakpoint(breakpoint);
+            }
+        };
+        var callbackId = WebInspector.Callback.wrap(mycallback.bind(this))
+        InspectorBackend.editScriptLine(callbackId, sourceID, line, newContent);
     },
 
     selectedCallFrameId: function()
@@ -576,17 +609,6 @@ WebInspector.ScriptsPanel.prototype = {
 
         view.setupSourceFrameIfNeeded();
         return view.sourceFrame;
-    },
-
-    _sourceViewForScriptOrResource: function(scriptOrResource)
-    {
-        if (scriptOrResource instanceof WebInspector.Resource) {
-            if (!WebInspector.panels.resources)
-                return null;
-            return WebInspector.panels.resources.resourceViewForResource(scriptOrResource);
-        }
-        if (scriptOrResource instanceof WebInspector.Script)
-            return this.scriptViewForScript(scriptOrResource);
     },
 
     _sourceFrameForScriptOrResource: function(scriptOrResource)
@@ -974,3 +996,5 @@ WebInspector.ScriptsPanel.prototype = {
 }
 
 WebInspector.ScriptsPanel.prototype.__proto__ = WebInspector.Panel.prototype;
+
+WebInspector.didEditScriptLine = WebInspector.Callback.processCallback;

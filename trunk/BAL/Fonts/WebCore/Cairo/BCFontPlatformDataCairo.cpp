@@ -35,6 +35,7 @@
 
 #if PLATFORM(GTK)
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #endif
 
 namespace WebCore {

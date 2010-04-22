@@ -81,6 +81,7 @@ public:
     void setDomainRelaxationForbiddenForURLScheme(bool forbidden, JSStringRef scheme);
     void setIconDatabaseEnabled(bool iconDatabaseEnabled);
     void setJavaScriptProfilingEnabled(bool profilingEnabled);
+    void setJavaScriptCanAccessClipboard(bool flag);
     void setMainFrameIsFirstResponder(bool flag);
     void setMockGeolocationError(int code, JSStringRef message);
     void setMockGeolocationPosition(double latitude, double longitude, double accuracy);
@@ -250,8 +251,13 @@ public:
     // unit tests outside of DRT once they exist.
     void apiTestNewWindowDataLoadBaseURL(JSStringRef utf8Data, JSStringRef baseURL);
     void apiTestGoToCurrentBackForwardItem();
-    
+
+    // Simulate a request an embedding application could make, populating per-session credential storage.
+    void authenticateSession(JSStringRef url, JSStringRef username, JSStringRef password);
+
     JSRetainPtr<JSStringRef> layerTreeAsText() const;
+
+    JSRetainPtr<JSStringRef> markerTextForListItem(JSContextRef context, JSValueRef nodeObject) const;
 
     static const unsigned maxViewWidth;
     static const unsigned maxViewHeight;

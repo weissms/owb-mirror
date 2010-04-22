@@ -23,12 +23,13 @@
 #ifndef RenderEmbeddedObject_h
 #define RenderEmbeddedObject_h
 
-#include "RenderPartObject.h"
+#include "RenderPart.h"
 
 namespace WebCore {
 
-// Renderer for embeds and objects.
-class RenderEmbeddedObject : public RenderPartObject {
+// Renderer for embeds and objects, often, but not always, rendered via plug-ins.
+// For example, <embed src="foo.html"> does not invoke a plug-in.
+class RenderEmbeddedObject : public RenderPart {
 public:
     RenderEmbeddedObject(Element*);
     virtual ~RenderEmbeddedObject();
@@ -36,6 +37,9 @@ public:
     void updateWidget(bool onlyCreateNonNetscapePlugins);
     void setShowsMissingPluginIndicator();
     void setShowsCrashedPluginIndicator();
+
+    bool hasFallbackContent() const { return m_hasFallbackContent; }
+
 #if USE(ACCELERATED_COMPOSITING)
     virtual bool allowsAcceleratedCompositing() const;
 #endif
@@ -52,7 +56,10 @@ private:
 #endif
 
     virtual void layout();
+    virtual void viewCleared();
+
     String m_replacementText;
+    bool m_hasFallbackContent;
 };
 
 inline RenderEmbeddedObject* toRenderEmbeddedObject(RenderObject* object)

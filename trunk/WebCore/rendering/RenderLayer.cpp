@@ -376,6 +376,22 @@ void RenderLayer::computeRepaintRects()
     m_outlineBox = renderer()->outlineBoundsForRepaint(repaintContainer);
 }
 
+void RenderLayer::updateRepaintRectsAfterScroll(bool fixed)
+{
+    if (fixed || renderer()->style()->position() == FixedPosition) {
+        computeRepaintRects();
+        fixed = true;
+    } else if (renderer()->hasTransform()) {
+        // Transforms act as fixed position containers, so nothing inside a
+        // transformed element can be fixed relative to the viewport if the
+        // transformed element is not fixed itself or child of a fixed element.
+        return;
+    }
+
+    for (RenderLayer* child = firstChild(); child; child = child->nextSibling())
+        child->updateRepaintRectsAfterScroll(fixed);
+}
+
 void RenderLayer::updateTransform()
 {
     // hasTransform() on the renderer is also true when there is transform-style: preserve-3d or perspective set,
@@ -3200,8 +3216,8 @@ void RenderLayer::updateHoverActiveState(const HitTestRequest& request, HitTestR
     // Locate the common ancestor render object for the two renderers.
     RenderObject* ancestor = commonAncestor(oldHoverObj, newHoverObj);
 
-    Vector<Node*, 32> nodesToRemoveFromChain;
-    Vector<Node*, 32> nodesToAddToChain;
+    Vector<RefPtr<Node>, 32> nodesToRemoveFromChain;
+    Vector<RefPtr<Node>, 32> nodesToAddToChain;
 
     if (oldHoverObj != newHoverObj) {
         // The old hover path only needs to be cleared up to (and not including) the common ancestor;

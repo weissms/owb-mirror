@@ -194,6 +194,12 @@ JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
     return textValueJS;
 }
 
+JSRetainPtr<JSStringRef> LayoutTestController::markerTextForListItem(JSContextRef context, JSValueRef nodeObject) const
+{
+    // FIXME: Implement me.
+    return JSRetainPtr<JSStringRef>();
+}
+
 void LayoutTestController::waitForPolicyDelegate()
 {
     // FIXME: Implement this.
@@ -475,6 +481,11 @@ void LayoutTestController::setPopupBlockingEnabled(bool enabled)
         return;
 
     preferences->setJavaScriptCanOpenWindowsAutomatically(!enabled);
+}
+
+void LayoutTestController::setJavaScriptCanAccessClipboard(bool enabled)
+{
+    preferences->setJavaScriptCanAccessClipboard(enabled);
 }
 
 void LayoutTestController::setTabKeyCyclesThroughElements(bool shouldCycle)
@@ -1233,5 +1244,9 @@ void LayoutTestController::apiTestGoToCurrentBackForwardItem()
 }
 
 void LayoutTestController::setWebViewEditable(bool)
+{
+}
+
+void LayoutTestController::authenticateSession(JSStringRef, JSStringRef, JSStringRef)
 {
 }

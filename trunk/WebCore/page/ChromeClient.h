@@ -192,7 +192,7 @@ namespace WebCore {
             
         virtual void runOpenPanel(Frame*, PassRefPtr<FileChooser>) = 0;
         // Asynchronous request to load an icon for specified filenames.
-        virtual void chooseIconForFiles(const Vector<String>&, PassRefPtr<FileChooser>) = 0;
+        virtual void chooseIconForFiles(const Vector<String>&, FileChooser*) = 0;
 
         virtual bool setCursor(PlatformCursorHandle) = 0;
 
@@ -214,6 +214,9 @@ namespace WebCore {
         // Sets a flag to specify that the view needs to be updated, so we need
         // to do an eager layout before the drawing.
         virtual void scheduleCompositingLayerSync() = 0;
+        // Returns whether or not the client can render the composited layer,
+        // regardless of the settings.
+        virtual bool allowsAcceleratedCompositing() const { return true; }
 #endif
 
         virtual bool supportsFullscreenForNode(const Node*) { return false; }

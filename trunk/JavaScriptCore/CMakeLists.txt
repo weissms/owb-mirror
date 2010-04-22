@@ -27,6 +27,16 @@ if(NOT EXISTS ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/chartables.c)
     )
 endif(NOT EXISTS ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/chartables.c)
 
+if(NOT EXISTS ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/RegExpJitTables.h)
+    exec_program(mkdir
+        ARGS -p ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore
+    )
+    execute_process(
+        COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/create_regex_tables
+        OUTPUT_FILE ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/RegExpJitTables.h
+    )
+endif(NOT EXISTS ${OWB_BINARY_DIR}/generated_sources/JavaScriptCore/RegExpJitTables.h)
+
 
 ##################################################
 # Add sources for JavaScriptore library.         #

@@ -293,8 +293,10 @@ sub printConstructorInterior
     # Handle media elements.
     if ($tags{$tagName}{wrapperOnlyIfMediaIsAvailable}) {
         print F <<END
-    if (!MediaPlayer::isAvailable())
+    Settings* settings = document->settings();
+    if (!MediaPlayer::isAvailable() || (settings && !settings->isMediaEnabled()))
         return HTMLElement::create($constructorTagName, document);
+    
 END
 ;
     }
@@ -504,7 +506,7 @@ print F "#endif\n\n";
 
 
 print F "#include \"$parameters{namespace}Names.h\"\n\n";
-print F "#include \"StaticConstructors.h\"\n";
+print F "#include <wtf/StaticConstructors.h>\n";
 
 print F "namespace WebCore {\n\n namespace $parameters{namespace}Names {
 
@@ -644,7 +646,7 @@ printElementIncludes($F);
 print F <<END
 #include <wtf/HashMap.h>
 
-#if ENABLE(DASHBOARD_SUPPORT)
+#if ENABLE(DASHBOARD_SUPPORT) || ENABLE(VIDEO)
 #include "Document.h"
 #include "Settings.h"
 #endif
@@ -845,7 +847,8 @@ sub printWrapperFunctions
                 print F <<END
 static JSNode* create${JSInterfaceName}Wrapper(ExecState* exec, JSDOMGlobalObject* globalObject, PassRefPtr<$parameters{namespace}Element> element)
 {
-    if (!MediaPlayer::isAvailable())
+    Settings* settings = element->document()->settings();
+    if (!MediaPlayer::isAvailable() || (settings && !settings->isMediaEnabled()))
         return CREATE_DOM_NODE_WRAPPER(exec, globalObject, $parameters{namespace}Element, element.get());
     return CREATE_DOM_NODE_WRAPPER(exec, globalObject, ${JSInterfaceName}, element.get());
 }
@@ -863,14 +866,29 @@ END
 ;
             }
         } elsif ($wrapperFactoryType eq "V8") {
+            if ($tags{$tagName}{wrapperOnlyIfMediaIsAvailable}) {
+                print F <<END
+static v8::Handle<v8::Value> create${JSInterfaceName}Wrapper($parameters{namespace}Element* element)
+{
+    Settings* settings = element->document()->settings();
+    if (!MediaPlayer::isAvailable() || (settings && !settings->isMediaEnabled()))
+        return toV8(static_cast<$parameters{namespace}Element*>(element));
+    return toV8(static_cast<${JSInterfaceName}*>(element));
+}
+
+END
+;
+            } else {
             print F <<END
 static v8::Handle<v8::Value> create${JSInterfaceName}Wrapper($parameters{namespace}Element* element)
 {
     return toV8(static_cast<${JSInterfaceName}*>(element));
 }
 
+
 END
 ;
+            }
         }
 
         if ($conditional) {
@@ -901,7 +919,16 @@ sub printWrapperFactoryCppFile
 
     printElementIncludes($F);
 
-    print F "\n#include <wtf/StdLibExtras.h>\n\n";
+    print F <<END
+#include <wtf/StdLibExtras.h>
+
+#if ENABLE(VIDEO)
+#include "Document.h"
+#include "Settings.h"
+#endif
+
+END
+;
 
     if ($wrapperFactoryType eq "JS") {    
         print F <<END

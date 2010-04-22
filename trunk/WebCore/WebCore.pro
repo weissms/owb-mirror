@@ -724,6 +724,7 @@ SOURCES += \
     loader/DocLoader.cpp \
     loader/DocumentLoader.cpp \
     loader/DocumentThreadableLoader.cpp \
+    loader/DocumentWriter.cpp \
     loader/FormState.cpp \
     loader/FrameLoader.cpp \
     loader/HistoryController.cpp \
@@ -801,7 +802,6 @@ SOURCES += \
     platform/animation/Animation.cpp \
     platform/animation/AnimationList.cpp \
     platform/Arena.cpp \
-    platform/text/AtomicString.cpp \
     platform/text/Base64.cpp \
     platform/text/BidiContext.cpp \
     platform/ContentType.cpp \
@@ -877,7 +877,6 @@ SOURCES += \
     platform/SharedBuffer.cpp \
     platform/text/String.cpp \
     platform/text/StringBuilder.cpp \
-    platform/text/StringImpl.cpp \
     platform/text/TextCodec.cpp \
     platform/text/TextCodecLatin1.cpp \
     platform/text/TextCodecUserDefined.cpp \
@@ -924,8 +923,10 @@ SOURCES += \
     rendering/RenderFileUploadControl.cpp \
     rendering/RenderFlexibleBox.cpp \
     rendering/RenderFrame.cpp \
+    rendering/RenderFrameBase.cpp \
     rendering/RenderFrameSet.cpp \
     rendering/RenderHTMLCanvas.cpp \
+    rendering/RenderIFrame.cpp \
     rendering/RenderImage.cpp \
     rendering/RenderImageGeneratedContent.cpp \
     rendering/RenderInline.cpp \
@@ -939,7 +940,6 @@ SOURCES += \
     rendering/RenderObject.cpp \
     rendering/RenderObjectChildList.cpp \
     rendering/RenderPart.cpp \
-    rendering/RenderPartObject.cpp \
     rendering/RenderProgress.cpp \
     rendering/RenderReplaced.cpp \
     rendering/RenderReplica.cpp \
@@ -1690,8 +1690,10 @@ HEADERS += \
     rendering/RenderFlexibleBox.h \
     rendering/RenderForeignObject.h \
     rendering/RenderFrame.h \
+    rendering/RenderFrameBase.h \
     rendering/RenderFrameSet.h \
     rendering/RenderHTMLCanvas.h \
+    rendering/RenderIFrame.h \
     rendering/RenderImageGeneratedContent.h \
     rendering/RenderImage.h \
     rendering/RenderInline.h \
@@ -1706,7 +1708,6 @@ HEADERS += \
     rendering/RenderObjectChildList.h \
     rendering/RenderObject.h \
     rendering/RenderPart.h \
-    rendering/RenderPartObject.h \
     rendering/RenderPath.h \
     rendering/RenderProgress.h \
     rendering/RenderReplaced.h \
@@ -1729,6 +1730,7 @@ HEADERS += \
     rendering/RenderSVGModelObject.h \
     rendering/RenderSVGResource.h \
     rendering/RenderSVGResourceClipper.h \
+    rendering/RenderSVGResourceFilter.h \
     rendering/RenderSVGResourceMarker.h \
     rendering/RenderSVGResourceMasker.h \
     rendering/RenderSVGRoot.h \
@@ -1818,7 +1820,6 @@ HEADERS += \
     svg/graphics/SVGPaintServerPattern.h \
     svg/graphics/SVGPaintServerRadialGradient.h \
     svg/graphics/SVGPaintServerSolid.h \
-    svg/graphics/SVGResourceFilter.h \
     svg/graphics/SVGResource.h \
     svg/SVGAElement.h \
     svg/SVGAltGlyphElement.h \
@@ -2030,6 +2031,7 @@ HEADERS += \
     $$PWD/../WebKit/qt/WebCoreSupport/QtFallbackWebPopup.h \
     $$PWD/../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.h \
     $$PWD/../WebKit/qt/WebCoreSupport/NotificationPresenterClientQt.h \
+    $$PWD/../WebKit/qt/WebCoreSupport/PageClientQt.h \
     $$PWD/platform/network/qt/DnsPrefetchHelper.h
 
 SOURCES += \
@@ -2100,7 +2102,6 @@ SOURCES += \
     platform/qt/SharedTimerQt.cpp \
     platform/qt/SoundQt.cpp \
     platform/qt/LoggingQt.cpp \
-    platform/text/qt/StringQt.cpp \
     platform/qt/TemporaryLinkStubs.cpp \
     platform/text/qt/TextBoundariesQt.cpp \
     platform/text/qt/TextBreakIteratorQt.cpp \
@@ -2118,6 +2119,7 @@ SOURCES += \
     ../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.cpp \
     ../WebKit/qt/WebCoreSupport/InspectorClientQt.cpp \
     ../WebKit/qt/WebCoreSupport/NotificationPresenterClientQt.cpp \
+    ../WebKit/qt/WebCoreSupport/PageClientQt.cpp \
     ../WebKit/qt/Api/qwebframe.cpp \
     ../WebKit/qt/Api/qgraphicswebview.cpp \
     ../WebKit/qt/Api/qwebpage.cpp \
@@ -2690,7 +2692,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/graphics/SVGPaintServerRadialGradient.cpp \
         svg/graphics/SVGPaintServerSolid.cpp \
         svg/graphics/SVGResource.cpp \
-        svg/graphics/SVGResourceFilter.cpp \
         rendering/RenderForeignObject.cpp \
         rendering/RenderPath.cpp \
         rendering/RenderSVGBlock.cpp \
@@ -2702,6 +2703,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/RenderSVGInlineText.cpp \
         rendering/RenderSVGModelObject.cpp \
         rendering/RenderSVGResourceClipper.cpp \
+        rendering/RenderSVGResourceFilter.cpp \
         rendering/RenderSVGResourceMarker.cpp \
         rendering/RenderSVGResourceMasker.cpp \
         rendering/RenderSVGRoot.cpp \

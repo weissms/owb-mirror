@@ -36,6 +36,9 @@
 #include "HistoryItem.h"
 #include "Page.h"
 #include "PageCache.h"
+#if ENABLE(DOM_STORAGE)
+#include "StorageMap.h"
+#endif
 #include <limits>
 
 using namespace std;
@@ -65,7 +68,10 @@ Settings::Settings(Page* page)
     , m_defaultFontSize(0)
     , m_defaultFixedFontSize(0)
     , m_maximumDecodedImageSize(numeric_limits<size_t>::max())
+#if ENABLE(DOM_STORAGE)            
     , m_localStorageQuota(5 * 1024 * 1024)  // Suggested by the HTML5 spec.
+    , m_sessionStorageQuota(StorageMap::noQuota)
+#endif
     , m_pluginAllowedRunTime(numeric_limits<unsigned>::max())
     , m_zoomMode(ZoomPage)
     , m_isSpatialNavigationEnabled(false)
@@ -74,6 +80,7 @@ Settings::Settings(Page* page)
     , m_privateBrowsingEnabled(false)
     , m_caretBrowsingEnabled(false)
     , m_areImagesEnabled(true)
+    , m_isMediaEnabled(true)
     , m_arePluginsEnabled(false)
     , m_localStorageEnabled(false)
     , m_isJavaScriptEnabled(false)
@@ -81,6 +88,7 @@ Settings::Settings(Page* page)
     , m_allowUniversalAccessFromFileURLs(true)
     , m_allowFileAccessFromFileURLs(true)
     , m_javaScriptCanOpenWindowsAutomatically(false)
+    , m_javaScriptCanAccessClipboard(false)
     , m_shouldPrintBackgrounds(false)
     , m_textAreasAreResizable(false)
 #if ENABLE(DASHBOARD_SUPPORT)
@@ -264,6 +272,11 @@ void Settings::setImagesEnabled(bool areImagesEnabled)
     m_areImagesEnabled = areImagesEnabled;
 }
 
+void Settings::setMediaEnabled(bool isMediaEnabled)
+{
+    m_isMediaEnabled = isMediaEnabled;
+}
+
 void Settings::setPluginsEnabled(bool arePluginsEnabled)
 {
     m_arePluginsEnabled = arePluginsEnabled;
@@ -274,10 +287,17 @@ void Settings::setLocalStorageEnabled(bool localStorageEnabled)
     m_localStorageEnabled = localStorageEnabled;
 }
 
+#if ENABLE(DOM_STORAGE)        
 void Settings::setLocalStorageQuota(unsigned localStorageQuota)
 {
     m_localStorageQuota = localStorageQuota;
 }
+
+void Settings::setSessionStorageQuota(unsigned sessionStorageQuota)
+{
+    m_sessionStorageQuota = sessionStorageQuota;
+}
+#endif
 
 void Settings::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
 {
@@ -291,6 +311,11 @@ void Settings::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
 void Settings::setJavaScriptCanOpenWindowsAutomatically(bool javaScriptCanOpenWindowsAutomatically)
 {
     m_javaScriptCanOpenWindowsAutomatically = javaScriptCanOpenWindowsAutomatically;
+}
+
+void Settings::setJavaScriptCanAccessClipboard(bool javaScriptCanAccessClipboard)
+{
+    m_javaScriptCanAccessClipboard = javaScriptCanAccessClipboard;
 }
 
 void Settings::setDefaultTextEncodingName(const String& defaultTextEncodingName)

@@ -166,7 +166,9 @@ Page* ChromeClientQt::createWindow(Frame*, const FrameLoadRequest& request, cons
     QWebPage *newPage = m_webPage->createWindow(features.dialog ? QWebPage::WebModalDialog : QWebPage::WebBrowserWindow);
     if (!newPage)
         return 0;
-    newPage->mainFrame()->load(request.resourceRequest().url());
+
+    if (!request.isEmpty())
+        newPage->mainFrame()->load(request.resourceRequest().url());
     return newPage->d->page;
 }
 
@@ -517,7 +519,7 @@ void ChromeClientQt::runOpenPanel(Frame* frame, PassRefPtr<FileChooser> prpFileC
     }
 }
 
-void ChromeClientQt::chooseIconForFiles(const Vector<String>& filenames, PassRefPtr<FileChooser> chooser)
+void ChromeClientQt::chooseIconForFiles(const Vector<String>& filenames, FileChooser* chooser)
 {
     chooser->iconLoaded(Icon::createIconForFiles(filenames));
 }
@@ -554,6 +556,12 @@ void ChromeClientQt::scheduleCompositingLayerSync()
     if (platformPageClient())
         platformPageClient()->markForSync(true);
 }
+
+bool ChromeClientQt::allowsAcceleratedCompositing() const
+{
+    return (platformPageClient() && platformPageClient()->allowsAcceleratedCompositing());
+}
+
 #endif
 
 QtAbstractWebPopup* ChromeClientQt::createSelectPopup()

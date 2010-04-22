@@ -1,3 +1,69 @@
+2010-04-22  Abhishek Arya  <inferno@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for controlling clipboard access from javascript.
+        Clipboard access from javascript is disabled by default.
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        * Interfaces/IWebPreferencesPrivate.idl:
+        * WebPreferenceKeysPrivate.h:
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::javaScriptCanAccessClipboard):
+        (WebPreferences::setJavaScriptCanAccessClipboard):
+        * WebPreferences.h:
+        * WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
+2010-04-21  Andy Estes  <aestes@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Reference count WebView's backing store bitmap to prevent
+        deleteBackingStore() from freeing the bitmap while it is still being
+        referenced by Core Animation.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37954
+
+        * WebView.cpp:
+        (WebView::ensureBackingStore):
+        (WebView::addToDirtyRegion):
+        (WebView::scrollBackingStore):
+        (WebView::updateBackingStore):
+        (WebView::paint):
+        (WebView::backingStore):
+        (releaseBackingStoreCallback): deref m_backingStoreBitmap once Core
+        Animation has dropeed its reference to the memory.
+        (WebView::updateRootLayerContents): ref m_backingStoreBitmap before
+        passing the memory to Core Animation to prevent deleteBackingStore()
+        from freeing it while it is still referenced by CA.
+        * WebView.h: Make m_backingStoreBitmap a RefCountedGDIHandle<HBITMAP>,
+        and make m_backingStoreDirtyRegion a RefCountedGDIHandle<HRGN>.
+
+2010-04-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Factor DocumentWriter out of FrameLoader
+        https://bugs.webkit.org/show_bug.cgi?id=37175
+
+        Update these callsites because the method moved to DocumentWriter.
+
+        * WebCoreSupport/WebFrameLoaderClient.cpp:
+        (WebFrameLoaderClient::receivedData):
+
+2010-04-20  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Change a parameter type of chooseIconForFiles()
+        https://bugs.webkit.org/show_bug.cgi?id=37504
+
+        * WebCoreSupport/WebChromeClient.cpp:
+        (WebChromeClient::chooseIconForFiles):
+        * WebCoreSupport/WebChromeClient.h:
+
 2010-04-19  Gavin Barraclough  <barraclough@apple.com>
 
         Reviewed by NOBODY (Windows build fix).

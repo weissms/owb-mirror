@@ -142,7 +142,6 @@ if(ENABLE_SVG)
         svg/graphics/SVGPaintServerRadialGradient.cpp
         svg/graphics/SVGPaintServerSolid.cpp
         svg/graphics/SVGResource.cpp
-        svg/graphics/SVGResourceFilter.cpp
         svg/graphics/filters/SVGFilter.cpp
         svg/graphics/filters/SVGFilterBuilder.cpp
         svg/graphics/filters/SVGFEConvolveMatrix.cpp

@@ -35,6 +35,8 @@
 #include <JavaScriptCore/JSRetainPtr.h>
 #include <JavaScriptCore/JSStringRef.h>
 
+#include <stdio.h>
+
 
 
 LayoutTestController::~LayoutTestController()
@@ -161,6 +163,11 @@ int LayoutTestController::windowCount()
 }
 
 void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled)
+{
+    // FIXME: implement
+}
+
+void LayoutTestController::setJavaScriptCanAccessClipboard(bool enabled)
 {
     // FIXME: implement
 }
@@ -424,4 +431,8 @@ JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
 JSValueRef LayoutTestController::computedStyleIncludingVisitedInfo(JSContextRef, JSValueRef)
 {
     return 0;
+}
+
+void LayoutTestController::authenticateSession(JSStringRef, JSStringRef, JSStringRef)
+{
 }

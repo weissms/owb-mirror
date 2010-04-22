@@ -42,9 +42,11 @@
                 # DumpRenderTree is being built outside of the full chromium project.
                 # e.g. via build-dumprendertree --chromium
                 'chromium_src_dir': '<(webkit_api_dir)',
+                'webkit_support_gyp': '<(webkit_api_dir)/webkit/support/webkit_support.gyp',
             },{
                 # WebKit is checked out in src/chromium/third_party/WebKit
                 'chromium_src_dir': '<(webkit_top)/../..',
+                'webkit_support_gyp': '<(webkit_top)/../../webkit/webkit.gyp',
             }],
         ],
     },
@@ -76,9 +78,10 @@
             'dependencies': [
                 '<(webkit_api_dir)/WebKit.gyp:webkit',
                 '<(webkit_top)/JavaScriptCore/JavaScriptCore.gyp/JavaScriptCore.gyp:wtf_config',
+                '<(chromium_src_dir)/third_party/icu/icu.gyp:icuuc',
                 '<(chromium_src_dir)/third_party/npapi/npapi.gyp:npapi',
                 '<(chromium_src_dir)/skia/skia.gyp:skia',
-                '<(chromium_src_dir)/webkit/support/webkit_support.gyp:webkit_support',
+                '<(webkit_support_gyp):webkit_support',
             ],
             'include_dirs': [
                 '.',
@@ -106,6 +109,8 @@
                 '../chromium/EventSender.h',
                 '../chromium/LayoutTestController.cpp',
                 '../chromium/LayoutTestController.h',
+                '../chromium/MockSpellCheck.cpp',
+                '../chromium/MockSpellCheck.h',
                 '../chromium/PlainTextController.cpp',
                 '../chromium/PlainTextController.h',
                 '../chromium/TestNavigationController.cpp',
@@ -136,6 +141,22 @@
                 ['OS=="mac"', {
                     'dependencies': ['LayoutTestHelper'],
                 }],
+            ],
+        },
+
+        {
+            'target_name': 'ImageDiff',
+            'type': 'executable',
+            'dependencies': [
+                '<(webkit_top)/JavaScriptCore/JavaScriptCore.gyp/JavaScriptCore.gyp:wtf',
+                '<(chromium_src_dir)/gfx/gfx.gyp:gfx',
+            ],
+            'include_dirs': [
+                '<(webkit_top)/JavaScriptCore',
+                '<(chromium_src_dir)',
+            ],
+            'sources': [
+                '../chromium/ImageDiff.cpp',
             ],
         },
     ], # targets

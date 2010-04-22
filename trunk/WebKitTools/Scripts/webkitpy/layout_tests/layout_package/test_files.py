@@ -36,6 +36,13 @@ under that directory."""
 
 import glob
 import os
+import time
+
+from webkitpy.common.system import logutils
+
+
+_log = logutils.get_logger(__file__)
+
 
 # When collecting test cases, we include any file with these extensions.
 _supported_file_extensions = set(['.html', '.shtml', '.xml', '.xhtml', '.xhtmlmp', '.pl',
@@ -51,9 +58,11 @@ def gather_test_files(port, paths):
       paths: a list of command line paths relative to the webkit/tests
           directory. glob patterns are ok.
     """
+    gather_start_time = time.time()
     paths_to_walk = set()
     # if paths is empty, provide a pre-defined list.
     if paths:
+        _log.debug("Gathering tests from: %s relative to %s" % (paths, port.layout_tests_dir()))
         for path in paths:
             # If there's an * in the name, assume it's a glob pattern.
             path = os.path.join(port.layout_tests_dir(), path)
@@ -63,6 +72,7 @@ def gather_test_files(port, paths):
             else:
                 paths_to_walk.add(path)
     else:
+        _log.debug("Gathering tests from: %s" % port.layout_tests_dir())
         paths_to_walk.add(port.layout_tests_dir())
 
     # Now walk all the paths passed in on the command line and get filenames
@@ -73,16 +83,25 @@ def gather_test_files(port, paths):
             continue
 
         for root, dirs, files in os.walk(path):
-            # don't walk skipped directories and sub directories
+            # Don't walk skipped directories or their sub-directories.
             if os.path.basename(root) in _skipped_directories:
                 del dirs[:]
                 continue
+            # This copy and for-in is slightly inefficient, but
+            # the extra walk avoidance consistently shaves .5 seconds
+            # off of total walk() time on my MacBook Pro.
+            for directory in dirs[:]:
+                if directory in _skipped_directories:
+                    dirs.remove(directory)
 
             for filename in files:
                 if _has_supported_extension(filename):
                     filename = os.path.join(root, filename)
                     filename = os.path.normpath(filename)
                     test_files.add(filename)
+
+    gather_time = time.time() - gather_start_time
+    _log.debug("Test gathering took %f seconds" % gather_time)
 
     return test_files
 

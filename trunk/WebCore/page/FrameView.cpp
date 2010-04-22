@@ -1016,6 +1016,7 @@ void FrameView::scrollPositionChanged()
     if (!m_nestedLayoutCount && hasFixedObjects()) {
         if (RenderView* root = m_frame->contentRenderer()) {
             root->updateWidgetPositions();
+            root->layer()->updateRepaintRectsAfterScroll();
 #if USE(ACCELERATED_COMPOSITING)
             if (root->usesCompositing())
                 root->compositor()->updateCompositingLayers(CompositingUpdateOnScroll);
@@ -1823,14 +1824,16 @@ void FrameView::paintContents(GraphicsContext* p, const IntRect& rect)
     // m_nodeToDraw is used to draw only one element (and its descendants)
     RenderObject* eltRenderer = m_nodeToDraw ? m_nodeToDraw->renderer() : 0;
 
-    PaintBehavior paintBehavior = m_paintBehavior;
-    if (paintBehavior == PaintBehaviorNormal)
+    PaintBehavior oldPaintBehavior = m_paintBehavior;
+    if (m_paintBehavior == PaintBehaviorNormal)
         document->invalidateRenderedRectsForMarkersInRect(rect);
 
     if (document->printing())
-        paintBehavior |= PaintBehaviorFlattenCompositingLayers;
+        m_paintBehavior |= PaintBehaviorFlattenCompositingLayers;
 
-    contentRenderer->layer()->paint(p, rect, paintBehavior, eltRenderer);
+    contentRenderer->layer()->paint(p, rect, m_paintBehavior, eltRenderer);
+    
+    m_paintBehavior = oldPaintBehavior;
     
     m_isPainting = false;
     m_lastPaintTime = currentTime();

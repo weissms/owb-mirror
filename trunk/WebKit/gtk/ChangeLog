@@ -1,3 +1,137 @@
+2010-04-22  Abhishek Arya  <inferno@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for controlling clipboard access from javascript.
+        Clipboard access from javascript is disabled by default.
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        * webkit/webkitwebsettings.cpp:
+        (webkit_web_settings_class_init):
+        (webkit_web_settings_set_property):
+        (webkit_web_settings_get_property):
+        (webkit_web_settings_copy):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_update_settings):
+        (webkit_web_view_settings_notify):
+
+2010-04-21  Jakub Wieczorek  <jwieczorek@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        List item markers are not always updated after changes in the DOM.
+        https://bugs.webkit.org/show_bug.cgi?id=37060
+
+        * webkit/webkitprivate.h:
+        * webkit/webkitwebframe.cpp:
+        (webkit_web_frame_marker_text_for_list_item): Add a private API to get the marker text for a list item.
+
+2010-04-21  Diego Escalante Urrelo  <descalante@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] Evaluate and create tests for all the AtkRole's implemented by
+        WebKitGtk
+        https://bugs.webkit.org/show_bug.cgi?id=34449
+
+        Expand testatkroles to test ATK_ROLE_FORM.
+
+        * tests/testatkroles.c:
+        (test_webkit_atk_get_role_form):
+        (main):
+
+2010-04-20  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Factor DocumentWriter out of FrameLoader
+        https://bugs.webkit.org/show_bug.cgi?id=37175
+
+        Update these callsites because the method moved to DocumentWriter.
+
+        * WebCoreSupport/FrameLoaderClientGtk.cpp:
+        (WebKit::FrameLoaderClient::committedLoad):
+        (WebKit::FrameLoaderClient::finishedLoading):
+        * webkit/webkitwebview.cpp:
+        (webkit_web_view_get_encoding):
+
+2010-04-20  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Darin Adler.
+
+        Change a parameter type of chooseIconForFiles()
+        https://bugs.webkit.org/show_bug.cgi?id=37504
+
+        * WebCoreSupport/ChromeClientGtk.cpp:
+        (WebKit::ChromeClient::chooseIconForFiles):
+        * WebCoreSupport/ChromeClientGtk.h:
+
+2010-04-20  Martin Robinson  <mrobinson@webkit.org>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] Enable DOM clipboard and drag-and-drop access
+        https://bugs.webkit.org/show_bug.cgi?id=30623
+
+        Move most of the PasteboardHelper logic into WebCore. This helps
+        prepare for WebKit2 and leads to a clearer separation of concerns
+        between the WebKit and WebCore layers.
+
+        * WebCoreSupport/EditorClientGtk.cpp:
+        (WebKit::collapseSelection): Converted this logic to a GClosure callback.
+        (WebKit::EditorClient::respondToChangedSelection): Collapse selection via GClosure now.
+        * WebCoreSupport/PasteboardHelperGtk.cpp: Moved most of the code to WebCore.
+        (WebKit::PasteboardHelperGtk::PasteboardHelperGtk): This constructor just initializes the target list.
+        (WebKit::PasteboardHelperGtk::~PasteboardHelperGtk): The destructor no longer needs to free the target list.
+        (WebKit::PasteboardHelperGtk::getIdForTargetType): Added, virtual method for getting target ids.
+        (WebKit::PasteboardHelperGtk::usePrimarySelectionClipboard): Added, virtual method for querying current clipboard.
+        * WebCoreSupport/PasteboardHelperGtk.h: Update method list to reflect reduced functionality.
+
+2010-04-19  Diego Escalante Urrelo  <descalante@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] Evaluate and create tests for all the AtkRole's implemented by
+        WebKitGtk
+        https://bugs.webkit.org/show_bug.cgi?id=34449
+
+        Expand testatkroles to test ATK form roles.
+
+        * tests/testatkroles.c:
+        (test_webkit_atk_get_role_check_box):
+        (test_webkit_atk_get_role_entry):
+        (test_webkit_atk_get_role_label):
+        (test_webkit_atk_get_role_listbox):
+        (test_webkit_atk_get_role_password_text):
+        (test_webkit_atk_get_role_push_button):
+        (test_webkit_atk_get_role_radio_button):
+        (main):
+
+2010-04-19  Diego Escalante Urrelo  <descalante@igalia.com>
+
+        Reviewed by Xan Lopez.
+
+        [Gtk] Evaluate and create tests for all the AtkRole's implemented by
+        WebKitGtk
+        https://bugs.webkit.org/show_bug.cgi?id=34449
+
+        Add testatkroles to test ATK non form roles.
+
+        * tests/testatkroles.c: Added.
+        (finish_loading):
+        (atk_roles_fixture_setup):
+        (atk_roles_fixture_teardown):
+        (get_child_and_test_role):
+        (test_webkit_atk_get_role_document_frame):
+        (test_webkit_atk_get_role_heading):
+        (test_webkit_atk_get_role_image):
+        (test_webkit_atk_get_role_link):
+        (test_webkit_atk_get_role_list_and_item):
+        (test_webkit_atk_get_role_paragraph):
+        (test_webkit_atk_get_role_section):
+        (test_webkit_atk_get_role_table):
+        (main):
+
 2010-04-19  Alejandro G. Castro  <alex@igalia.com>
 
         Reviewed by Xan Lopez.

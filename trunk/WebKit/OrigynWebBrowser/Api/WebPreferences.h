@@ -615,6 +615,16 @@ public:
     virtual void setAllowFileAccessFromFileURLs(bool allowAccess);
 
     /**
+     * get allow clipboard access from JavaScript status
+     */
+    virtual bool javaScriptCanAccessClipboard();
+
+    /**
+     * allow clipboard access from JavaScript
+     */
+    virtual void setJavaScriptCanAccessClipboard(bool enabled);
+
+    /**
      * Is XSS auditor enabled
      */
     virtual bool isXSSAuditorEnabled();

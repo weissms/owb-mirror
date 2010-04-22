@@ -101,14 +101,18 @@ static const char* viewportErrorMessageTemplate(ViewportErrorCode errorCode)
     return errors[errorCode];
 }
 
+#if ENABLE(INSPECTOR)
 static MessageLevel viewportErrorMessageLevel(ViewportErrorCode errorCode)
 {
     return errorCode == UnrecognizedViewportArgumentError || errorCode == MaximumScaleTooLargeError ? ErrorMessageLevel : TipMessageLevel;
 }
+#endif
 
 void reportViewportWarning(Document* document, ViewportErrorCode errorCode, const String& replacement)
 {
+#if ENABLE(INSPECTOR)
     Tokenizer* tokenizer = document->tokenizer();
+#endif
 
     Frame* frame = document->frame();
     if (!frame)

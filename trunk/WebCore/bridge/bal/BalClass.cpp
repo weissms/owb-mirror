@@ -33,6 +33,7 @@
 #include "BalRuntime.h"
 #include "Identifier.h"
 #include "JSLock.h"
+#include "StringHash.h"
 
 namespace JSC {
 

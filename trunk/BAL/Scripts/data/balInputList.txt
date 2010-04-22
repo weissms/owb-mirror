@@ -479,8 +479,18 @@ BAL/Internationalization/WTF/GLib   JavaScriptCore/wtf/unicode/glib/UnicodeMacro
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp
 BAL/Internationalization/WTF/ICU	JavaScriptCore/wtf/unicode/icu/UnicodeIcu.h BCUnicodeICU.h
 BAL/Internationalization/WTF/Qt	JavaScriptCore/wtf/unicode/qt4/UnicodeQt4.h BCUnicodeQt.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/AtomicString.cpp
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/AtomicString.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/AtomicStringImpl.h
 BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/CString.h BCCString.h
 BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/CString.cpp BCCString.cpp
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringBuffer.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringHash.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringImpl.cpp
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringImpl.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringImplBase.h
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/WTFString.cpp
+BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/WTFString.h
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/gtk/LocalizedStringsGtk.cpp	BCLocalizedStringsGtk.cpp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorGtk.cpp	BCTextBreakIteratorGtk.cpp
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/text/gtk/TextBreakIteratorInternalICUGtk.cpp	BCTextBreakIteratorInternalICUGtk.cpp
@@ -493,14 +503,12 @@ BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.cpp
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextCodecICU.h
 BAL/Internationalization/WebCore/ICU	WebCore/platform/text/TextEncodingDetectorICU.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/qt/Localizations.cpp
-BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/StringQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBoundariesQt.cpp BCTextBoundariesQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextBreakIteratorQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.cpp
 BAL/Internationalization/WebCore/Qt	WebCore/platform/text/qt/TextCodecQt.h
 BAL/Internationalization/WebCore/None WebCore/platform/text/TextEncodingDetectorNone.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/LocalizedStrings.h
-BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicString.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicString.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/AtomicStringImpl.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/Base64.cpp
@@ -519,7 +527,6 @@ BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuffer.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuilder.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringBuilder.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringHash.h
-BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringImpl.cpp
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/StringImpl.h
 BAL/Internationalization/WebCore/WK WebCore/platform/text/SuffixTree.h
 BAL/Internationalization/WebCore/WK	WebCore/platform/text/TextBoundaries.h
@@ -842,6 +849,8 @@ BAL/Types/WTF	JavaScriptCore/wtf/ValueCheck.h
 BAL/Types/WTF	JavaScriptCore/wtf/Vector.h
 BAL/Types/WTF	JavaScriptCore/wtf/Vector3.h
 BAL/Types/WTF	JavaScriptCore/wtf/VectorTraits.h
+BAL/Types/WTF	JavaScriptCore/wtf/WTFThreadData.cpp
+BAL/Types/WTF	JavaScriptCore/wtf/WTFThreadData.h
 BAL/Types/WTF	JavaScriptCore/wtf/dtoa.cpp
 BAL/Types/WTF	JavaScriptCore/wtf/dtoa.h
 BAL/Types/WTF   JavaScriptCore/wtf/RandomNumber.cpp
@@ -932,6 +941,7 @@ BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/ContextMenuItemGtk.cpp	BCContextMen
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/CursorGtk.h	CursorGtk.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/CursorGtk.cpp	BCCursorGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardGtk.cpp	BCPasteboardGtk.cpp
+BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardHelper.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PasteboardHelper.h
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PlatformScreenGtk.cpp	BCPlatformScreenGtk.cpp
 BAL/Widgets/WebCore/Gtk	WebCore/platform/gtk/PopupMenuGtk.cpp	BCPopupMenuGtk.cpp
@@ -1005,9 +1015,9 @@ BAL/Widgets/WebCore/WK  WebCore/platform/Theme.h
 
 
 Base	WebCore/platform/NotImplemented.h	NotImplemented.h
-Base	WebCore/platform/StaticConstructors.h	StaticConstructors.h
 Base/wtf	JavaScriptCore/wtf/AlwaysInline.h	AlwaysInline.h
 Base/wtf	JavaScriptCore/wtf/DisallowCType.h	DisallowCType.h
 Base/wtf	JavaScriptCore/wtf/Forward.h	Forward.h
 Base/wtf	JavaScriptCore/wtf/Platform.h	Platform.h
+Base/wtf	JavaScriptCore/wtf/StaticConstructors.h	StaticConstructors.h
 Base/wtf	JavaScriptCore/wtf/UnusedParam.h	UnusedParam.h

@@ -137,6 +137,7 @@ void WebPreferences::initializeDefaultSettings()
     m_privatePrefs[WebKitWebSecurityEnabledPreferenceKey] = "1"; //TRUE
     m_privatePrefs[WebKitAllowUniversalAccessFromFileURLsPreferenceKey] = "1";//TRUE
     m_privatePrefs[WebKitAllowFileAccessFromFileURLsPreferenceKey] = "1";//TRUE
+    m_privatePrefs[WebKitJavaScriptCanAccessClipboardPreferenceKey] = "0";//FALSE
     m_privatePrefs[WebKitXSSAuditorEnabledPreferenceKey] =  "1";//TRUE
     m_privatePrefs[WebKitFrameFlatteningEnabledPreferenceKey] =  "0";//FALSE
     m_privatePrefs[WebKitCustomDragCursorsEnabledPreferenceKey] = "0";//FALSE
@@ -546,6 +547,15 @@ void WebPreferences::setWebSecurityEnabled(bool enabled)
     setBoolValue(WebKitWebSecurityEnabledPreferenceKey, enabled);
 }
 
+bool WebPreferences::javaScriptCanAccessClipboard()
+{
+    return boolValueForKey(WebKitJavaScriptCanAccessClipboardPreferenceKey);
+}
+
+void WebPreferences::setJavaScriptCanAccessClipboard(bool enabled)
+{
+    setBoolValue(WebKitJavaScriptCanAccessClipboardPreferenceKey, enabled);
+}
 
 bool WebPreferences::isXSSAuditorEnabled()
 {

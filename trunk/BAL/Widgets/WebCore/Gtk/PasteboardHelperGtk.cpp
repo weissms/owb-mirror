@@ -1,6 +1,7 @@
 /*
  *  Copyright (C) 2007 Luca Bruno <lethalman88@gmail.com>
  *  Copyright (C) 2009 Holger Hans Peter Freyther
+ *  Copyright (C) 2010 Martin Robinson <mrobinson@webkit.org>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -30,155 +31,27 @@ using namespace WebCore;
 
 namespace WebKit {
 
-static GdkAtom gdkMarkupAtom = gdk_atom_intern("text/html", FALSE);
-
 PasteboardHelperGtk::PasteboardHelperGtk()
-    : m_targetList(gtk_target_list_new(0, 0))
 {
-    gtk_target_list_add_text_targets(m_targetList, -2);
-    gtk_target_list_add(m_targetList, gdkMarkupAtom, 0, -1);
+    initializeTargetList();
 }
 
 PasteboardHelperGtk::~PasteboardHelperGtk()
 {
-    gtk_target_list_unref(m_targetList);
 }
 
-GtkClipboard* PasteboardHelperGtk::getCurrentTarget(Frame* frame) const
+guint PasteboardHelperGtk::getIdForTargetType(PasteboardTargetType type)
 {
-    /*WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
+    if (type == TargetTypeMarkup)
+        return -1;
 
-    if (webkit_web_view_use_primary_for_paste(webView))
-        return getPrimary(frame);
-    else
-        return getClipboard(frame);*/
-    return 0;
+    return -2;
 }
 
-GtkClipboard* PasteboardHelperGtk::getClipboard(Frame* frame) const
+bool PasteboardHelperGtk::usePrimarySelectionClipboard(GtkWidget* widget)
 {
-    /*WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
-    return gtk_widget_get_clipboard(GTK_WIDGET (webView),
-                                    GDK_SELECTION_CLIPBOARD);*/
-    return 0;
-}
-
-GtkClipboard* PasteboardHelperGtk::getPrimary(Frame* frame) const
-{
-    /*WebKitWebView* webView = webkit_web_frame_get_web_view(kit(frame));
-    return gtk_widget_get_clipboard(GTK_WIDGET (webView),
-                                    GDK_SELECTION_PRIMARY);*/
-    return 0;
-}
-
-GtkTargetList* PasteboardHelperGtk::targetList() const
-{
-    return m_targetList;
-}
-
-gint PasteboardHelperGtk::getWebViewTargetInfoHtml() const
-{
-    return -1;
-}
-
-/*static void fillSelectionData(GtkSelectionData* selectionData, guint info, DataObjectGtk* dataObject)
-{
-    if (info == WEBKIT_WEB_VIEW_TARGET_INFO_TEXT)
-        gtk_selection_data_set_text(selectionData, dataObject->text().utf8().data(), -1);
-    else if (info == WEBKIT_WEB_VIEW_TARGET_INFO_HTML) {
-        GOwnPtr<gchar> markup(g_strdup(dataObject->markup().utf8().data()));
-        gtk_selection_data_set(selectionData, selectionData->target, 8,
-                               reinterpret_cast<const guchar*>(markup.get()),
-                               strlen(markup.get()));
-    }
-}*/
-
-/*static GtkTargetList* targetListForDataObject(DataObjectGtk* dataObject)
-{
-    GtkTargetList* list = gtk_target_list_new(0, 0);
-
-    if (dataObject->hasText())
-        gtk_target_list_add_text_targets(list, WEBKIT_WEB_VIEW_TARGET_INFO_TEXT);
-
-    if (dataObject->hasMarkup())
-        gtk_target_list_add(list, gdkMarkupAtom, 0, WEBKIT_WEB_VIEW_TARGET_INFO_HTML);
-
-    return list;
-}
-
-static DataObjectGtk* settingClipboardDataObject = 0;
-static gpointer settingClipboardData = 0;
-static void getClipboardContentsCallback(GtkClipboard* clipboard, GtkSelectionData *selectionData, guint info, gpointer data)
-{
-    DataObjectGtk* dataObject = DataObjectGtk::forClipboard(clipboard);
-    ASSERT(dataObject);
-    fillSelectionData(selectionData, info, dataObject);
-}
-
-static void clearClipboardContentsCallback(GtkClipboard* clipboard, gpointer data)
-{
-    DataObjectGtk* dataObject = DataObjectGtk::forClipboard(clipboard);
-    ASSERT(dataObject);
-
-    // Only clear the DataObject for this clipboard if we are not currently setting it.
-    if (dataObject != settingClipboardDataObject)
-        dataObject->clear();
-
-    // Only collapse the selection if this is an X11 primary clipboard
-    // and we aren't currently setting the clipboard for this WebView.
-    if (!data || data == settingClipboardData)
-        return;
-
-    WebKitWebView* webView = reinterpret_cast<WebKitWebView*>(data);
-    WebCore::Page* corePage = core(webView);
-
-    if (!corePage || !corePage->focusController()) {
-        g_object_unref(webView);
-        return;
-    }
-
-    Frame* frame = corePage->focusController()->focusedOrMainFrame();
-
-    // Collapse the selection without clearing it
-    ASSERT(frame);
-    frame->selection()->setBase(frame->selection()->extent(), frame->selection()->affinity());
-
-    g_object_unref(webView);
-}*/
-
-void PasteboardHelperGtk::writeClipboardContents(GtkClipboard* clipboard, gpointer data)
-{
-    /*DataObjectGtk* dataObject = DataObjectGtk::forClipboard(clipboard);
-    GtkTargetList* list = targetListForDataObject(dataObject);
-
-    int numberOfTargets;
-    GtkTargetEntry* table = gtk_target_table_new_from_list(list, &numberOfTargets);
-
-    if (numberOfTargets > 0 && table) {
-        settingClipboardDataObject = dataObject;
-        settingClipboardData = data;
-
-        // Protect the web view from being destroyed before one of the clipboard callbacks
-        // is called. Balanced in both getClipboardContentsCallback and
-        // clearClipboardContentsCallback.
-        WebKitWebView* webView = static_cast<WebKitWebView*>(data);
-        g_object_ref(webView);
-
-        gboolean succeeded = gtk_clipboard_set_with_data(clipboard, table, numberOfTargets,
-                                                         getClipboardContentsCallback,
-                                                         clearClipboardContentsCallback, data);
-        if (!succeeded)
-            g_object_unref(webView);
-
-        settingClipboardDataObject = 0;
-        settingClipboardData = 0;
-    } else
-        gtk_clipboard_clear(clipboard);
-
-    if (table)
-        gtk_target_table_free(table, numberOfTargets);
-
-    gtk_target_list_unref(list);*/
+    //return webkit_web_view_use_primary_for_paste(WEBKIT_WEB_VIEW((widget)));
+    return false;
 }
 
 }

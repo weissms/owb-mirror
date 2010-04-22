@@ -282,6 +282,12 @@ void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled
     webView->preferences()->setPrivateBrowsingEnabled(privateBrowsingEnabled);
 }
 
+void LayoutTestController::setJavaScriptCanAccessClipboard(bool enable)
+{
+    WebView* webView = getWebView();
+    webView->preferences()->setJavaScriptCanAccessClipboard(enable);
+}
+
 void LayoutTestController::setXSSAuditorEnabled(bool enabled)
 {
     WebView* webView = getWebView();
@@ -617,4 +623,15 @@ JSValueRef LayoutTestController::computedStyleIncludingVisitedInfo(JSContextRef 
 {
     // FIXME: Implement this.
     return 0;
+}
+
+JSRetainPtr<JSStringRef> LayoutTestController::markerTextForListItem(JSContextRef context, JSValueRef nodeObject) const
+{
+    // FIXME: Implement me.
+    return JSRetainPtr<JSStringRef>();
+}
+
+void LayoutTestController::authenticateSession(JSStringRef, JSStringRef, JSStringRef)
+{
+    // FIXME: If there is a concept per-session (per-process) credential storage, the credentials should be added to it for later use.
 }

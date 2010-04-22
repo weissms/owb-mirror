@@ -102,7 +102,6 @@ ChromeClientImpl::ChromeClientImpl(WebViewImpl* webView)
     , m_scrollbarsVisible(true)
     , m_menubarVisible(true)
     , m_resizable(true)
-    , m_ignoreNextSetCursor(false)
 {
 }
 
@@ -603,7 +602,7 @@ void ChromeClientImpl::runOpenPanel(Frame* frame, PassRefPtr<FileChooser> fileCh
     chooserCompletion->didChooseFile(WebVector<WebString>());
 }
 
-void ChromeClientImpl::chooseIconForFiles(const Vector<WebCore::String>&, PassRefPtr<WebCore::FileChooser>)
+void ChromeClientImpl::chooseIconForFiles(const Vector<WebCore::String>&, WebCore::FileChooser*)
 {
     notImplemented();
 }
@@ -630,8 +629,11 @@ void ChromeClientImpl::popupOpened(PopupContainer* popupContainer,
             webwidget = m_webView->client()->createPopupMenu();
         if (!webwidget)
             webwidget = m_webView->client()->createPopupMenu(false);
+        // We only notify when the WebView has to handle the popup, as when
+        // the popup is handled externally, the fact that a popup is showing is
+        // transparent to the WebView.
+        m_webView->popupOpened(popupContainer);
     }
-    m_webView->popupOpened(popupContainer);
     static_cast<WebPopupMenuImpl*>(webwidget)->Init(popupContainer, bounds);
 }
 
@@ -642,11 +644,6 @@ void ChromeClientImpl::popupClosed(WebCore::PopupContainer* popupContainer)
 
 void ChromeClientImpl::setCursor(const WebCursorInfo& cursor)
 {
-    if (m_ignoreNextSetCursor) {
-        m_ignoreNextSetCursor = false;
-        return;
-    }
-
     if (m_webView->client())
         m_webView->client()->didChangeCursor(cursor);
 }
@@ -654,11 +651,6 @@ void ChromeClientImpl::setCursor(const WebCursorInfo& cursor)
 void ChromeClientImpl::setCursorForPlugin(const WebCursorInfo& cursor)
 {
     setCursor(cursor);
-
-    // Currently, Widget::setCursor is always called after this function in
-    // EventHandler.cpp and since we don't want that we set a flag indicating
-    // that the next SetCursor call is to be ignored.
-    m_ignoreNextSetCursor = true;
 }
 
 void ChromeClientImpl::formStateDidChange(const Node* node)
