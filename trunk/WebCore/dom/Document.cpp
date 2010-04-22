@@ -4894,7 +4894,7 @@ bool Document::isCEHTMLDocument() const
 {
     if (!frame() || !frame()->loader())
         return false;
-    return frame()->loader()->responseMIMEType() == "application/ce-html+xml" || frame()->loader()->responseMIMEType() == "application/x-ce-html+xml";
+    return frame()->loader()->writer()->mimeType() == "application/ce-html+xml" || frame()->loader()->writer()->mimeType() == "application/x-ce-html+xml";
 }
 #endif
 
