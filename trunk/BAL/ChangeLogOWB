@@ -1,3 +1,20 @@
+2010-04-22  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Reviewed by Guillaume.
+
+        Removed the call to sigprocmask which is unsafe w/ a multithreaded
+        process and besides was causing troubles w/ debug builds. Blocking
+        signals for all threads is actually unnecessary. The signal handle
+        routine is setup at the process level and is also thread safe, so
+        the kernel may safely invoke that signal handler from any thread
+        context, the end result should be the same.
+        
+        Special thanks to Guillaume for his thoughtful contributions to solve
+        that long-lasting issue w/ Linux timers.
+
+        * Timer/WebCore/Linux/BCSharedTimerLinux.cpp:
+        (WebCore::setSharedTimerFiredFunction):
+
 2010-04-21  Gilles Bertal  <gbertal@connected-labs.com>
 
         Reviewed by Guillaume and Mario.

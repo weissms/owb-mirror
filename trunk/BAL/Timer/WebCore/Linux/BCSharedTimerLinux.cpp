@@ -126,12 +126,7 @@ void setSharedTimerFiredFunction(void (*callbackFunc)())
         
         LOG_ERROR_ON_FAILURE_AND_EXIT(sem_init(&threadReadySem, 0, 0));
         
-        sigset_t mask;
-        sigfillset(&mask);
-        
-        // Block all signals for the main thread - and by default for all subsequent threads created from the latter
         ASSERT(isMainThread());
-        LOG_ERROR_ON_FAILURE(sigprocmask(SIG_BLOCK, &mask, NULL));
         
         // Create a separate thread to signal timer events through the timerEventCallback function
         ThreadIdentifier timerThreadID = createThread(timerThreadEntryPoint, NULL, "WebCore: Timers");
