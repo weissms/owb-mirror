@@ -1,3 +1,12 @@
+2010-04-22  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Updated the DRT SDL event loop following the recent update on
+        handling timer events. The event loop now just waits (blocks) for
+        events.
+
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (waitEvent):
+
 2010-04-21  Gilles Bertal  <gbertal@connected-labs.com>
 
         Updated main event loop so that WebCore timer/thread events get
