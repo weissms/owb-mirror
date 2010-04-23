@@ -1,3 +1,13 @@
+2010-04-23  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Reviewed by Guillaume.
+
+        Ensure the minimal setitimer resolution so that timer requests
+        w/ an interval that falls below that value still get scheduled.
+
+        * Timer/WebCore/Linux/BCSharedTimerLinux.cpp:
+        (WebCore::setSharedTimerFireTime):
+
 2010-04-22  Gilles Bertal  <gbertal@connected-labs.com>
 
         Reviewed by Guillaume.

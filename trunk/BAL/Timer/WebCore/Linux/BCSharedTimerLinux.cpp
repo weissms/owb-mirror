@@ -152,17 +152,20 @@ void setSharedTimerFireTime(double fireTime)
 
     double interval = fireTime - currentTime();
 
-    if (interval <= 0)
-        interval = 0.000001;
-
     struct itimerval timer;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
-    timer.it_value.tv_sec = static_cast<long>(interval);
-    timer.it_value.tv_usec = static_cast<long>((interval - timer.it_value.tv_sec) * 1000000.0);
+    
+    if (interval <= 0.000001) {
+        // Ensure the minimal setitimer resolution
+        timer.it_value.tv_sec = 0;
+        timer.it_value.tv_usec = 1;
+    } else {
+        timer.it_value.tv_sec = static_cast<long>(interval);
+        timer.it_value.tv_usec = static_cast<long>((interval - timer.it_value.tv_sec) * 1000000.0);
+    }
     
     ASSERT(timer.it_value.tv_sec || timer.it_value.tv_usec);
-
     LOG_ERROR_ON_FAILURE(setitimer(ITIMER_REAL, &timer, NULL));
 }
 
