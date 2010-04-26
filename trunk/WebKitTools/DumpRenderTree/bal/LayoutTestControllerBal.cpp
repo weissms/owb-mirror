@@ -282,11 +282,15 @@ void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled
     webView->preferences()->setPrivateBrowsingEnabled(privateBrowsingEnabled);
 }
 
+// gbe: Unreviewed change @58069 was rolled-back @58072 from WebKit's trunk,
+// likely to come back later... so just commenting out for now.
+#if 0
 void LayoutTestController::setJavaScriptCanAccessClipboard(bool enable)
 {
     WebView* webView = getWebView();
     webView->preferences()->setJavaScriptCanAccessClipboard(enable);
 }
+#endif
 
 void LayoutTestController::setXSSAuditorEnabled(bool enabled)
 {

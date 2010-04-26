@@ -9,6 +9,7 @@ CONFIG += staticlib
 # which already exists as a directory
 TARGET = $$JAVASCRIPTCORE_TARGET
 QT += core
+QT -= gui
 
 CONFIG += depend_includepath
 
@@ -26,6 +27,12 @@ CONFIG(debug_and_release):CONFIG(release, debug|release): DESTDIR = release
     # Make sure that build_all follows the build_all config in WebCore
     mac:contains(QT_CONFIG, qt_framework):!CONFIG(webkit_no_framework):!build_pass:CONFIG += build_all
 }
+
+# WebCore adds these config only when in a standalone build.
+# qbase.pri takes care of that when in a QTDIR_build
+# Here we add the config for both cases since we don't include qbase.pri
+contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
+unix:contains(QT_CONFIG, reduce_relocations):CONFIG += bsymbolic_functions
 
 CONFIG(QTDIR_build) {
     # Remove the following 2 lines if you want debug information in JavaScriptCore
@@ -194,6 +201,7 @@ SOURCES += \
     wtf/dtoa.cpp \
     wtf/FastMalloc.cpp \
     wtf/HashTable.cpp \
+    wtf/MD5.cpp \
     wtf/MainThread.cpp \
     wtf/qt/MainThreadQt.cpp \
     wtf/qt/StringQt.cpp \

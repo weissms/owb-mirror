@@ -1,3 +1,100 @@
+2010-04-26  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Shinichiro Hamaji.
+
+        [DRT/Chromium] Enable Windows project generation
+        https://bugs.webkit.org/show_bug.cgi?id=38103
+
+        - Bump the Chromium revision to r45515 to have GYP r818, which fixes
+          a Windows project generation bug.
+        - Avoid platform.system(), which causes a crash with python.exe in
+          depot_tools. Use sys.platform instead.
+        - Process DumpRenderTree.gyp on all platforms.
+
+        * DEPS:
+        * gyp_webkit:
+
+2010-04-23  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Add isGLES2Compliant to GraphicsContext3D: make the method const.
+        https://bugs.webkit.org/show_bug.cgi?id=37872
+
+        * src/GraphicsContext3D.cpp: Make isGLES2Compliant() const.
+        (WebCore::GraphicsContext3DInternal::isGLES2Compliant):
+        (WebCore::GraphicsContext3D::isGLES2Compliant):
+
+2010-04-23  Rafael Weinstein  <rafaelw@grafaelw.sfo.corp.google.com>
+
+        Reviewed by Darin Fisher.
+
+        This patch adds a WebWindowFeatures binding struct for the
+        chromium client in anticipation of a follow-on patch which will
+        pass it to WebViewClient::createWindow.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38013
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createView):
+        * public/WebWindowFeatures.h: Added.
+        (WebKit::WebWindowFeatures::WebWindowFeatures):
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::createWindow):
+
+2010-04-22  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Darin Fisher.
+
+        Add isGLES2Compliant to GraphicsContext3D
+        https://bugs.webkit.org/show_bug.cgi?id=37872
+
+        * public/WebGraphicsContext3D.h: Add isGLES2Compliant().
+        * src/GraphicsContext3D.cpp: Ditto.
+        * src/WebGraphicsContext3DDefaultImpl.cpp: Ditto.
+        (WebKit::WebGraphicsContext3DDefaultImpl::isGLES2Compliant):
+        * src/WebGraphicsContext3DDefaultImpl.h: Ditto.
+
+2010-04-22  Dave Moore  <davemoore@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Added notification when the favicons for a page are changed
+        from a script.
+        The Document object will notify the frame loader, which will
+        notify the client. Implementations of FrameLoaderClient will
+        have to add one method; dispatchDidChangeIcons().
+
+        https://bugs.webkit.org/show_bug.cgi?id=33812
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::didChangeIcons):
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchDidChangeIcons):
+        * src/FrameLoaderClientImpl.h:
+
+2010-04-22  Zhenyao Mo  <zmo@google.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Emulate GL_IMPLEMENTATION_COLOR_READ_FORMAT/TYPE for glGet
+        https://bugs.webkit.org/show_bug.cgi?id=37281
+
+        * src/WebGraphicsContext3DDefaultImpl.cpp:
+        (WebKit::WebGraphicsContext3DDefaultImpl::getIntegerv): Emulate two  enums.
+
+2010-04-22  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed, rolling out r58069.
+        http://trac.webkit.org/changeset/58069
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        Broke compile on Windows.
+
+        * public/WebSettings.h:
+        * src/WebSettingsImpl.cpp:
+        * src/WebSettingsImpl.h:
+
 2010-04-22  Tony Chang  <tony@chromium.org>
 
         Reviewed by Shinichiro Hamaji.

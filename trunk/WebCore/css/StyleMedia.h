@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2006 Nikolas Zimmermann <zimmermann@kde.org>
+ * Copyright (C) 2009 Apple Inc. All rights reserved.
+ * Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,38 +24,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef SVGPaintServerSolid_h
-#define SVGPaintServerSolid_h
+#ifndef StyleMedia_h
+#define StyleMedia_h
 
-#if ENABLE(SVG)
-
-#include "Color.h"
-#include "SVGPaintServer.h"
+#include "DOMWindow.h"
 
 namespace WebCore {
 
-    class SVGPaintServerSolid : public SVGPaintServer {
-    public:
-        static PassRefPtr<SVGPaintServerSolid> create() { return adoptRef(new SVGPaintServerSolid); }
-        virtual ~SVGPaintServerSolid();
+class StyleMedia : public RefCounted<StyleMedia> {
+public:
+    static PassRefPtr<StyleMedia> create(Frame* frame)
+    {
+        return adoptRef(new StyleMedia(frame));
+    }
 
-        virtual SVGPaintServerType type() const { return SolidPaintServer; }
+    void disconnectFrame() { m_frame = 0; }
 
-        Color color() const;
-        void setColor(const Color&);
+    String type() const;
 
-        virtual TextStream& externalRepresentation(TextStream&) const;
+    bool matchMedium(const String&) const;
 
-        virtual bool setup(GraphicsContext*&, const RenderObject*, const RenderStyle*, SVGPaintTargetType, bool isPaintingText) const;
+private:
+    StyleMedia(Frame*);
 
-    private:
-        SVGPaintServerSolid();
+    Frame* m_frame;
+};
 
-        Color m_color;
-    };
+} // namespace
 
-} // namespace WebCore
-
-#endif
-
-#endif // SVGPaintServerSolid_h
+#endif // StyleMedia_h

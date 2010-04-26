@@ -1,3 +1,92 @@
+2010-04-26  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Darin Adler.
+
+        <rdar://problem/7903728> REGRESSION (r51617): WebView fails to load plug-in MIME types
+        https://bugs.webkit.org/show_bug.cgi?id=38085
+
+        WebView was calling -_webView in a few places where it should have just used itself. It never
+        makes sense for WebView to call -_webView on itself, and these calls look like they were copied
+        from similar code in WebHTMLView, WebFrameView and WebDataSource, where -_webView has a different,
+        useful meaning.
+
+        * WebView/WebView.mm:
+        (-[WebView drawSingleRect:]): Replaced [self _webView] with self.
+        (-[WebView _viewClass:andRepresentationClass:forMIMEType:]): Replaced [[self _webView] preferences]
+        with _private->preferences.
+        (-[WebView _canShowMIMEType:]): Ditto.
+
+2010-04-23  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Anders Carlsson.
+
+        <rdar://problem/7894489> When printing Flash, send a drawRect event, rather than NPPrint
+        
+        When printing Flash plug-ins in 32-bit, send a drawRect event with a CGContextRef, rather than calling
+        NPPrint with a GWorldPtr, since Flash prefers the CGContext path.
+
+        * Plugins/WebNetscapePluginView.mm:
+        (-[WebNetscapePluginView drawRect:]):
+
+2010-04-22  David Kilzer  <ddkilzer@apple.com>
+
+        <http://webkit.org/b/38029> +[WebTextIteratorPrivate initialize] is missing call to JSC::initializeThreading()
+
+        Reviewed by Timothy Hatcher.
+
+        Every other Objective-C class that calls
+        WebCoreObjCFinalizeOnMainThread(self) in +initialize also calls
+        JSC::initializeThreading().  The WebTextIteratorPrivate class
+        was the only one missing this call.
+
+        * WebView/WebTextIterator.mm:
+        (+[WebTextIteratorPrivate initialize]): Added call to
+        JSC::initializeThreading().
+
+2010-04-22  Alexey Proskuryakov  <ap@apple.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        <rdar://problem/7805969> REGRESSION: iTunes unable to play trailers
+
+        Undo the changes made for https://bugs.webkit.org/show_bug.cgi?id=35215 (<rdar://problem/7673157>)
+        for now. Clients rely on the old behavior, so a fix that changes it will need to account for
+        those.
+
+        * WebCoreSupport/WebFrameLoaderClient.mm: (WebFrameLoaderClient::createPlugin): Pass pluginURL
+        instead of baseURL again.
+
+2010-04-22  Dave Moore  <davemoore@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Added notification when the favicons for a page are changed
+        from a script.
+        The Document object will notify the frame loader, which will
+        notify the client. Implementations of FrameLoaderClient will
+        have to add one method; dispatchDidChangeIcons().
+
+        https://bugs.webkit.org/show_bug.cgi?id=33812
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::dispatchDidChangeIcons):
+
+2010-04-22  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed, rolling out r58069.
+        http://trac.webkit.org/changeset/58069
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        Broke compile on Windows.
+
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        * WebView/WebPreferencesPrivate.h:
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
 2010-04-22  Abhishek Arya  <inferno@chromium.org>
 
         Reviewed by Adam Barth.

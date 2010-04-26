@@ -1,3 +1,360 @@
+2010-04-26  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add more support for textInputController
+
+        Add support for selectedRange(), setMarkedText(), insertText(),
+        and firstRectForCharacterRange().
+
+        Unskip tests:
+
+        fast/forms/input-maxlength-ime-preedit.html
+        fast/forms/input-maxlength-ime-completed.html
+        fast/text/international/thai-cursor-position.html
+        fast/events/ime-composition-events-001.html
+        editing/selection/5825350-1.html
+        editing/selection/5825350-2.html
+        editing/selection/mixed-editability-10.html
+
+        https://bugs.webkit.org/show_bug.cgi?id=35702
+
+        * DumpRenderTree/qt/TextInputControllerQt.cpp:
+        (TextInputController::setMarkedText):
+        (TextInputController::insertText):
+        (TextInputController::selectedRange):
+        (TextInputController::firstRectForCharacterRange):
+        * DumpRenderTree/qt/TextInputControllerQt.h:
+
+2010-04-23  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        check-webkit-style complains about non-utf8 data in layout test result
+        https://bugs.webkit.org/show_bug.cgi?id=38027
+
+        The problem was we were assuming patch files/diff output as utf-8.
+        Turns out they're not.  We have to treat them as binary data because
+        a single patch may have multiple text files in it with conflicting encodings!
+
+        * Scripts/webkitpy/common/checkout/api.py:
+         - contents_at_revision returns a byte array, so decode it to unicode
+           before passing it to parse_latest_entry_from_file
+        * Scripts/webkitpy/common/checkout/api_unittest.py:
+         - Update our mock mock_contents_at_revision to match the encoding
+           semantics of the real one.
+        * Scripts/webkitpy/common/checkout/scm.py:
+         - Be careful not to decode output which may contain file contents
+           (like diff, cat or show) as the encoding for that content is unknown.
+        * Scripts/webkitpy/common/checkout/scm_unittest.py:
+         - Update our tests to use both latin1 and utf-8 encoded data.
+        * Scripts/webkitpy/common/net/bugzilla.py:
+         - _fill_attachment_form should not assume unicode data.  Callers
+           may wish to attach other types of files to bugs.
+        * Scripts/webkitpy/common/prettypatch.py:
+         - Diffs are byte arrays, deal with them as such.
+        * Scripts/webkitpy/common/prettypatch_unittest.py:
+         - Test to make sure we handle diffs with multiple conflicting encodings.
+        * Scripts/webkitpy/common/system/executive_unittest.py:
+         - Make sure that our unicode support does not break our
+           byte array input support for run_command.
+
+2010-04-23  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David Levin.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=38060
+        Split up Threading.h
+
+        Add necessary forwarding headers.
+
+        * DumpRenderTree/ForwardingHeaders/wtf/Atomics.h: Added.
+        * DumpRenderTree/ForwardingHeaders/wtf/ThreadSafeShared.h: Added.
+        * DumpRenderTree/ForwardingHeaders/wtf/ThreadingPrimitives.h: Added.
+
+2010-04-23  Xiaomei Ji  <xji@chromium.org>
+
+        No need to review.
+
+        Add xji as committer.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-23  Kevin Ollivier  <kevino@theolliviers.com>
+
+        [wx] Build fix, add platform stub for new LayoutTestController method.
+
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+        (LayoutTestController::markerTextForListItem):
+
+2010-04-19  Dirk Pranke  <dpranke@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests: add a "--retry-failures" flag and a
+        "--no-retry-failures" flag (the former is the default). Also, rename
+        "--print-unexpected-results" and "--retry-unexpected-results" to
+        "--print-last-failures" and "--retry-last-failures" because the
+        retry flag was confusing. The new flag names aren't great, but
+        hopefully they're less confusing.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37838
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+
+2010-04-22  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=38022
+        Move isMainThread predicate function to MainThread.h
+
+        Added forwarding header for MainThread.h
+
+        * DumpRenderTree/ForwardingHeaders/wtf/MainThread.h: Added.
+
+2010-04-23  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Disable Netscape plugin support for minimal configuration
+        https://bugs.webkit.org/show_bug.cgi?id=38026
+
+        Pass the minimal configuration option to Qt build system 
+        as part of the CONFIG variable.
+
+        * Scripts/build-webkit:
+
+2010-04-22  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed fix.
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py: fix NameError: global name 'f' is not defined.
+
+2010-04-22  James Robinson  <jamesr@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Revert 58077 and follow-ups.  It's broken.
+        https://bugs.webkit.org/show_bug.cgi?id=37664
+
+        * Scripts/new-run-webkit-httpd:
+        * Scripts/new-run-webkit-websocketserver:
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py:
+        * Scripts/webkitpy/layout_tests/port/http_server.py:
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py:
+
+2010-04-22  Yaar Schnitman  <yaar@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Integrate v8 testing utility with webkit tests
+        https://bugs.webkit.org/show_bug.cgi?id=37731
+
+        * Scripts/run-bindings-tests: Added.
+
+2010-04-22  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        new-run-webkit-tests --verbose shows ever-increasing #EOF lines
+        https://bugs.webkit.org/show_bug.cgi?id=37794
+
+        * Scripts/webkitpy/layout_tests/port/webkit.py:
+         - Remove the assert() since our ServerProcess code does not always
+           seem to be reading the full stderr output (or we're not waiting for it to).
+
+2010-04-22  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        Add code to help debug new-run-webkit-test hangs on the Chromium bots
+        https://bugs.webkit.org/show_bug.cgi?id=38011
+
+        I can see no reasonable way to test this change.
+        Stubbing out sys._current_frames() and traceback.extract_stack
+        seems folly.  Dumping real data would have line number
+        (and possibly other call stack) variance between runs.
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+         - Add _dump_thread_states and _dump_thread_states_if_necessary
+           to have our main thread dump the states of all threads every
+           60 seconds when running in verbose mode.
+         - Better document what is going on in our main loop.
+
+2010-04-22  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Anders Carlsson.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=38002
+        Add rudimentary statistics gathering for WebKit2
+
+        * MiniBrowser/MiniBrowser.xcodeproj/project.pbxproj:
+        * MiniBrowser/mac/AppDelegate.h:
+        * MiniBrowser/mac/AppDelegate.m:
+        (-[BrowserAppDelegate init]):
+        (-[BrowserAppDelegate newWindow:]):
+        (-[BrowserAppDelegate getCurrentPageNamespace]):
+        (-[BrowserAppDelegate _setProcessModel:]):
+        (-[BrowserAppDelegate showStatisticsWindow:]):
+        (-[BrowserAppDelegate applicationWillTerminate:]):
+        * MiniBrowser/mac/BrowserStatisticsWindow.xib: Added.
+        * MiniBrowser/mac/BrowserStatisticsWindowController.h: Added.
+        * MiniBrowser/mac/BrowserStatisticsWindowController.m: Added.
+        (-[BrowserStatisticsWindowController initWithThreadedWKContextRef:processWKContextRef:]):
+        (-[BrowserStatisticsWindowController dealloc]):
+        (-[BrowserStatisticsWindowController windowDidLoad]):
+        (-[BrowserStatisticsWindowController refreshStatistics:]):
+        * MiniBrowser/mac/BrowserWindowController.h:
+        * MiniBrowser/mac/English.lproj/MainMenu.xib:
+        * MiniBrowser/mac/MiniBrowser_Prefix.pch:
+
+2010-04-22  Dave Moore  <davemoore@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Add test support for icon changes.
+
+        https://bugs.webkit.org/show_bug.cgi?id=33812
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (dumpIconChangesCallback):
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        (LayoutTestController::dumpIconChanges):
+        (LayoutTestController::setDumpIconChanges):
+        * DumpRenderTree/win/FrameLoadDelegate.cpp:
+        (FrameLoadDelegate::didChangeIcons):
+        * DumpRenderTree/win/FrameLoadDelegate.h:
+        * WinLauncher/WinLauncher.h:
+        (WinLauncherWebHost::didChangeIcons):
+
+2010-04-22  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed.  Script fix.  Will ask dpranke to look tomorrow.
+
+        new-run-webkit-tests --verbose shows ever-increasing #EOF lines
+        https://bugs.webkit.org/show_bug.cgi?id=37794
+
+        The bots are seeing cases where .error is sometimes empty.
+        Lets make the code not crash in that case for now.
+
+        * Scripts/webkitpy/layout_tests/port/webkit.py:
+
+2010-04-22  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed fix.
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py: fix NameError: global name 'f' is not defined.
+
+2010-04-22  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed fix.
+
+        * Scripts/new-run-webkit-websocketserver: PyWebSocket no longer takes keyword argument 'register_cygwin'.
+
+2010-04-22  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed.  Restore the Leopard bots to using
+        old-run-webkit-tests for now.
+
+        * Scripts/run-webkit-tests:
+
+2010-04-22  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed fix.
+
+        * Scripts/webkitpy/layout_tests/port/http_server.py: fix NameError: global name 'env' is not defined.
+
+2010-04-22  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Unreviewed fix.
+
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py: fix NameError: global name 'env' is not defined.
+
+2010-04-22  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Chromium: Add --chromium option to new-run-webkit-websocketserver
+        https://bugs.webkit.org/show_bug.cgi?id=37664
+
+        Move cygwin setup logic in chromium_win.py.
+
+        * Scripts/new-run-webkit-httpd: remove register_cygwin parameter to pass http_server.
+        * Scripts/new-run-webkit-websocketserver: add --chromium flag
+        * Scripts/webkitpy/layout_tests/port/chromium_win.py: setup for cygwin
+        * Scripts/webkitpy/layout_tests/port/http_server.py: remove cygwin setup logic
+        * Scripts/webkitpy/layout_tests/port/websocket_server.py: remove cygwin setup logic
+
+2010-04-22  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests --verbose shows ever-increasing #EOF lines
+        https://bugs.webkit.org/show_bug.cgi?id=37794
+
+        * Scripts/webkitpy/layout_tests/layout_package/dump_render_tree_thread.py:
+         - Fix the log message to explain that this is stderr output, not test output.
+        * Scripts/webkitpy/layout_tests/port/webkit.py:
+         - Be sure to reset the server_process.error after reading (seems like the wrong
+           place to do this, but at least this fixes the bug and dpranke and I can talk
+           about better designs later).
+         - Also remove the #EOF from the stderr output before returning it.
+
+2010-04-22  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed.  Fixing new-run-webkit-tests on the bots.
+
+        * Scripts/webkitpy/layout_tests/run_webkit_tests.py:
+         - Fixing _compat_shim_option to take variable keyword args.
+         - Turns out that nargs + callback is ignored unless type is specified.
+           So I added the type so that the option was properly consumed.
+           This was why new-run-webkit-tests couldn't find any tests, it
+           was looking for them under "20" because that was the argument
+           which should have been consumed by --exit-after-n-failures.
+
+2010-04-22  Tony Chang  <tony@chromium.org>
+
+        Not reviewed, build fix for chromium Windows.
+
+        [chromium] fix ImageDiff compile on windows
+        https://bugs.webkit.org/show_bug.cgi?id=37979
+
+        * DumpRenderTree/chromium/ImageDiff.cpp:
+
+2010-04-22  Adam Barth  <abarth@webkit.org>
+
+        Unreviewed, rolling out r58069.
+        http://trac.webkit.org/changeset/58069
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        Broke compile on Windows.
+
+        * DumpRenderTree/LayoutTestController.cpp:
+        (LayoutTestController::staticFunctions):
+        * DumpRenderTree/LayoutTestController.h:
+        * DumpRenderTree/chromium/LayoutTestController.cpp:
+        (LayoutTestController::LayoutTestController):
+        (LayoutTestController::overridePreference):
+        * DumpRenderTree/chromium/LayoutTestController.h:
+        * DumpRenderTree/chromium/TestShell.cpp:
+        (TestShell::resetWebSettings):
+        * DumpRenderTree/gtk/LayoutTestControllerGtk.cpp:
+        * DumpRenderTree/mac/DumpRenderTree.mm:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/mac/LayoutTestControllerMac.mm:
+        * DumpRenderTree/qt/DumpRenderTreeQt.cpp:
+        (WebCore::WebPage::WebPage):
+        (WebCore::WebPage::resetSettings):
+        * DumpRenderTree/qt/LayoutTestControllerQt.cpp:
+        * DumpRenderTree/qt/LayoutTestControllerQt.h:
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (resetDefaultsToConsistentValues):
+        * DumpRenderTree/win/LayoutTestControllerWin.cpp:
+        * DumpRenderTree/wx/LayoutTestControllerWx.cpp:
+
 2010-04-22  Eric Seidel  <eric@webkit.org>
 
         Unreviewed.  Just adding logging.

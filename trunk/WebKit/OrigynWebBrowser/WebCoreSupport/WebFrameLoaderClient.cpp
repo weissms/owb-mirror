@@ -441,6 +441,13 @@ void WebFrameLoaderClient::dispatchDidReceiveTitle(const String& title)
         webFrameLoadDelegate->titleChange(m_webFrame, title.utf8().data());
 }
 
+void WebFrameLoaderClient::dispatchDidChangeIcons()
+{
+    SharedPtr<WebFrameLoadDelegate> webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();
+    if (webFrameLoadDelegate)
+        webFrameLoadDelegate->didChangeIcons(m_webFrame);
+}
+
 void WebFrameLoaderClient::dispatchDidCommitLoad()
 {
     SharedPtr<WebFrameLoadDelegate> webFrameLoadDelegate = m_webFrame->webView()->webFrameLoadDelegate();

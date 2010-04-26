@@ -429,7 +429,6 @@ SOURCES += \
     css/FontFamilyValue.cpp \
     css/FontValue.cpp \
     css/MediaFeatureNames.cpp \
-    css/Media.cpp \
     css/MediaList.cpp \
     css/MediaQuery.cpp \
     css/MediaQueryEvaluator.cpp \
@@ -438,6 +437,7 @@ SOURCES += \
     css/ShadowValue.cpp \
     css/StyleBase.cpp \
     css/StyleList.cpp \
+    css/StyleMedia.cpp \
     css/StyleSheet.cpp \
     css/StyleSheetList.cpp \
     css/WebKitCSSKeyframeRule.cpp \
@@ -1155,7 +1155,6 @@ HEADERS += \
     css/FontFamilyValue.h \
     css/FontValue.h \
     css/MediaFeatureNames.h \
-    css/Media.h \
     css/MediaList.h \
     css/MediaQueryEvaluator.h \
     css/MediaQueryExp.h \
@@ -1164,6 +1163,7 @@ HEADERS += \
     css/ShadowValue.h \
     css/StyleBase.h \
     css/StyleList.h \
+    css/StyleMedia.h \
     css/StyleSheet.h \
     css/StyleSheetList.h \
     css/WebKitCSSKeyframeRule.h \
@@ -1248,6 +1248,7 @@ HEADERS += \
     dom/TouchList.h \
     dom/TransformSource.h \
     dom/Traversal.h \
+    dom/TreeDepthLimit.h \
     dom/TreeWalker.h \
     dom/UIEvent.h \
     dom/UIEventWithKeyState.h \
@@ -1321,6 +1322,7 @@ HEADERS += \
     html/DOMDataGridDataSource.h \
     html/DOMFormData.h \
     html/File.h \
+    html/FileError.h \
     html/FileList.h \
     html/FileStream.h \
     html/FileStreamClient.h \
@@ -1730,9 +1732,14 @@ HEADERS += \
     rendering/RenderSVGModelObject.h \
     rendering/RenderSVGResource.h \
     rendering/RenderSVGResourceClipper.h \
-    rendering/RenderSVGResourceFilter.h \
+    rendering/RenderSVGResourceFilter.h \ 
+    rendering/RenderSVGResourceGradient.h \
+    rendering/RenderSVGResourceLinearGradient.h \
     rendering/RenderSVGResourceMarker.h \
     rendering/RenderSVGResourceMasker.h \
+    rendering/RenderSVGResourcePattern.h \
+    rendering/RenderSVGResourceRadialGradient.h \
+    rendering/RenderSVGResourceSolidColor.h \
     rendering/RenderSVGRoot.h \
     rendering/RenderSVGShadowTreeRootContainer.h \
     rendering/RenderSVGText.h \
@@ -1814,13 +1821,6 @@ HEADERS += \
     svg/graphics/filters/SVGFilter.h \
     svg/graphics/filters/SVGLightSource.h \
     svg/graphics/SVGImage.h \
-    svg/graphics/SVGPaintServerGradient.h \
-    svg/graphics/SVGPaintServer.h \
-    svg/graphics/SVGPaintServerLinearGradient.h \
-    svg/graphics/SVGPaintServerPattern.h \
-    svg/graphics/SVGPaintServerRadialGradient.h \
-    svg/graphics/SVGPaintServerSolid.h \
-    svg/graphics/SVGResource.h \
     svg/SVGAElement.h \
     svg/SVGAltGlyphElement.h \
     svg/SVGAngle.h \
@@ -2398,7 +2398,7 @@ contains(DEFINES, ENABLE_VIDEO=1) {
             HEADERS += platform/graphics/qt/MediaPlayerPrivateQt.h
             SOURCES += platform/graphics/qt/MediaPlayerPrivateQt.cpp
 
-            QT += multimedia
+            tobe|!tobe: QT += multimedia
         } else {
             HEADERS += \
                 platform/graphics/qt/MediaPlayerPrivatePhonon.h
@@ -2685,13 +2685,6 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/graphics/filters/SVGFilterBuilder.cpp \
         svg/graphics/filters/SVGLightSource.cpp \
         svg/graphics/SVGImage.cpp \
-        svg/graphics/SVGPaintServer.cpp \
-        svg/graphics/SVGPaintServerGradient.cpp \
-        svg/graphics/SVGPaintServerLinearGradient.cpp \
-        svg/graphics/SVGPaintServerPattern.cpp \
-        svg/graphics/SVGPaintServerRadialGradient.cpp \
-        svg/graphics/SVGPaintServerSolid.cpp \
-        svg/graphics/SVGResource.cpp \
         rendering/RenderForeignObject.cpp \
         rendering/RenderPath.cpp \
         rendering/RenderSVGBlock.cpp \
@@ -2702,10 +2695,16 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/RenderSVGInline.cpp \
         rendering/RenderSVGInlineText.cpp \
         rendering/RenderSVGModelObject.cpp \
+        rendering/RenderSVGResource.cpp \
         rendering/RenderSVGResourceClipper.cpp \
         rendering/RenderSVGResourceFilter.cpp \
+        rendering/RenderSVGResourceGradient.cpp \
+        rendering/RenderSVGResourceLinearGradient.cpp \
         rendering/RenderSVGResourceMarker.cpp \
         rendering/RenderSVGResourceMasker.cpp \
+        rendering/RenderSVGResourcePattern.cpp \
+        rendering/RenderSVGResourceRadialGradient.cpp \
+        rendering/RenderSVGResourceSolidColor.cpp \
         rendering/RenderSVGRoot.cpp \
         rendering/RenderSVGShadowTreeRootContainer.cpp \
         rendering/RenderSVGText.cpp \
@@ -2774,7 +2773,7 @@ contains(DEFINES, ENABLE_WEB_SOCKETS=1) {
 }
 
 contains(DEFINES, ENABLE_3D_CANVAS=1) {
-QT += opengl
+tobe|!tobe: QT += opengl
 HEADERS += \
 	bindings/js/JSWebGLArrayBufferConstructor.h \
 	bindings/js/JSWebGLArrayHelper.h \

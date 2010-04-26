@@ -134,6 +134,11 @@ public:
      * didRunInsecureContent
      */
     virtual void didRunInsecureContent(WebFrame*, WebSecurityOrigin*) = 0;
+    
+    /*
+     * didChangeIcons
+     */
+    virtual void didChangeIcons(WebFrame*) {}
 };
 
 #endif // WebFrameLoadDelegate_h

@@ -442,11 +442,22 @@ class WebKitDriver(base.Driver):
         if self._image_path and len(self._image_path):
             with open(self._image_path, "wb") as image_file:
                 image_file.write(image)
+
+        error_lines = self._server_process.error.splitlines()
+        # FIXME: This is a hack.  It is unclear why sometimes
+        # we do not get any error lines from the server_process
+        # probably we are not flushing stderr.
+        if error_lines and error_lines[-1] == "#EOF":
+            error_lines.pop()  # Remove the expected "#EOF"
+        error = "\n".join(error_lines)
+        # FIXME: This seems like the wrong section of code to be doing
+        # this reset in.
+        self._server_process.error = ""
         return (self._server_process.crashed,
                 self._server_process.timed_out,
                 actual_image_hash,
                 output,
-                self._server_process.error)
+                error)
 
     def stop(self):
         if self._server_process:

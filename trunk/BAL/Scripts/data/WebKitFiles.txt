@@ -7,7 +7,6 @@ JavaScriptCore/wtf/Platform.h Base/wtf/Platform.h
 JavaScriptCore/wtf/TCSpinLock.h BAL/Types/WTF/BCTCSpinLockWTF.h
 JavaScriptCore/wtf/MainThread.h BAL/Types/WTF/BCMainThreadWTF.h
 JavaScriptCore/wtf/gtk/ThreadingGtk.cpp BAL/Types/WTF/Gtk/BCThreadingGtk.cpp
-JavaScriptCore/wtf/qt/ThreadingQt.cpp BAL/Types/WTF/Qt/BCThreadingQt.cpp
 JavaScriptCore/wtf/unicode/Collator.h BAL/Internationalization/WTF/BCCollatorWTF.h
 JavaScriptCore/wtf/unicode/CollatorDefault.cpp BAL/Internationalization/WTF/BCCollatorDefaultWTF.cpp
 JavaScriptCore/wtf/unicode/icu/CollatorICU.cpp BAL/Internationalization/WTF/ICU/BCCollatorICU.cpp
@@ -48,6 +47,7 @@ WebCore/dom/ViewportArguments.cpp
 WebCore/editing/Editor.cpp
 WebCore/editing/TextIterator.cpp
 WebCore/editing/gtk/SelectionControllerGtk.cpp BAL/Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp
+WebCore/html/FileError.h
 WebCore/html/FileStreamProxy.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLFormElement.cpp

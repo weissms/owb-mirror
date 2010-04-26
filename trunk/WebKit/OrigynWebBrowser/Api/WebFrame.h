@@ -627,6 +627,8 @@ public:
     void addEventListener(const char* name, TransferSharedPtr<WebValue> value);
     void removeEventListener(const char* name, TransferSharedPtr<WebValue> value);
     void dispatchEvent(const char* name);
+    
+    void didChangeIcons(WebCore::DocumentLoader*);
 
 protected:
      friend WebCore::Frame* core(WebFrame*);

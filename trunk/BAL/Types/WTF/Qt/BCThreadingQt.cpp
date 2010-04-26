@@ -84,8 +84,6 @@ public Q_SLOTS:
 
 static Mutex* atomicallyInitializedStaticMutex;
 
-static ThreadIdentifier mainThreadIdentifier;
-
 static Mutex& threadMapMutex()
 {
     static Mutex mutex;
@@ -146,14 +144,6 @@ void initializeThreading()
         atomicallyInitializedStaticMutex = new Mutex;
         threadMapMutex();
         initializeRandomNumberGenerator();
-        QThread* mainThread;
-        if (QCoreApplication::instance())
-            mainThread = QCoreApplication::instance()->thread();
-        else
-            mainThread = QThread::currentThread();
-        mainThreadIdentifier = identifierByQthreadHandle(mainThread);
-        if (!mainThreadIdentifier)
-            mainThreadIdentifier = establishIdentifierForThread(mainThread);
         initializeMainThread();
     }
 }
@@ -217,14 +207,6 @@ ThreadIdentifier currentThread()
     if (ThreadIdentifier id = identifierByQthreadHandle(currentThread))
         return id;
     return establishIdentifierForThread(currentThread);
-}
-
-bool isMainThread()
-{
-    if (QCoreApplication::instance())
-        return QThread::currentThread() == QCoreApplication::instance()->thread();
-    else
-        return true;
 }
 
 Mutex::Mutex()

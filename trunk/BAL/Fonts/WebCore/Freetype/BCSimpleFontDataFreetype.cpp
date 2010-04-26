@@ -34,6 +34,7 @@
 #include "FontCache.h"
 #include "FontDescription.h"
 #include "GlyphBuffer.h"
+#include "NotImplemented.h"
 #include "BALBase.h"
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
@@ -116,20 +117,26 @@ void SimpleFontData::determinePitch()
     m_treatAsFixedPitch = m_platformData.isFixedPitch();
 }
 
-GlyphMetrics SimpleFontData::platformMetricsForGlyph(Glyph glyph, GlyphMetricsMode /* metricsMode */) const
+FloatRect SimpleFontData::platformBoundsForGlyph(Glyph) const
 {
-    GlyphMetrics metrics;
+    notImplemented();
+    return FloatRect();
+}
+
+float SimpleFontData::platformWidthForGlyph(Glyph glyph) const
+{
+    float width = 0;
     FT_Face face = m_platformData.m_face;
     if (FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT)) {
-        metrics.horizontalAdvance = m_spaceWidth;
+        width = m_spaceWidth;
     }
     else if (face->glyph->advance.x) {
-        metrics.horizontalAdvance = DOUBLE_FROM_26_6(face->glyph->advance.x);
+        width = DOUBLE_FROM_26_6(face->glyph->advance.x);
     }
     else {
-        metrics.horizontalAdvance = m_spaceWidth;
+        width = m_spaceWidth;
     }
-    return metrics;
+    return width;
 }
 
 void SimpleFontData::setFont(BalFont* cr) const

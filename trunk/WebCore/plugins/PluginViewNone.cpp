@@ -157,7 +157,7 @@ void PluginView::keepAlive(NPP)
 */
 #endif
 
-#if PLATFORM(MAC) || PLATFORM(CHROMIUM) || !ENABLE(NETSCAPE_PLUGIN_API)
+#if PLATFORM(MAC) || PLATFORM(CHROMIUM) || PLATFORM(EFL) || !ENABLE(NETSCAPE_PLUGIN_API)
 void PluginView::privateBrowsingStateChanged(bool)
 {
     notImplemented();

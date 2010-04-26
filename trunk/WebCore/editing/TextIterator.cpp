@@ -474,7 +474,7 @@ bool TextIterator::handleTextNode()
         m_sortedTextBoxesPosition = 0;
     }
     
-    m_textBox = renderer->containsReversedText() ? m_sortedTextBoxes[0] : renderer->firstTextBox();
+    m_textBox = renderer->containsReversedText() ? (m_sortedTextBoxes.isEmpty() ? 0 : m_sortedTextBoxes[0]) : renderer->firstTextBox();
     handleTextBox();
     return true;
 }
@@ -891,16 +891,16 @@ void TextIterator::emitCharacter(UChar c, Node* textNode, Node* offsetBaseNode, 
 void TextIterator::emitText(Node* textNode, int textStartOffset, int textEndOffset)
 {
     RenderText* renderer = toRenderText(m_node->renderer());
-    String str = m_emitsTextWithoutTranscoding ? renderer->textWithoutTranscoding() : renderer->text();
-    ASSERT(str.characters());
+    m_text = m_emitsTextWithoutTranscoding ? renderer->textWithoutTranscoding() : renderer->text();
+    ASSERT(m_text.characters());
 
     m_positionNode = textNode;
     m_positionOffsetBaseNode = 0;
     m_positionStartOffset = textStartOffset;
     m_positionEndOffset = textEndOffset;
-    m_textCharacters = str.characters() + textStartOffset;
+    m_textCharacters = m_text.characters() + textStartOffset;
     m_textLength = textEndOffset - textStartOffset;
-    m_lastCharacter = str[textEndOffset - 1];
+    m_lastCharacter = m_text[textEndOffset - 1];
 
     m_lastTextNodeEndedWithCollapsedSpace = false;
     m_hasEmitted = true;

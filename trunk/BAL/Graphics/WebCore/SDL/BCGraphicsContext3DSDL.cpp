@@ -34,6 +34,11 @@ bool GraphicsContext3D::getImageData(Image* image,
     return true;
 }
 
+bool GraphicsContext3D::isGLES2Compliant() const
+{
+    return false;
+}
+
 }
 
 #endif // ENABLE(3D_CANVAS)

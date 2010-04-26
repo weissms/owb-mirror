@@ -1139,6 +1139,9 @@ void QWebPagePrivate::inputMethodEvent(QInputMethodEvent *ev)
 {
     WebCore::Frame *frame = page->focusController()->focusedOrMainFrame();
     WebCore::Editor *editor = frame->editor();
+#if QT_VERSION >= 0x040600
+    QInputMethodEvent::Attribute selection(QInputMethodEvent::Selection, 0, 0, QVariant());
+#endif
 
     if (!editor->canEdit()) {
         ev->ignore();
@@ -1155,6 +1158,7 @@ void QWebPagePrivate::inputMethodEvent(QInputMethodEvent *ev)
         renderTextControl = toRenderTextControl(renderer);
 
     Vector<CompositionUnderline> underlines;
+    bool hasSelection = false;
 
     for (int i = 0; i < ev->attributes().size(); ++i) {
         const QInputMethodEvent::Attribute& a = ev->attributes().at(i);
@@ -1178,10 +1182,8 @@ void QWebPagePrivate::inputMethodEvent(QInputMethodEvent *ev)
         }
 #if QT_VERSION >= 0x040600
         case QInputMethodEvent::Selection: {
-            if (renderTextControl) {
-                renderTextControl->setSelectionStart(qMin(a.start, (a.start + a.length)));
-                renderTextControl->setSelectionEnd(qMax(a.start, (a.start + a.length)));
-            }
+            selection = a;
+            hasSelection = true;
             break;
         }
 #endif
@@ -1190,10 +1192,25 @@ void QWebPagePrivate::inputMethodEvent(QInputMethodEvent *ev)
 
     if (!ev->commitString().isEmpty())
         editor->confirmComposition(ev->commitString());
-    else if (!ev->preeditString().isEmpty()) {
+    else {
+        // 1. empty preedit with a selection attribute, and start/end of 0 cancels composition
+        // 2. empty preedit with a selection attribute, and start/end of non-0 updates selection of current preedit text
+        // 3. populated preedit with a selection attribute, and start/end of 0 or non-0 updates selection of supplied preedit text
+        // 4. otherwise event is updating supplied pre-edit text
         QString preedit = ev->preeditString();
-        editor->setComposition(preedit, underlines, preedit.length(), 0);
+#if QT_VERSION >= 0x040600
+        if (hasSelection) {
+            QString text = (renderTextControl) ? QString(renderTextControl->text()) : QString();
+            if (preedit.isEmpty() && selection.start + selection.length > 0)
+                preedit = text;
+            editor->setComposition(preedit, underlines,
+                                   (selection.length < 0) ? selection.start + selection.length : selection.start,
+                                   (selection.length < 0) ? selection.start : selection.start + selection.length);
+        } else
+#endif
+            editor->setComposition(preedit, underlines, preedit.length(), 0);
     }
+
     ev->accept();
 }
 
@@ -1328,7 +1345,7 @@ QVariant QWebPage::inputMethodQuery(Qt::InputMethodQuery property) const
                 // We can't access absoluteCaretBounds() while the view needs to layout.
                 return QVariant();
             }
-            return QVariant(frame->selection()->absoluteCaretBounds());
+            return QVariant(view->contentsToWindow(frame->selection()->absoluteCaretBounds()));
         }
         case Qt::ImFont: {
             if (renderTextControl) {
@@ -1884,9 +1901,9 @@ QWebPage *QWebPage::createWindow(WebWindowType type)
 }
 
 /*!
-    This function is called whenever WebKit encounters a HTML object element with type "application/x-qt-plugin".
-    The \a classid, \a url, \a paramNames and \a paramValues correspond to the HTML object element attributes and
-    child elements to configure the embeddable object.
+    This function is called whenever WebKit encounters a HTML object element with type "application/x-qt-plugin". It is
+    called regardless of the value of QWebSettings::PluginsEnabled. The \a classid, \a url, \a paramNames and \a paramValues
+    correspond to the HTML object element attributes and child elements to configure the embeddable object.
 */
 QObject *QWebPage::createPlugin(const QString &classid, const QUrl &url, const QStringList &paramNames, const QStringList &paramValues)
 {

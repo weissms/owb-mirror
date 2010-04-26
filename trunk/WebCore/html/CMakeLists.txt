@@ -133,6 +133,7 @@ list(APPEND IDL_SRC
     html/HTMLDocument.idl
     html/HTMLElement.idl
     html/HTMLEmbedElement.idl
+    html/FileError.idl
     html/HTMLFieldSetElement.idl
     html/HTMLFontElement.idl
     html/HTMLFormElement.idl

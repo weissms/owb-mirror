@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2006 Nikolas Zimmermann <zimmermann@kde.org>
+ * Copyright (C) 2005 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2010 Igalia S.L.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,55 +21,23 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
- */
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
-#include "config.h"
+#ifndef WebKitHTMLElementWrapperFactory_h
+#define WebKitHTMLElementWrapperFactory_h
 
-#if ENABLE(SVG)
-#include "SVGPaintServerLinearGradient.h"
-#include "SVGRenderTreeAsText.h"
+#include "HTMLElement.h"
+#include "glib-object.h"
+
+#include <wtf/Forward.h>
 
 namespace WebCore {
-
-SVGPaintServerLinearGradient::SVGPaintServerLinearGradient(const SVGGradientElement* owner)
-    : SVGPaintServerGradient(owner)
-{ 
+class HTMLElement;
 }
 
-SVGPaintServerLinearGradient::~SVGPaintServerLinearGradient()
-{
+namespace WebKit {
+gpointer createHTMLElementWrapper(PassRefPtr<WebCore::HTMLElement>);
 }
 
-FloatPoint SVGPaintServerLinearGradient::gradientStart() const
-{
-    return m_start;
-}
-
-void SVGPaintServerLinearGradient::setGradientStart(const FloatPoint& start)
-{
-    m_start = start;
-}
-
-FloatPoint SVGPaintServerLinearGradient::gradientEnd() const
-{
-    return m_end;
-}
-
-void SVGPaintServerLinearGradient::setGradientEnd(const FloatPoint& end)
-{
-    m_end = end;
-}
-
-TextStream& SVGPaintServerLinearGradient::externalRepresentation(TextStream& ts) const
-{
-    ts << "[type=LINEAR-GRADIENT] ";
-    SVGPaintServerGradient::externalRepresentation(ts);
-    ts  << " [start=" << gradientStart() << "]"
-        << " [end=" << gradientEnd() << "]";
-    return ts;
-}
-
-} // namespace WebCore
-
-#endif
+#endif // WebKitHTMLElementWrapperFactory_h

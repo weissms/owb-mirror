@@ -55,6 +55,8 @@ namespace WebCore {
         }
         virtual ~Gradient();
 
+        struct ColorStop;
+        void addColorStop(const ColorStop&);
         void addColorStop(float, const String&);
         void addColorStop(float, const Color&);
 

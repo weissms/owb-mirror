@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2006 Nikolas Zimmermann <zimmermann@kde.org>
+ * Copyright (C) 2009 Apple Inc. All rights reserved.
+ * Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,44 +24,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifndef SVGPaintServerRadialGradient_h
-#define SVGPaintServerRadialGradient_h
-
-#if ENABLE(SVG)
-
-#include "FloatPoint.h"
-#include "SVGPaintServerGradient.h"
-
-namespace WebCore {
-
-    class SVGPaintServerRadialGradient : public SVGPaintServerGradient {
-    public:
-        static PassRefPtr<SVGPaintServerRadialGradient> create(const SVGGradientElement* owner) { return adoptRef(new SVGPaintServerRadialGradient(owner)); }
-        virtual ~SVGPaintServerRadialGradient();
-
-        virtual SVGPaintServerType type() const { return RadialGradientPaintServer; }
-
-        FloatPoint gradientCenter() const;
-        void setGradientCenter(const FloatPoint&);
-
-        FloatPoint gradientFocal() const;
-        void setGradientFocal(const FloatPoint&);
-
-        float gradientRadius() const;
-        void setGradientRadius(float);
-
-        virtual TextStream& externalRepresentation(TextStream&) const;
-
-    private:
-        SVGPaintServerRadialGradient(const SVGGradientElement* owner);
-
-        float m_radius;
-        FloatPoint m_center;
-        FloatPoint m_focal;
+module view {
+    interface StyleMedia {
+        readonly attribute DOMString type;
+        boolean matchMedium(in DOMString mediaquery);
     };
-
-} // namespace WebCore
-
-#endif
-
-#endif // SVGPaintServerRadialGradient_h
+}

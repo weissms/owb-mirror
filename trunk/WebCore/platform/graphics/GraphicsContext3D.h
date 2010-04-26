@@ -479,6 +479,8 @@ namespace WebCore {
                               bool flipVertically,
                               AlphaOp alphaOp);
 
+        bool isGLES2Compliant() const;
+
         //----------------------------------------------------------------------
         // Entry points for WebGL.
         //

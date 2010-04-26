@@ -43,7 +43,6 @@ list(APPEND WEBCORE_SRC
     css/CSSVariablesRule.cpp
     css/FontFamilyValue.cpp
     css/FontValue.cpp
-    css/Media.cpp
     css/MediaFeatureNames.cpp
     css/MediaList.cpp
     css/MediaQuery.cpp
@@ -53,6 +52,7 @@ list(APPEND WEBCORE_SRC
     css/ShadowValue.cpp
     css/StyleBase.cpp
     css/StyleList.cpp
+    css/StyleMedia.cpp
     css/StyleSheet.cpp
     css/StyleSheetList.cpp
     css/WebKitCSSKeyframeRule.cpp
@@ -86,10 +86,10 @@ list(APPEND IDL_SRC
     css/CSSValueList.idl
     css/CSSVariablesDeclaration.idl
     css/CSSVariablesRule.idl
-    css/Media.idl
     css/MediaList.idl
     css/Rect.idl
     css/RGBColor.idl
+    css/StyleMedia.idl
     css/StyleSheet.idl
     css/StyleSheetList.idl
     css/WebKitCSSKeyframeRule.idl

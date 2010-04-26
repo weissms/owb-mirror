@@ -4,6 +4,10 @@ CONFIG(standalone_package) {
     isEmpty(WC_GENERATED_SOURCES_DIR):WC_GENERATED_SOURCES_DIR = generated
 }
 
+CONFIG(minimal) {
+  DEFINES += ENABLE_NETSCAPE_PLUGIN_API=0
+}
+
 ## Define default features macros for optional components
 ## (look for defs in config.h and included files!)
 # Try to locate sqlite3 source
@@ -230,10 +234,10 @@ IDL_BINDINGS += \
     css/CSSValueList.idl \
     css/CSSVariablesDeclaration.idl \
     css/CSSVariablesRule.idl \
-    css/Media.idl \
     css/MediaList.idl \
-    css/RGBColor.idl \
     css/Rect.idl \
+    css/RGBColor.idl \
+    css/StyleMedia.idl \
     css/StyleSheet.idl \
     css/StyleSheetList.idl \
     css/WebKitCSSKeyframeRule.idl \
@@ -320,6 +324,7 @@ IDL_BINDINGS += \
     html/DataGridColumnList.idl \
     html/DOMFormData.idl \
     html/File.idl \
+    html/FileError.idl \
     html/FileList.idl \
     html/HTMLAllCollection.idl \
     html/HTMLAudioElement.idl \

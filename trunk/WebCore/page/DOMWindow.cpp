@@ -51,7 +51,7 @@
 #include "HTMLFrameOwnerElement.h"
 #include "History.h"
 #include "Location.h"
-#include "Media.h"
+#include "StyleMedia.h"
 #include "MessageEvent.h"
 #include "Navigator.h"
 #include "Page.h"
@@ -1158,10 +1158,10 @@ Document* DOMWindow::document() const
     return m_frame->document();
 }
 
-PassRefPtr<Media> DOMWindow::media() const
+PassRefPtr<StyleMedia> DOMWindow::styleMedia() const
 {
     if (!m_media)
-        m_media = Media::create(m_frame);
+        m_media = StyleMedia::create(m_frame);
     return m_media.get();
 }
 

@@ -204,8 +204,6 @@ class TestRunner:
     # in DumpRenderTree.
     DEFAULT_TEST_TIMEOUT_MS = 6 * 1000
 
-    NUM_RETRY_ON_UNEXPECTED_FAILURE = 1
-
     def __init__(self, port, options, meter):
         """Initialize test runner data structures.
 
@@ -236,7 +234,10 @@ class TestRunner:
         self._current_progress_str = ""
         self._current_test_number = 0
 
-        self._retries = 0
+        self._retrying = False
+
+        # Hack for dumping threads on the bots
+        self._last_thread_dump = None
 
     def __del__(self):
         _log.debug("flushing stdout")
@@ -583,6 +584,29 @@ class TestRunner:
         """Returns whether we should run all the tests in the main thread."""
         return int(self._options.child_processes) == 1
 
+    def _dump_thread_states(self):
+        for thread_id, stack in sys._current_frames().items():
+            # FIXME: Python 2.6 has thread.ident which we could
+            # use to map from thread_id back to thread.name
+            print "\n# Thread: %d" % thread_id
+            for filename, lineno, name, line in traceback.extract_stack(stack):
+                print 'File: "%s", line %d, in %s' % (filename, lineno, name)
+                if line:
+                    print "  %s" % (line.strip())
+
+    def _dump_thread_states_if_necessary(self):
+        # HACK: Dump thread states every minute to figure out what's
+        # hanging on the bots.
+        if not self._options.verbose:
+            return
+        dump_threads_every = 60  # Dump every minute
+        if not self._last_thread_dump:
+            self._last_thread_dump = time.time()
+        time_since_last_dump = time.time() - self._last_thread_dump
+        if  time_since_last_dump > dump_threads_every:
+            self._dump_thread_states()
+            self._last_thread_dump = time.time()
+
     def _run_tests(self, file_list, result_summary):
         """Runs the tests in the file_list.
 
@@ -597,6 +621,7 @@ class TestRunner:
               in the form {filename:filename, test_run_time:test_run_time}
             result_summary: summary object to populate with the results
         """
+        # FIXME: We should use webkitpy.tool.grammar.pluralize here.
         plural = ""
         if self._options.child_processes > 1:
             plural = "s"
@@ -612,21 +637,28 @@ class TestRunner:
         individual_test_timings = []
         thread_timings = []
         try:
+            # Loop through all the threads waiting for them to finish.
             for thread in threads:
+                # FIXME: We'll end up waiting on the first thread the whole
+                # time.  That means we won't notice exceptions on other
+                # threads until the first one exits.
+                # We should instead while True: in the outer loop
+                # and then loop through threads joining and checking
+                # isAlive and get_exception_info.  Exiting on any exception.
                 while thread.isAlive():
-                    # Let it timeout occasionally so it can notice a
-                    # KeyboardInterrupt. Actually, the timeout doesn't
-                    # really matter: apparently it suffices to not use
-                    # an indefinite blocking join for it to
-                    # be interruptible by KeyboardInterrupt.
+                    # Wake the main thread every 0.1 seconds so we
+                    # can call update_summary in a timely fashion.
                     thread.join(0.1)
+                    # HACK: Used for debugging threads on the bots.
+                    self._dump_thread_states_if_necessary()
                     self.update_summary(result_summary)
+
+                # This thread is done, save off the timing information.
                 thread_timings.append({'name': thread.getName(),
                                        'num_tests': thread.get_num_tests(),
                                        'total_time': thread.get_total_time()})
                 test_timings.update(thread.get_directory_timing_stats())
-                individual_test_timings.extend(
-                    thread.get_test_results())
+                individual_test_timings.extend(thread.get_test_results())
         except KeyboardInterrupt:
             for thread in threads:
                 thread.cancel()
@@ -640,7 +672,9 @@ class TestRunner:
                 # would be assumed to have passed.
                 raise exception_info[0], exception_info[1], exception_info[2]
 
-        # Make sure we pick up any remaining tests.
+        # FIXME: This update_summary call seems unecessary.
+        # Calls are already made right after join() above,
+        # as well as from the individual threads themselves.
         self.update_summary(result_summary)
         return (thread_timings, test_timings, individual_test_timings)
 
@@ -681,12 +715,12 @@ class TestRunner:
         # we want to treat even a potentially flaky crash as an error.
         failures = self._get_failures(result_summary, include_crashes=False)
         retry_summary = result_summary
-        while (self._retries < self.NUM_RETRY_ON_UNEXPECTED_FAILURE and
-               len(failures)):
+        while (len(failures) and self._options.retry_failures and
+            not self._retrying):
             _log.info('')
-            _log.info("Retrying %d unexpected failure(s)" % len(failures))
+            _log.info("Retrying %d unexpected failure(s) ..." % len(failures))
             _log.info('')
-            self._retries += 1
+            self._retrying = True
             retry_summary = ResultSummary(self._expectations, failures.keys())
             self._run_tests(failures.keys(), retry_summary)
             failures = self._get_failures(retry_summary, include_crashes=True)
@@ -799,7 +833,7 @@ class TestRunner:
         percent_complete = 100 * (result_summary.expected +
             result_summary.unexpected) / result_summary.total
         action = "Testing"
-        if self._retries > 0:
+        if self._retrying:
             action = "Retrying"
         self._meter.progress("%s (%d%%): %d ran as expected, %d didn't,"
             " %d left" % (action, percent_complete, result_summary.expected,
@@ -1508,13 +1542,13 @@ def main(options, args, print_results=True):
         options.results_directory = port_obj.results_directory()
 
     last_unexpected_results = []
-    if options.print_unexpected_results or options.retry_unexpected_results:
+    if options.print_last_failures or options.retest_last_failures:
         unexpected_results_filename = os.path.join(
            options.results_directory, "unexpected_results.json")
         with open(unexpected_results_filename, "r", "utf-8") as file:
             results = simplejson.load(file)
         last_unexpected_results = results['tests'].keys()
-        if options.print_unexpected_results:
+        if options.print_last_failures:
             print "\n".join(last_unexpected_results) + "\n"
             return 0
 
@@ -1637,8 +1671,8 @@ def _compat_shim_callback(option, opt_str, value, parser):
     print "Ignoring unsupported option: %s" % opt_str
 
 
-def _compat_shim_option(option_name, nargs=0):
-    return optparse.make_option(option_name, action="callback", callback=_compat_shim_callback, nargs=nargs, help="Ignored, for old-run-webkit-tests compat only.")
+def _compat_shim_option(option_name, **kwargs):
+    return optparse.make_option(option_name, action="callback", callback=_compat_shim_callback, help="Ignored, for old-run-webkit-tests compat only.", **kwargs)
 
 
 def parse_args(args=None):
@@ -1709,7 +1743,7 @@ def parse_args(args=None):
         _compat_shim_option("--use-remote-links-to-tests"),
         # FIXME: NRWT doesn't need this option as much since failures are
         # designed to be cheap.  We eventually plan to add this support.
-        _compat_shim_option("--exit-after-n-failures", nargs=1),
+        _compat_shim_option("--exit-after-n-failures", nargs=1, type="int"),
     ]
 
     results_options = [
@@ -1818,12 +1852,18 @@ def parse_args(args=None):
         #      Exit after the first N failures instead of running all tests
         # FIXME: consider: --iterations n
         #      Number of times to run the set of tests (e.g. ABCABCABC)
-        optparse.make_option("--print-unexpected-results", action="store_true",
-            default=False, help="print the tests in the last run that "
-            "had unexpected results."),
-        optparse.make_option("--retry-unexpected-results", action="store_true",
-            default=False, help="re-try the tests in the last run that "
-            "had unexpected results."),
+        optparse.make_option("--print-last-failures", action="store_true",
+            default=False, help="Print the tests in the last run that "
+            "had unexpected failures (or passes)."),
+        optparse.make_option("--retest-last-failures", action="store_true",
+            default=False, help="re-test the tests in the last run that "
+            "had unexpected failures (or passes)."),
+        optparse.make_option("--retry-failures", action="store_true",
+            default=True,
+            help="Re-try any tests that produce unexpected results (default)"),
+        optparse.make_option("--no-retry-failures", action="store_false",
+            dest="retry_failures",
+            help="Don't re-try any tests that produce unexpected results."),
     ]
 
     misc_options = [

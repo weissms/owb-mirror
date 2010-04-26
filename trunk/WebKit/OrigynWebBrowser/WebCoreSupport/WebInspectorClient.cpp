@@ -183,7 +183,6 @@ WebInspectorFrontendClient::WebInspectorFrontendClient(WebView* inspectedWebView
     , m_inspectedWebView(inspectedWebView)
     , m_inspectorClient(inspectorClient)
     , m_frontendWebView(frontendWebView)
-    , m_shouldAttachWhenShown(false)
     , m_attached(false)
     , m_destroyingInspectorView(false)
 #if ENABLE(DAE)

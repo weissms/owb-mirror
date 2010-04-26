@@ -111,6 +111,8 @@ public:
     void beginPaint(WebGLRenderingContext* context);
     void endPaint();
 
+    bool isGLES2Compliant() const;
+
     //----------------------------------------------------------------------
     // Entry points for WebGL.
     //
@@ -616,6 +618,11 @@ rt GraphicsContext3DInternal::name(t1 a1, t2 a2, t3 a3, t4 a4, t5 a5, t6 a6, t7 
 
 DELEGATE_TO_IMPL_R(makeContextCurrent, bool)
 DELEGATE_TO_IMPL_1R(sizeInBytes, int, int)
+
+bool GraphicsContext3DInternal::isGLES2Compliant() const
+{
+    return m_impl->isGLES2Compliant();
+}
 
 DELEGATE_TO_IMPL_1(activeTexture, unsigned long)
 DELEGATE_TO_IMPL_2_X12(attachShader, WebGLProgram*, WebGLShader*)
@@ -1290,6 +1297,11 @@ DELEGATE_TO_INTERNAL_1(deleteShader, unsigned)
 DELEGATE_TO_INTERNAL_1(deleteTexture, unsigned)
 
 DELEGATE_TO_INTERNAL_1(synthesizeGLError, unsigned long)
+
+bool GraphicsContext3D::isGLES2Compliant() const
+{
+    return m_internal->isGLES2Compliant();
+}
 
 } // namespace WebCore
 

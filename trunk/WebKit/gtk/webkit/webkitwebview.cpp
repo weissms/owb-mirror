@@ -81,6 +81,7 @@
 #include "ResourceHandle.h"
 #include "ScriptValue.h"
 #include "Scrollbar.h"
+#include "webkit/WebKitDOMDocumentPrivate.h"
 #include <wtf/text/CString.h>
 
 #include <gdk/gdkkeysyms.h>
@@ -2695,8 +2696,7 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     gboolean autoLoadImages, autoShrinkImages, printBackgrounds,
         enableScripts, enablePlugins, enableDeveloperExtras, resizableTextAreas,
         enablePrivateBrowsing, enableCaretBrowsing, enableHTML5Database, enableHTML5LocalStorage,
-        enableXSSAuditor, enableSpatialNavigation, javascriptCanOpenWindows,
-        javaScriptCanAccessClipboard, enableOfflineWebAppCache,
+        enableXSSAuditor, enableSpatialNavigation, javascriptCanOpenWindows, enableOfflineWebAppCache,
         enableUniversalAccessFromFileURI, enableFileAccessFromFileURI,
         enableDOMPaste, tabKeyCyclesThroughElements,
         enableSiteSpecificQuirks, usePageCache, enableJavaApplet;
@@ -2726,7 +2726,6 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
                  "enable-xss-auditor", &enableXSSAuditor,
                  "enable-spatial-navigation", &enableSpatialNavigation,
                  "javascript-can-open-windows-automatically", &javascriptCanOpenWindows,
-                 "javascript-can-access-clipboard", &javaScriptCanAccessClipboard,
                  "enable-offline-web-application-cache", &enableOfflineWebAppCache,
                  "editing-behavior", &editingBehavior,
                  "enable-universal-access-from-file-uris", &enableUniversalAccessFromFileURI,
@@ -2762,7 +2761,6 @@ static void webkit_web_view_update_settings(WebKitWebView* webView)
     settings->setXSSAuditorEnabled(enableXSSAuditor);
     settings->setSpatialNavigationEnabled(enableSpatialNavigation);
     settings->setJavaScriptCanOpenWindowsAutomatically(javascriptCanOpenWindows);
-    settings->setJavaScriptCanAccessClipboard(javaScriptCanAccessClipboard);
     settings->setOfflineWebApplicationCacheEnabled(enableOfflineWebAppCache);
     settings->setEditingBehavior(core(editingBehavior));
     settings->setAllowUniversalAccessFromFileURLs(enableUniversalAccessFromFileURI);
@@ -2860,8 +2858,6 @@ static void webkit_web_view_settings_notify(WebKitWebSettings* webSettings, GPar
         settings->setSpatialNavigationEnabled(g_value_get_boolean(&value));
     else if (name == g_intern_string("javascript-can-open-windows-automatically"))
         settings->setJavaScriptCanOpenWindowsAutomatically(g_value_get_boolean(&value));
-    else if (name == g_intern_string("javascript-can-access-clipboard"))
-        settings->setJavaScriptCanAccessClipboard(g_value_get_boolean(&value));
     else if (name == g_intern_string("enable-offline-web-application-cache"))
         settings->setOfflineWebApplicationCacheEnabled(g_value_get_boolean(&value));
     else if (name == g_intern_string("editing-behavior"))
@@ -4435,4 +4431,28 @@ WebKitCacheModel webkit_get_cache_model()
 {
     webkit_init();
     return cacheModel;
+}
+
+/**
+ * webkit_web_view_get_dom_document:
+ * @webView: a #WebKitWebView
+ * 
+ * Returns: the #WebKitDOMDocument currently loaded in the @webView
+ *
+ * Since: 1.3.0
+ **/
+WebKitDOMDocument*
+webkit_web_view_get_dom_document(WebKitWebView* webView)
+{
+    g_return_val_if_fail(WEBKIT_IS_WEB_VIEW(webView), 0);
+
+    Frame* coreFrame = core(webView)->mainFrame();
+    if (!coreFrame)
+        return 0;
+
+    Document* doc = coreFrame->document();
+    if (!doc)
+        return 0;
+
+    return static_cast<WebKitDOMDocument*>(kit(doc));
 }

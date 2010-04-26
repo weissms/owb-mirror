@@ -89,10 +89,16 @@ if(ENABLE_SVG)
         rendering/RenderSVGInline.cpp
         rendering/RenderSVGInlineText.cpp
         rendering/RenderSVGModelObject.cpp
+        rendering/RenderSVGResource.cpp
         rendering/RenderSVGResourceClipper.cpp
         rendering/RenderSVGResourceFilter.cpp
+        rendering/RenderSVGResourceGradient.cpp
+        rendering/RenderSVGResourceLinearGradient.cpp
         rendering/RenderSVGResourceMarker.cpp
         rendering/RenderSVGResourceMasker.cpp
+        rendering/RenderSVGResourcePattern.cpp
+        rendering/RenderSVGResourceRadialGradient.cpp
+        rendering/RenderSVGResourceSolidColor.cpp
         rendering/RenderSVGRoot.cpp
         rendering/RenderSVGShadowTreeRootContainer.cpp
         rendering/RenderSVGTSpan.cpp

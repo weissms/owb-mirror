@@ -35,8 +35,6 @@
 #include "HTMLDocument.h"
 #include "History.h"
 #include "JSAudioConstructor.h"
-#include "JSDatabaseCallback.h"
-#include "JSDOMBinding.h"
 #include "JSDOMWindowShell.h"
 #include "JSEvent.h"
 #include "JSEventListener.h"
@@ -53,6 +51,7 @@
 #if ENABLE(DATABASE)
 #include "Database.h"
 #include "JSDatabase.h"
+#include "JSDatabaseCallback.h"
 #endif
 
 #if ENABLE(SHARED_WORKERS)

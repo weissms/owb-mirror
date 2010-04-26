@@ -1467,3 +1467,8 @@ const char* WebFrame::layerTreeAsText()
     return strdup(text.utf8().data());
 }
 
+void WebFrame::didChangeIcons(DocumentLoader*)
+{
+    notImplemented();
+}
+

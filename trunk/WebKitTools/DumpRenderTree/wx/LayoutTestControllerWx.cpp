@@ -167,11 +167,6 @@ void LayoutTestController::setPrivateBrowsingEnabled(bool privateBrowsingEnabled
     // FIXME: implement
 }
 
-void LayoutTestController::setJavaScriptCanAccessClipboard(bool enabled)
-{
-    // FIXME: implement
-}
-
 void LayoutTestController::setXSSAuditorEnabled(bool enabled)
 {
     // FIXME: implement
@@ -424,6 +419,11 @@ bool LayoutTestController::callShouldCloseOnWebView()
 }
 
 JSRetainPtr<JSStringRef> LayoutTestController::layerTreeAsText() const
+{
+    return 0;
+}
+
+JSRetainPtr<JSStringRef> LayoutTestController::markerTextForListItem(JSContextRef context, JSValueRef nodeObject) const
 {
     return 0;
 }
