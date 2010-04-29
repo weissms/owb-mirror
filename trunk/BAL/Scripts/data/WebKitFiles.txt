@@ -24,6 +24,7 @@ WebCore/bindings/js/JSInspectorFrontendHostCustom.cpp
 WebCore/bindings/js/JSPluginElementFunctions.cpp
 WebCore/bindings/js/JSPluginElementFunctions.h
 WebCore/bindings/js/JSScriptProfileNodeCustom.cpp
+WebCore/bindings/js/JSWorkerContextBase.cpp
 WebCore/bindings/js/JSWorkerContextErrorHandler.cpp
 WebCore/bindings/js/ScriptController.cpp
 WebCore/bridge/c/c_instance.cpp

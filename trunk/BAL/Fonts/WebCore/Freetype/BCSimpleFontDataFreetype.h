@@ -139,6 +139,8 @@ public:
     float m_spaceWidth;
     float m_adjustedSpaceWidth;
 
+    Glyph m_zeroWidthSpaceGlyph;
+
     GlyphData m_missingGlyphData;
 
     mutable SimpleFontData* m_smallCapsFontData;

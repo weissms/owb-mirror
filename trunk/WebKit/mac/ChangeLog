@@ -1,3 +1,112 @@
+2010-04-29  Mike Thole  <mthole@apple.com>
+
+        Reviewed by David Kilzer.
+
+        Add canAuthenticateAgainstProtectionSpace() to frame loader so that a protection space 
+        can be inspected before attempting to authenticate against it
+        https://bugs.webkit.org/show_bug.cgi?id=38271
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+        (WebFrameLoaderClient::canAuthenticateAgainstProtectionSpace):
+        Added.  If the resource load delegate implements the callback, use its answer.  If it does
+        not, then only send authentication challenges for pre-10.6 protection spaces, which matches
+        CFNetwork's default behavior.
+        * WebView/WebDelegateImplementationCaching.h:
+        * WebView/WebDelegateImplementationCaching.mm:
+        (CallResourceLoadDelegateReturningBoolean): Added case for passing three objects.
+        * WebView/WebResourceLoadDelegatePrivate.h:
+        Added private SPI definition: webView:resource:canAuthenticateAgainstProtectionSpace:forDataSource:
+        * WebView/WebView.mm:
+        (-[WebView _cacheResourceLoadDelegateImplementations]):
+
+2010-04-28  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        <rdar://problem/7918719> ASSERT(isMainThread()) from Font::setShouldUseSmoothing()
+        
+        Ensure that the WebView +initialize method initializes threading, so that things are correctly
+        initialized when the first call into the WebKit framework is via a WebView class method.
+
+        * WebView/WebView.mm:
+        (+[WebView initialize]):
+
+2010-04-28  Darin Adler  <darin@apple.com>
+
+        Reviewed by Adele Peterson.
+
+        REGRESSION: Autoscroll does not work in Mail messages
+        https://bugs.webkit.org/show_bug.cgi?id=38267
+        rdar://problem/7559799
+
+        The machinery to make autoscrolling work on Mac OS X when a WebView is embedded in another
+        view had gotten broken in multiple ways. For some reason, a combination of bugs made it
+        partly work until around r48064. This brings it back.
+
+        * WebCoreSupport/WebChromeClient.mm:
+        (WebChromeClient::scrollRectIntoView): When converting coordinates, use the document view
+        rather than the WebView itself. This logic may not be correct for the case where
+        usesDocumentViews is NO, but that is currently an experimental mode and can be fixed later.
+
+2010-04-27  Shinichiro Hamaji  <hamaji@chromium.org>
+
+        Reviewed by Darin Adler and Eric Seidel.
+
+        Add layoutTestController.setPrinting()
+        https://bugs.webkit.org/show_bug.cgi?id=37203
+
+        * Misc/WebCoreStatistics.h:
+        * Misc/WebCoreStatistics.mm:
+        (-[WebFrame renderTreeAsExternalRepresentationForPrinting:]):
+
+2010-04-25  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Fix for https://bugs.webkit.org/show_bug.cgi?id=38097
+        Disentangle initializing the main thread from initializing threading
+
+        Calls initializeMainThreadToProcessMainThread since there is no way to ensure
+        that the initialize method will be called on the main thread.
+
+        * Carbon/CarbonWindowAdapter.mm:
+        (+[CarbonWindowAdapter initialize]): Add call to initializeMainThreadToProcessMainThread.
+        * History/WebBackForwardList.mm:
+        (+[WebBackForwardList initialize]): Ditto.
+        * History/WebHistoryItem.mm:
+        (+[WebHistoryItem initialize]): Ditto.
+        * Misc/WebElementDictionary.mm:
+        (+[WebElementDictionary initialize]): Ditto.
+        * Misc/WebIconDatabase.mm:
+        (+[WebIconDatabase initialize]): Ditto.
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (+[WebHostedNetscapePluginView initialize]): Ditto.
+        * Plugins/WebBaseNetscapePluginView.mm:
+        (+[WebBaseNetscapePluginView initialize]): Ditto.
+        * Plugins/WebBasePluginPackage.mm:
+        (+[WebBasePluginPackage initialize]): Ditto.
+        * Plugins/WebNetscapePluginView.mm:
+        (+[WebNetscapePluginView initialize]): Ditto.
+        * WebCoreSupport/WebEditorClient.mm:
+        (+[WebEditCommand initialize]): Ditto.
+        * WebCoreSupport/WebFrameLoaderClient.mm: 
+        (+[WebFramePolicyListener initialize]): Ditto.
+        * WebView/WebArchive.mm:
+        (+[WebArchivePrivate initialize]): Ditto.
+        * WebView/WebDataSource.mm:
+        (+[WebDataSourcePrivate initialize]): Ditto.
+        * WebView/WebHTMLView.mm:
+        (+[WebHTMLViewPrivate initialize]): Ditto.
+        (+[WebHTMLView initialize]): Ditto.
+        * WebView/WebResource.mm:
+        (+[WebResourcePrivate initialize]): Ditto.
+        * WebView/WebTextIterator.mm:
+        (+[WebTextIteratorPrivate initialize]): Ditto.
+        * WebView/WebView.mm:
+        * WebView/WebViewData.mm: Ditto.
+        (+[WebViewPrivate initialize]): Ditto.
+
 2010-04-26  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Darin Adler.

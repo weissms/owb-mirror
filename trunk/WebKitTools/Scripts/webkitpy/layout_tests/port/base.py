@@ -34,7 +34,7 @@ import cgi
 import difflib
 import errno
 import os
-import subprocess
+import shlex
 import sys
 import time
 
@@ -147,17 +147,13 @@ class Port(object):
 
         result = True
         try:
-            if subprocess.call(cmd) == 0:
+            if self._executive.run_command(cmd, return_exit_code=True) == 0:
                 return False
         except OSError, e:
             if e.errno == errno.ENOENT or e.errno == errno.EACCES:
                 _compare_available = False
             else:
                 raise e
-        except ValueError:
-            # work around a race condition in Python 2.4's implementation
-            # of subprocess.Popen. See http://bugs.python.org/issue1199282 .
-            pass
         return result
 
     def diff_text(self, expected_text, actual_text,
@@ -427,9 +423,10 @@ class Port(object):
         results_filename in a users' browser."""
         raise NotImplementedError('Port.show_html_results_file')
 
-    def start_driver(self, png_path, options):
-        """Starts a new test Driver and returns a handle to the object."""
-        raise NotImplementedError('Port.start_driver')
+    def create_driver(self, png_path, options):
+        """Return a newly created base.Driver subclass for starting/stopping
+        the test driver."""
+        raise NotImplementedError('Port.create_driver')
 
     def start_helper(self):
         """If a port needs to reconfigure graphics settings or do other
@@ -539,13 +536,13 @@ class Port(object):
 
     def _format_wdiff_output_as_html(self, wdiff):
         wdiff = cgi.escape(wdiff)
-        wdiff = wdiff.replace(self._WDIFF_DEL, '<span class=del>')
-        wdiff = wdiff.replace(self._WDIFF_ADD, '<span class=add>')
-        wdiff = wdiff.replace(self._WDIFF_END, '</span>')
-        html = '<head><style>.del { background: #faa; } '
-        html += '.add { background: #afa; }</style></head>'
+        wdiff = wdiff.replace(self._WDIFF_DEL, "<span class=del>")
+        wdiff = wdiff.replace(self._WDIFF_ADD, "<span class=add>")
+        wdiff = wdiff.replace(self._WDIFF_END, "</span>")
+        html = "<head><style>.del { background: #faa; } "
+        html += ".add { background: #afa; }</style></head>"
         html += "<pre>%s</pre>" % wdiff
-        return result
+        return html
 
     def _wdiff_command(self, actual_filename, expected_filename):
         executable = self._path_to_wdiff()
@@ -557,26 +554,39 @@ class Port(object):
                 actual_filename,
                 expected_filename]
 
+    @staticmethod
+    def _handle_wdiff_error(script_error):
+        # Exit 1 means the files differed, any other exit code is an error.
+        if script_error.exit_code != 1:
+            raise script_error
+
+    def _run_wdiff(self, actual_filename, expected_filename):
+        """Runs wdiff and may throw exceptions.
+        This is mostly a hook for unit testing."""
+        # Diffs are treated as binary as they may include multiple files
+        # with conflicting encodings.  Thus we do not decode the output.
+        command = self._wdiff_command(actual_filename, expected_filename)
+        wdiff = self._executive.run_command(command, decode_output=False,
+            error_handler=self._handle_wdiff_error)
+        return self._format_wdiff_output_as_html(wdiff)
+
     def wdiff_text(self, actual_filename, expected_filename):
         """Returns a string of HTML indicating the word-level diff of the
         contents of the two filenames. Returns an empty string if word-level
         diffing isn't available."""
-
-        global _wdiff_available
+        global _wdiff_available  # See explaination at top of file.
         if not _wdiff_available:
             return ""
         try:
-            cmd = self._wdiff_command(actual_filename, expected_filename)
-            return self._executive.run_command(cmd)
+            # It's possible to raise a ScriptError we pass wdiff invalid paths.
+            return self._run_wdiff(actual_filename, expected_filename)
         except OSError, e:
-            # If the system is missing wdiff stop trying.
-            _wdiff_available = False
-            return ''
-        except ScriptError, e:
-            # If wdiff failed to run for some reason, stop trying.
-            _wdiff_available = False
-            return ""
-
+            if e.errno in [errno.ENOENT, errno.EACCES, errno.ECHILD]:
+                # Silently ignore cases where wdiff is missing.
+                _wdiff_available = False
+                return ""
+            raise
+        assert(False)  # Should never be reached.
 
     _pretty_patch_error_html = "Failed to run PrettyPatch, see error console."
 
@@ -588,7 +598,9 @@ class Port(object):
         prettify_path = os.path.join(pretty_patch_path, "prettify.rb")
         command = ["ruby", "-I", pretty_patch_path, prettify_path, diff_path]
         try:
-            return self._executive.run_command(command)
+            # Diffs are treated as binary (we pass decode_output=False) as they
+            # may contain multiple files of conflicting encodings.
+            return self._executive.run_command(command, decode_output=False)
         except OSError, e:
             # If the system is missing ruby log the error and stop trying.
             _pretty_patch_available = False
@@ -719,6 +731,24 @@ class Driver:
         Note that the image itself should be written to the path that was
         specified in the __init__() call."""
         raise NotImplementedError('Driver.run_test')
+
+    # FIXME: This is static so we can test it w/o creating a Base instance.
+    @classmethod
+    def _command_wrapper(cls, wrapper_option):
+        # Hook for injecting valgrind or other runtime instrumentation,
+        # used by e.g. tools/valgrind/valgrind_tests.py.
+        wrapper = []
+        browser_wrapper = os.environ.get("BROWSER_WRAPPER", None)
+        if browser_wrapper:
+            # FIXME: There seems to be no reason to use BROWSER_WRAPPER over --wrapper.
+            # Remove this code any time after the date listed below.
+            _log.error("BROWSER_WRAPPER is deprecated, please use --wrapper instead.")
+            _log.error("BROWSER_WRAPPER will be removed any time after June 1st 2010 and your scripts will break.")
+            wrapper += [browser_wrapper]
+
+        if wrapper_option:
+            wrapper += shlex.split(wrapper_option)
+        return wrapper
 
     def poll(self):
         """Returns None if the Driver is still running. Returns the returncode

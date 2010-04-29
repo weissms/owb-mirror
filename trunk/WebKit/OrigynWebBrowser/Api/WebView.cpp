@@ -403,6 +403,7 @@ WebView::WebView()
     , m_currentDragData(0)
 {
     JSC::initializeThreading();
+    WTF::initializeMainThread();
     WebCore::InitializeLoggingChannelsIfNecessary();
 
     d->clearDirtyRegion();

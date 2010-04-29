@@ -123,6 +123,7 @@
 #include <WebCore/SimpleFontData.h>
 #include <WebCore/TypingCommand.h>
 #include <WebCore/WindowMessageBroadcaster.h>
+#include <wtf/Threading.h>
 
 #if ENABLE(CLIENT_BASED_GEOLOCATION)
 #include <WebCore/GeolocationController.h>
@@ -340,8 +341,10 @@ WebView::WebView()
 #if USE(ACCELERATED_COMPOSITING)
     , m_isAcceleratedCompositing(false)
 #endif
+    , m_nextDisplayIsSynchronous(false)
 {
     JSC::initializeThreading();
+    WTF::initializeMainThread();
 
     m_backingStoreSize.cx = m_backingStoreSize.cy = 0;
 
@@ -902,7 +905,7 @@ void WebView::updateBackingStore(FrameView* frameView, HDC dc, bool backingStore
                 view->layoutIfNeededRecursive();
 
         Vector<IntRect> paintRects;
-        if (!backingStoreCompletelyDirty) {
+        if (!backingStoreCompletelyDirty && m_backingStoreDirtyRegion) {
             RECT regionBox;
             ::GetRgnBox(m_backingStoreDirtyRegion->handle(), &regionBox);
             getUpdateRects(m_backingStoreDirtyRegion->handle(), regionBox, paintRects);
@@ -1862,10 +1865,10 @@ bool WebView::keyDown(WPARAM virtualKeyCode, LPARAM keyData, bool systemKeyDown)
 
     // We need to handle back/forward using either Backspace(+Shift) or Ctrl+Left/Right Arrow keys.
     if ((virtualKeyCode == VK_BACK && keyEvent.shiftKey()) || (virtualKeyCode == VK_RIGHT && keyEvent.ctrlKey()))
-        m_page->goForward();
-    else if (virtualKeyCode == VK_BACK || (virtualKeyCode == VK_LEFT && keyEvent.ctrlKey()))
-        m_page->goBack();
-    
+        return m_page->goForward();
+    if (virtualKeyCode == VK_BACK || (virtualKeyCode == VK_LEFT && keyEvent.ctrlKey()))
+        return m_page->goBack();
+
     // Need to scroll the page if the arrow keys, pgup/dn, or home/end are hit.
     ScrollDirection direction;
     ScrollGranularity granularity;
@@ -6151,7 +6154,11 @@ void WebView::updateRootLayerContents()
     m_backingStoreBitmap->ref();
 
     // Hand the CGImage to CACF for compositing
-    m_layerRenderer->setRootContents(backingStoreImage.get());
+    if (m_nextDisplayIsSynchronous) {
+        m_layerRenderer->setRootContentsAndDisplay(backingStoreImage.get());
+        m_nextDisplayIsSynchronous = false;
+    } else
+        m_layerRenderer->setRootContents(backingStoreImage.get());
 
     // Set the frame and scroll position
     Frame* coreFrame = core(m_mainFrame);
@@ -6304,6 +6311,12 @@ HRESULT WebView::setDomainRelaxationForbiddenForURLScheme(BOOL forbidden, BSTR s
 HRESULT WebView::registerURLSchemeAsSecure(BSTR scheme)
 {
     SecurityOrigin::registerURLSchemeAsSecure(toString(scheme));
+    return S_OK;
+}
+
+HRESULT WebView::nextDisplayIsSynchronous()
+{
+    m_nextDisplayIsSynchronous = true;
     return S_OK;
 }
 

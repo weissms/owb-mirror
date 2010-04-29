@@ -214,8 +214,6 @@ public:
 
     // The navigation resulted in scrolling the page to a named anchor instead
     // of downloading a new document.
-    // FIXME: The isNewNavigation parameter is DEPRECATED.
-    virtual void didChangeLocationWithinPage(WebFrame*, bool isNewNavigation) { }
     virtual void didChangeLocationWithinPage(WebFrame*) { }
 
     // Called upon update to scroll position, document state, and other
@@ -294,6 +292,12 @@ public:
 
 
     // Geometry notifications ----------------------------------------------
+
+    // The frame's document finished the initial layout of a page.
+    virtual void didFirstLayout(WebFrame*) { }
+
+    // The frame's document finished the initial non-empty layout of a page.
+    virtual void didFirstVisuallyNonEmptyLayout(WebFrame*) { }
 
     // The size of the content area changed.
     virtual void didChangeContentsSize(WebFrame*, const WebSize&) { }

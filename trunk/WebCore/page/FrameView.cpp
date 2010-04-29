@@ -989,15 +989,6 @@ void FrameView::maintainScrollPositionAtAnchor(Node* anchorNode)
         scrollToAnchor();
 }
 
-void FrameView::scrollRectIntoViewRecursively(const IntRect& r)
-{
-    bool wasInProgrammaticScroll = m_inProgrammaticScroll;
-    m_inProgrammaticScroll = true;
-    m_maintainScrollPositionAnchor = 0;
-    ScrollView::scrollRectIntoViewRecursively(r);
-    m_inProgrammaticScroll = wasInProgrammaticScroll;
-}
-
 void FrameView::setScrollPosition(const IntPoint& scrollPoint)
 {
     bool wasInProgrammaticScroll = m_inProgrammaticScroll;
@@ -1431,7 +1422,7 @@ void FrameView::scrollToAnchor()
         m_frame->document()->axObjectCache()->handleScrolledToAnchor(anchorNode.get());
 #endif
 
-    // scrollRectToVisible can call into scrollRectIntoViewRecursively(), which resets m_maintainScrollPositionAnchor.
+    // scrollRectToVisible can call into setScrollPosition(), which resets m_maintainScrollPositionAnchor.
     m_maintainScrollPositionAnchor = anchorNode;
 }
 

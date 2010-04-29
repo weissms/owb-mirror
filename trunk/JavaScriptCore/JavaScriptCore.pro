@@ -8,6 +8,7 @@ CONFIG += staticlib
 # Don't use JavaScriptCore as the target name. qmake would create a JavaScriptCore.vcproj for msvc
 # which already exists as a directory
 TARGET = $$JAVASCRIPTCORE_TARGET
+DESTDIR = $$JAVASCRIPTCORE_DESTDIR
 QT += core
 QT -= gui
 
@@ -15,10 +16,11 @@ CONFIG += depend_includepath
 
 contains(QT_CONFIG, embedded):CONFIG += embedded
 
-CONFIG(debug_and_release):CONFIG(debug, debug|release): DESTDIR = debug
-CONFIG(debug_and_release):CONFIG(release, debug|release): DESTDIR = release
-
-!CONFIG(QTDIR_build) {
+CONFIG(QTDIR_build) {
+    # Make sure we compile both debug and release on mac when inside Qt.
+    # This line was extracted from qbase.pri instead of including the whole file
+    win32|mac:!macx-xcode:CONFIG += debug_and_release
+} else {
     CONFIG(debug, debug|release) {
         OBJECTS_DIR = obj/debug
     } else { # Release
@@ -103,6 +105,7 @@ SOURCES += \
     jit/JITPropertyAccess.cpp \
     jit/JITPropertyAccess32_64.cpp \
     jit/JITStubs.cpp \
+    jit/ThunkGenerators.cpp \
     parser/Lexer.cpp \
     parser/Nodes.cpp \
     parser/ParserArena.cpp \
@@ -231,3 +234,6 @@ SOURCES += \
 !contains(DEFINES, USE_SYSTEM_MALLOC) {
     SOURCES += wtf/TCSystemAlloc.cpp
 }
+
+# Disable C++0x mode in JSC for those who enabled it in their Qt's mkspec
+*-g++*:QMAKE_CXXFLAGS -= -std=c++0x -std=gnu++0x

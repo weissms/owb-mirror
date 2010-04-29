@@ -87,11 +87,20 @@ def run_command(*args, **kwargs):
 
 class Executive(object):
 
+    def _should_close_fds(self):
+        # We need to pass close_fds=True to work around Python bug #2320
+        # (otherwise we can hang when we kill DumpRenderTree when we are running
+        # multiple threads). See http://bugs.python.org/issue2320 .
+        # Note that close_fds isn't supported on Windows, but this bug only
+        # shows up on Mac and Linux.
+        return sys.platform not in ('win32', 'cygwin')
+
     def _run_command_with_teed_output(self, args, teed_output):
         args = map(unicode, args)  # Popen will throw an exception if args are non-strings (like int())
         child_process = subprocess.Popen(args,
                                          stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT)
+                                         stderr=subprocess.STDOUT,
+                                         close_fds=self._should_close_fds())
 
         # Use our own custom wait loop because Popen ignores a tee'd
         # stderr/stdout.
@@ -99,6 +108,8 @@ class Executive(object):
         while True:
             output_line = child_process.stdout.readline()
             if output_line == "" and child_process.poll() != None:
+                # poll() is not threadsafe and can throw OSError due to:
+                # http://bugs.python.org/issue1731717
                 return child_process.poll()
             # We assume that the child process wrote to us in utf-8,
             # so no re-encoding is necessary before writing here.
@@ -152,17 +163,39 @@ class Executive(object):
         return 2
 
     def kill_process(self, pid):
+        """Attempts to kill the given pid.
+        Will fail silently if pid does not exist or insufficient permisssions."""
         if platform.system() == "Windows":
             # According to http://docs.python.org/library/os.html
             # os.kill isn't available on Windows.  However, when I tried it
             # using Cygwin, it worked fine.  We should investigate whether
             # we need this platform specific code here.
-            subprocess.call(('taskkill.exe', '/f', '/pid', unicode(pid)),
-                            stdin=open(os.devnull, 'r'),
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+            command = ["taskkill.exe", "/f", "/pid", str(pid)]
+            # taskkill will exit 128 if the process is not found.
+            self.run_command(command, error_handler=self.ignore_error)
             return
-        os.kill(pid, signal.SIGKILL)
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError, e:
+            # FIXME: We should make non-silent failure an option.
+            pass
+
+    def kill_all(self, process_name):
+        """Attempts to kill processes matching process_name.
+        Will fail silently if no process are found."""
+        if platform.system() == "Windows":
+            # We might want to automatically append .exe?
+            command = ["taskkill.exe", "/f", "/im", process_name]
+            # taskkill will exit 128 if the process is not found.
+            self.run_command(command, error_handler=self.ignore_error)
+            return
+
+        # FIXME: This is inconsistent that kill_all uses TERM and kill_process
+        # uses KILL.  Windows is always using /f (which seems like -KILL).
+        # We should pick one mode, or add support for switching between them.
+        # Note: Mac OS X 10.6 requires -SIGNALNAME before -u USER
+        command = ["killall", "-TERM", "-u", os.getenv("USER"), process_name]
+        self.run_command(command, error_handler=self.ignore_error)
 
     # Error handlers do not need to be static methods once all callers are
     # updated to use an Executive object.
@@ -177,6 +210,9 @@ class Executive(object):
 
     def _compute_stdin(self, input):
         """Returns (stdin, string_to_communicate)"""
+        # FIXME: We should be returning /dev/null for stdin
+        # or closing stdin after process creation to prevent
+        # child processes from getting input from the user.
         if not input:
             return (None, None)
         if hasattr(input, "read"):  # Check if the input is a file.
@@ -200,6 +236,7 @@ class Executive(object):
                     return_exit_code=False,
                     return_stderr=True,
                     decode_output=True):
+        """Popen wrapper for convenience and to work around python bugs."""
         args = map(unicode, args)  # Popen will throw an exception if args are non-strings (like int())
         stdin, string_to_communicate = self._compute_stdin(input)
         stderr = subprocess.STDOUT if return_stderr else None
@@ -208,11 +245,14 @@ class Executive(object):
                                    stdin=stdin,
                                    stdout=subprocess.PIPE,
                                    stderr=stderr,
-                                   cwd=cwd)
+                                   cwd=cwd,
+                                   close_fds=self._should_close_fds())
         output = process.communicate(string_to_communicate)[0]
         # run_command automatically decodes to unicode() unless explicitly told not to.
         if decode_output:
             output = output.decode("utf-8")
+        # wait() is not threadsafe and can throw OSError due to:
+        # http://bugs.python.org/issue1731717
         exit_code = process.wait()
 
         if return_exit_code:

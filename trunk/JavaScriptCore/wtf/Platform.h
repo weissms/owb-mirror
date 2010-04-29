@@ -58,11 +58,14 @@
 /* ==== COMPILER() - the compiler being used to build the project ==== */
 
 /* COMPILER(MSVC) Microsoft Visual C++ */
-/* COMPILER(MSVC7) Microsoft Visual C++ v7 or lower*/
+/* COMPILER(MSVC7_OR_LOWER) Microsoft Visual C++ 2003 or lower*/
+/* COMPILER(MSVC9_OR_LOWER) Microsoft Visual C++ 2008 or lower*/
 #if defined(_MSC_VER)
 #define WTF_COMPILER_MSVC 1
 #if _MSC_VER < 1400
-#define WTF_COMPILER_MSVC7 1
+#define WTF_COMPILER_MSVC7_OR_LOWER 1
+#elif _MSC_VER < 1600
+#define WTF_COMPILER_MSVC9_OR_LOWER 1
 #endif
 #endif
 
@@ -1074,6 +1077,10 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
 #define WTF_USE_ACCELERATED_COMPOSITING 1
 #define ENABLE_3D_RENDERING 1
 #endif
+#endif
+
+#if (PLATFORM(MAC) && !defined(BUILDING_ON_TIGER) && !defined(BUILDING_ON_LEOPARD)) || PLATFORM(IPHONE)
+#define WTF_USE_PROTECTION_SPACE_AUTH_CALLBACK 1
 #endif
 
 #if COMPILER(GCC)

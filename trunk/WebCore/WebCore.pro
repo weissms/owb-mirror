@@ -35,6 +35,9 @@ symbian: {
         # Move RW-section base address to start from 0xE00000 instead of the toolchain default 0x400000.
         QMAKE_LFLAGS.ARMCC += --rw-base 0xE00000
         MMP_RULES += ALWAYS_BUILD_AS_ARM
+    }  else {
+        QMAKE_CFLAGS -= --thumb
+        QMAKE_CXXFLAGS -= --thumb
     }
     CONFIG(release, debug|release): QMAKE_CXXFLAGS.ARMCC += -OTime -O3
 }
@@ -88,9 +91,6 @@ CONFIG(release):!CONFIG(standalone_package) {
     unix:contains(QT_CONFIG, reduce_relocations):CONFIG += bsymbolic_functions
 }
 
-linux-*: DEFINES += HAVE_STDINT_H
-freebsd-*: DEFINES += HAVE_PTHREAD_NP_H
-
 DEFINES += BUILD_WEBKIT
 
 # Remove whole program optimizations due to miscompilations
@@ -142,7 +142,7 @@ addJavaScriptCoreLib(../JavaScriptCore)
         DEFINES -= ENABLE_VIDEO=0
         DEFINES += ENABLE_VIDEO=1
     }
-    !lessThan(QT_MINOR_VERSION, 7):contains(QT_CONFIG, multimedia) {
+    !lessThan(QT_MINOR_VERSION, 7):contains(QT_CONFIG, mediaservices) {
         DEFINES -= ENABLE_VIDEO=0
         DEFINES += ENABLE_VIDEO=1
     }
@@ -289,7 +289,6 @@ SOURCES += \
     bindings/js/JSDebugWrapperSet.cpp \
     bindings/js/JSDesktopNotificationsCustom.cpp \
     bindings/js/JSDocumentCustom.cpp \
-    bindings/js/JSDocumentFragmentCustom.cpp \
     bindings/js/JSDOMFormDataCustom.cpp \
     bindings/js/JSDOMGlobalObject.cpp \
     bindings/js/JSDOMWindowBase.cpp \
@@ -299,7 +298,6 @@ SOURCES += \
     bindings/js/JSElementCustom.cpp \
     bindings/js/JSEventCustom.cpp \
     bindings/js/JSEventSourceConstructor.cpp \
-    bindings/js/JSEventSourceCustom.cpp \
     bindings/js/JSEventTarget.cpp \
     bindings/js/JSExceptionBase.cpp \
     bindings/js/JSGeolocationCustom.cpp \
@@ -2264,7 +2262,8 @@ contains(DEFINES, ENABLE_SQLITE=1) {
         platform/sql/SQLiteTransaction.cpp \
         platform/sql/SQLValue.cpp \
         storage/Database.cpp \
-        storage/DatabaseAuthorizer.cpp
+        storage/DatabaseAuthorizer.cpp \
+        storage/DatabaseSync.cpp
 }
 
 
@@ -2282,6 +2281,7 @@ contains(DEFINES, ENABLE_DATABASE=1) {
         storage/SQLTransaction.cpp \
         storage/SQLTransactionClient.cpp \
         storage/SQLTransactionCoordinator.cpp \
+        storage/SQLTransactionSync.cpp \
         bindings/js/JSCustomSQLStatementCallback.cpp \
         bindings/js/JSCustomSQLStatementErrorCallback.cpp \
         bindings/js/JSCustomSQLTransactionCallback.cpp \
@@ -2298,6 +2298,7 @@ contains(DEFINES, ENABLE_DOM_STORAGE=1) {
         storage/DatabaseAuthorizer.h \
         storage/Database.h \
         storage/DatabaseCallback.h \
+        storage/DatabaseSync.h \
         storage/DatabaseTask.h \
         storage/DatabaseThread.h \
         storage/DatabaseTracker.h \
@@ -2311,6 +2312,7 @@ contains(DEFINES, ENABLE_DOM_STORAGE=1) {
         storage/SQLTransaction.h \
         storage/SQLTransactionClient.h \
         storage/SQLTransactionCoordinator.h \
+        storage/SQLTransactionSync.h \
         storage/StorageArea.h \
         storage/StorageAreaImpl.h \
         storage/StorageAreaSync.h \
@@ -2349,7 +2351,6 @@ contains(DEFINES, ENABLE_ICONDATABASE=1) {
 
 contains(DEFINES, ENABLE_WORKERS=1) {
     SOURCES += \
-        bindings/js/JSAbstractWorkerCustom.cpp \
         bindings/js/JSDedicatedWorkerContextCustom.cpp \
         bindings/js/JSWorkerConstructor.cpp \
         bindings/js/JSWorkerContextBase.cpp \
@@ -2398,7 +2399,7 @@ contains(DEFINES, ENABLE_VIDEO=1) {
             HEADERS += platform/graphics/qt/MediaPlayerPrivateQt.h
             SOURCES += platform/graphics/qt/MediaPlayerPrivateQt.cpp
 
-            tobe|!tobe: QT += multimedia
+            tobe|!tobe: QT += mediaservices
         } else {
             HEADERS += \
                 platform/graphics/qt/MediaPlayerPrivatePhonon.h
@@ -2974,3 +2975,6 @@ symbian {
         }
     }
 }
+
+# Disable C++0x mode in WebCore for those who enabled it in their Qt's mkspec
+*-g++*:QMAKE_CXXFLAGS -= -std=c++0x -std=gnu++0x

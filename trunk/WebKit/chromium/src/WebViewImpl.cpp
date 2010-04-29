@@ -183,7 +183,9 @@ void WebView::willEnterModalLoop()
 
     PageGroup* pageGroup = PageGroup::pageGroup(pageGroupName);
     ASSERT(pageGroup);
-    ASSERT(!pageGroup->pages().isEmpty());
+
+    if (pageGroup->pages().isEmpty())
+        return;
 
     // Pick any page in the page group since we are deferring all pages.
     pageGroupLoadDeferrer = new PageGroupLoadDeferrer(*pageGroup->pages().begin(), true);
@@ -191,9 +193,6 @@ void WebView::willEnterModalLoop()
 
 void WebView::didExitModalLoop()
 {
-    // The embedder must have called willEnterNestedEventLoop.
-    ASSERT(pageGroupLoadDeferrer);
-
     delete pageGroupLoadDeferrer;
     pageGroupLoadDeferrer = 0;
 }
@@ -250,6 +249,7 @@ WebViewImpl::WebViewImpl(WebViewClient* client)
     // KJS specific wrapper around this method. We need to have threading
     // initialized because CollatorICU requires it.
     WTF::initializeThreading();
+    WTF::initializeMainThread();
 
     // set to impossible point so we always get the first mouse pos
     m_lastMousePosition = WebPoint(-1, -1);
@@ -326,9 +326,12 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
     if (!mainFrameImpl() || !mainFrameImpl()->frameView())
         return;
 
-    // If there is a select popup opened, close it as the user is clicking on
-    // the page (outside of the popup).
+    // If there is a select popup open, close it as the user is clicking on
+    // the page (outside of the popup).  We also save it so we can prevent a
+    // click on the select element from immediately reopening the popup.
+    RefPtr<WebCore::PopupContainer> selectPopup = m_selectPopup;
     hideSelectPopup();
+    ASSERT(!m_selectPopup);
 
     m_lastMouseDownPoint = WebPoint(event.x, event.y);
     m_haveMouseCapture = true;
@@ -361,6 +364,13 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
         // Focus has not changed, show the suggestions popup.
         static_cast<EditorClientImpl*>(m_page->editorClient())->
             showFormAutofillForNode(clickedNode.get());
+    }
+    if (m_selectPopup && m_selectPopup == selectPopup) {
+        // That click triggered a select popup which is the same as the one that
+        // was showing before the click.  It means the user clicked the select
+        // while the popup was showing, and as a result we first closed then
+        // immediately reopened the select popup.  It needs to be closed.
+        hideSelectPopup();
     }
 
     // Dispatch the contextmenu event regardless of if the click was swallowed.
@@ -1787,6 +1797,12 @@ void WebViewImpl::applyAutocompleteSuggestions(
                                  focusedNode->ownerDocument()->view(), 0);
         m_suggestionsPopupShowing = true;
     }
+}
+
+void WebViewImpl::hidePopups()
+{
+    hideSelectPopup();
+    hideSuggestionsPopup();
 }
 
 void WebViewImpl::hideAutofillPopup()

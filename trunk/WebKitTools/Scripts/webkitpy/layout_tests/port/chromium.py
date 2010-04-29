@@ -44,6 +44,8 @@ import webbrowser
 import base
 import http_server
 
+from webkitpy.common.system.executive import Executive
+
 # FIXME: To use the DRT-based version of this file, we need to be able to
 # run the webkit code, which uses server_process, which requires UNIX-style
 # non-blocking I/O with selects(), which requires fcntl() which doesn't exist
@@ -80,8 +82,8 @@ def check_file_exists(path_to_file, file_description, override_step=None,
 class ChromiumPort(base.Port):
     """Abstract base class for Chromium implementations of the Port class."""
 
-    def __init__(self, port_name=None, options=None):
-        base.Port.__init__(self, port_name, options)
+    def __init__(self, port_name=None, options=None, **kwargs):
+        base.Port.__init__(self, port_name, options, **kwargs)
         self._chromium_base_dir = None
 
     def baseline_path(self):
@@ -118,10 +120,8 @@ class ChromiumPort(base.Port):
         return result
 
     def check_sys_deps(self, needs_http):
-        dump_render_tree_binary_path = self._path_to_driver()
-        proc = subprocess.Popen([dump_render_tree_binary_path,
-                                '--check-layout-test-sys-deps'])
-        if proc.wait():
+        cmd = [self._path_to_driver(), '--check-layout-test-sys-deps']
+        if self._executive.run_command(cmd, return_exit_code=True):
             _log.error('System dependencies check failed.')
             _log.error('To override, invoke with --nocheck-sys-deps')
             _log.error('')
@@ -173,20 +173,23 @@ class ChromiumPort(base.Port):
     def show_results_html_file(self, results_filename):
         uri = self.filename_to_uri(results_filename)
         if self._options.use_drt:
+            # FIXME: This should use User.open_url
             webbrowser.open(uri, new=1)
         else:
+            # Note: Not thread safe: http://bugs.python.org/issue2320
             subprocess.Popen([self._path_to_driver(), uri])
 
-    def start_driver(self, image_path, options):
+    def create_driver(self, image_path, options):
         """Starts a new Driver and returns a handle to it."""
         if self._options.use_drt:
-            return webkit.WebKitDriver(self, image_path, options)
-        return ChromiumDriver(self, image_path, options)
+            return webkit.WebKitDriver(self, image_path, options, executive=self._executive)
+        return ChromiumDriver(self, image_path, options, executive=self._executive)
 
     def start_helper(self):
         helper_path = self._path_to_helper()
         if helper_path:
             _log.debug("Starting layout helper %s" % helper_path)
+            # Note: Not thread safe: http://bugs.python.org/issue2320
             self._helper = subprocess.Popen([helper_path],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=None)
             is_ready = self._helper.stdout.readline()
@@ -198,6 +201,8 @@ class ChromiumPort(base.Port):
             _log.debug("Stopping layout test helper")
             self._helper.stdin.write("x\n")
             self._helper.stdin.close()
+            # wait() is not threadsafe and can throw OSError due to:
+            # http://bugs.python.org/issue1731717
             self._helper.wait()
 
     def test_base_platform_names(self):
@@ -272,27 +277,24 @@ class ChromiumPort(base.Port):
 class ChromiumDriver(base.Driver):
     """Abstract interface for test_shell."""
 
-    def __init__(self, port, image_path, options):
+    def __init__(self, port, image_path, options, executive=Executive()):
         self._port = port
-        self._options = options
         self._configuration = port._options.configuration
+        # FIXME: _options is very confusing, because it's not an Options() element.
+        # FIXME: These don't need to be passed into the constructor, but could rather
+        # be passed into .start()
+        self._options = options
         self._image_path = image_path
+        self._executive = executive
 
+    def start(self):
+        # FIXME: Should be an error to call this method twice.
         cmd = []
-        # Hook for injecting valgrind or other runtime instrumentation,
-        # used by e.g. tools/valgrind/valgrind_tests.py.
-        wrapper = os.environ.get("BROWSER_WRAPPER", None)
-        if wrapper != None:
-            cmd += [wrapper]
-        if self._port._options.wrapper:
-            # This split() isn't really what we want -- it incorrectly will
-            # split quoted strings within the wrapper argument -- but in
-            # practice it shouldn't come up and the --help output warns
-            # about it anyway.
-            cmd += self._options.wrapper.split()
-        cmd += [port._path_to_driver(), '--layout-tests']
-        if options:
-            cmd += options
+        # FIXME: We should not be grabbing at self._port._options.wrapper directly.
+        cmd += self._command_wrapper(self._port._options.wrapper)
+        cmd += [self._port._path_to_driver(), '--layout-tests']
+        if self._options:
+            cmd += self._options
 
         # We need to pass close_fds=True to work around Python bug #2320
         # (otherwise we can hang when we kill DumpRenderTree when we are running
@@ -304,11 +306,38 @@ class ChromiumDriver(base.Driver):
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT,
                                       close_fds=close_flag)
+
     def poll(self):
+        # poll() is not threadsafe and can throw OSError due to:
+        # http://bugs.python.org/issue1731717
         return self._proc.poll()
 
     def returncode(self):
         return self._proc.returncode
+
+    def _write_command_and_read_line(self, input=None):
+        """Returns a tuple: (line, did_crash)"""
+        try:
+            if input:
+                self._proc.stdin.write(input)
+            # DumpRenderTree text output is always UTF-8.  However some tests
+            # (e.g. webarchive) may spit out binary data instead of text so we
+            # don't bother to decode the output (for either DRT or test_shell).
+            line = self._proc.stdout.readline()
+            # We could assert() here that line correctly decodes as UTF-8.
+            return (line, False)
+        except IOError, e:
+            _log.error("IOError communicating w/ test_shell: " + str(e))
+            return (None, True)
+
+    def _test_shell_command(self, uri, timeoutms, checksum):
+        cmd = uri
+        if timeoutms:
+            cmd += ' ' + str(timeoutms)
+        if checksum:
+            cmd += ' ' + checksum
+        cmd += "\n"
+        return cmd
 
     def run_test(self, uri, timeoutms, checksum):
         output = []
@@ -319,29 +348,16 @@ class ChromiumDriver(base.Driver):
         actual_checksum = None
 
         start_time = time.time()
-        cmd = uri
-        if timeoutms:
-            cmd += ' ' + str(timeoutms)
-        if checksum:
-            cmd += ' ' + checksum
-        cmd += "\n"
 
-        try:
-            self._proc.stdin.write(cmd)
-            line = self._proc.stdout.readline()
-            # As far as I can tell, all output from test_shell
-            # is text output, thus we know it's all utf-8.
-            line = line.decode("utf-8")
-        except IOError, e:
-            _log.error("IOError communicating w/ test_shell: " + str(e))
-            crash = True
+        cmd = self._test_shell_command(uri, timeoutms, checksum)
+        (line, crash) = self._write_command_and_read_line(input=cmd)
 
         while not crash and line.rstrip() != "#EOF":
             # Make sure we haven't crashed.
             if line == '' and self.poll() is not None:
                 # This is hex code 0xc000001d, which is used for abrupt
                 # termination. This happens if we hit ctrl+c from the prompt
-                # and we happen to be waiting on the DumpRenderTree.
+                # and we happen to be waiting on test_shell.
                 # sdoyon: Not sure for which OS and in what circumstances the
                 # above code is valid. What works for me under Linux to detect
                 # ctrl+c is for the subprocess returncode to be negative
@@ -369,14 +385,7 @@ class ChromiumDriver(base.Driver):
             else:
                 error.append(line)
 
-            try:
-                line = self._proc.stdout.readline()
-                # As far as I can tell, all output from test_shell
-                # is text output, thus we know it's all utf-8.
-                line = line.decode("utf-8")
-            except IOError, e:
-                _log.error("IOError while reading: " + str(e))
-                crash = True
+            (line, crash) = self._write_command_and_read_line(input=None)
 
         return (crash, timeout, actual_checksum, ''.join(output),
                 ''.join(error))
@@ -390,18 +399,18 @@ class ChromiumDriver(base.Driver):
             if sys.platform not in ('win32', 'cygwin'):
                 # Closing stdin/stdout/stderr hangs sometimes on OS X,
                 # (see __init__(), above), and anyway we don't want to hang
-                # the harness if DumpRenderTree is buggy, so we wait a couple
-                # seconds to give DumpRenderTree a chance to clean up, but then
+                # the harness if test_shell is buggy, so we wait a couple
+                # seconds to give test_shell a chance to clean up, but then
                 # force-kill the process if necessary.
                 KILL_TIMEOUT = 3.0
                 timeout = time.time() + KILL_TIMEOUT
+                # poll() is not threadsafe and can throw OSError due to:
+                # http://bugs.python.org/issue1731717
                 while self._proc.poll() is None and time.time() < timeout:
                     time.sleep(0.1)
+                # poll() is not threadsafe and can throw OSError due to:
+                # http://bugs.python.org/issue1731717
                 if self._proc.poll() is None:
                     _log.warning('stopping test driver timed out, '
                                  'killing it')
-                    # FIXME: This should use Executive.
-                    null = open(os.devnull, "w")  # Does this need an encoding?
-                    subprocess.Popen(["kill", "-9",
-                                     str(self._proc.pid)], stderr=null)
-                    null.close()
+                    self._executive.kill_process(self._proc.pid)

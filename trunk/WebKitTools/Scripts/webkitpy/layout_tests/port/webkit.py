@@ -35,15 +35,14 @@ from __future__ import with_statement
 import codecs
 import logging
 import os
-import pdb
-import platform
 import re
 import shutil
 import signal
-import subprocess
 import sys
 import time
 import webbrowser
+
+from webkitpy.common.system.executive import Executive
 
 import webkitpy.common.system.ospath as ospath
 import webkitpy.layout_tests.port.base as base
@@ -55,8 +54,8 @@ _log = logging.getLogger("webkitpy.layout_tests.port.webkit")
 class WebKitPort(base.Port):
     """WebKit implementation of the Port class."""
 
-    def __init__(self, port_name=None, options=None):
-        base.Port.__init__(self, port_name, options)
+    def __init__(self, port_name=None, options=None, **kwargs):
+        base.Port.__init__(self, port_name, options, **kwargs)
         self._cached_build_root = None
         self._cached_apache_path = None
 
@@ -194,8 +193,8 @@ class WebKitPort(base.Port):
         # FIXME: We should open results in the version of WebKit we built.
         webbrowser.open(uri, new=1)
 
-    def start_driver(self, image_path, options):
-        return WebKitDriver(self, image_path, options)
+    def create_driver(self, image_path, options):
+        return WebKitDriver(self, image_path, options, executive=self._executive)
 
     def test_base_platform_names(self):
         # At the moment we don't use test platform names, but we have
@@ -347,28 +346,17 @@ class WebKitPort(base.Port):
 class WebKitDriver(base.Driver):
     """WebKit implementation of the DumpRenderTree interface."""
 
-    def __init__(self, port, image_path, driver_options):
+    def __init__(self, port, image_path, driver_options, executive=Executive()):
         self._port = port
-        self._driver_options = driver_options
+        # FIXME: driver_options is never used.
         self._image_path = image_path
 
+    def start(self):
         command = []
-        # Hook for injecting valgrind or other runtime instrumentation,
-        # used by e.g. tools/valgrind/valgrind_tests.py.
-        wrapper = os.environ.get("BROWSER_WRAPPER", None)
-        if wrapper != None:
-            command += [wrapper]
-        if self._port._options.wrapper:
-            # This split() isn't really what we want -- it incorrectly will
-            # split quoted strings within the wrapper argument -- but in
-            # practice it shouldn't come up and the --help output warns
-            # about it anyway.
-            # FIXME: Use a real shell parser.
-            command += self._options.wrapper.split()
-
-        command += [port._path_to_driver(), '-']
-
-        if image_path:
+        # FIXME: We should not be grabbing at self._port._options.wrapper directly.
+        command += self._command_wrapper(self._port._options.wrapper)
+        command += [self._port._path_to_driver(), '-']
+        if self._image_path:
             command.append('--pixel-tests')
         environment = os.environ
         environment['DYLD_FRAMEWORK_PATH'] = self._port._build_path()
@@ -397,13 +385,12 @@ class WebKitDriver(base.Driver):
             command += "'" + image_hash
         command += "\n"
 
-        # pdb.set_trace()
         self._server_process.write(command)
 
         have_seen_content_type = False
         actual_image_hash = None
-        output = u''
-        image = ''
+        output = str()  # Use a byte array for output, even though it should be UTF-8.
+        image = str()
 
         timeout = int(timeoutms) / 1000.0
         deadline = time.time() + timeout
@@ -415,8 +402,11 @@ class WebKitDriver(base.Driver):
                 have_seen_content_type):
                 have_seen_content_type = True
             else:
-                # We expect the text content from DumpRenderTree to be UTF-8
-                output += line.decode("utf-8")
+                # Note: Text output from DumpRenderTree is always UTF-8.
+                # However, some tests (e.g. webarchives) spit out binary
+                # data instead of text.  So to make things simple, we
+                # always treat the output as binary.
+                output += line
             line = self._server_process.read_line(timeout)
             timeout = deadline - time.time()
 

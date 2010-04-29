@@ -121,6 +121,25 @@ sub GenerateInterface
     }
 }
 
+sub GenerateEventListenerCall
+{
+    my $className = shift;
+    my $functionName = shift;
+    my $passRefPtrHandling = ($functionName eq "add") ? "" : ".get()";
+
+    $implIncludes{"JSEventListener.h"} = 1;
+
+    my @GenerateEventListenerImpl = ();
+    push(@GenerateEventListenerImpl, <<END);
+    JSValue listener = args.at(1);
+    if (!listener.isObject())
+        return jsUndefined();
+    imp->${functionName}EventListener(ustringToAtomicString(args.at(0).toString(exec)), JSEventListener::create(asObject(listener), castedThisObj, false, currentWorld(exec))$passRefPtrHandling, args.at(2).toBoolean(exec));
+    return jsUndefined();
+END
+    return @GenerateEventListenerImpl;
+}
+
 # Params: 'idlDocument' struct
 sub GenerateModule
 {
@@ -935,6 +954,73 @@ sub GenerateHeader
     }
 }
 
+sub GenerateAttributesHashTable($$)
+{
+    my ($object, $dataNode) = @_;
+
+    # FIXME: These should be functions on $dataNode.
+    my $interfaceName = $dataNode->name;
+    my $className = "JS$interfaceName";
+    
+    # - Add all attributes in a hashtable definition
+    my $numAttributes = @{$dataNode->attributes};
+    $numAttributes++ if (!($dataNode->extendedAttributes->{"OmitConstructor"} || $dataNode->extendedAttributes->{"CustomConstructor"}));
+
+    return 0  if !$numAttributes;
+
+    my $hashSize = $numAttributes;
+    my $hashName = $className . "Table";
+
+    my @hashKeys = ();
+    my @hashSpecials = ();
+    my @hashValue1 = ();
+    my @hashValue2 = ();
+    my %conditionals = ();
+
+    my @entries = ();
+
+    foreach my $attribute (@{$dataNode->attributes}) {
+        my $name = $attribute->signature->name;
+        push(@hashKeys, $name);
+
+        my @specials = ();
+        push(@specials, "DontDelete") unless $attribute->signature->extendedAttributes->{"Deletable"};
+        push(@specials, "DontEnum") if $attribute->signature->extendedAttributes->{"DontEnum"};
+        push(@specials, "ReadOnly") if $attribute->type =~ /readonly/;
+        my $special = (@specials > 0) ? join("|", @specials) : "0";
+        push(@hashSpecials, $special);
+
+        my $getter = "js" . $interfaceName . $codeGenerator->WK_ucfirst($attribute->signature->name) . ($attribute->signature->type =~ /Constructor$/ ? "Constructor" : "");
+        push(@hashValue1, $getter);
+
+        if ($attribute->type =~ /readonly/) {
+            push(@hashValue2, "0");
+        } else {
+            my $setter = "setJS" . $interfaceName . $codeGenerator->WK_ucfirst($attribute->signature->name) . ($attribute->signature->type =~ /Constructor$/ ? "Constructor" : "");
+            push(@hashValue2, $setter);
+        }
+
+        my $conditional = $attribute->signature->extendedAttributes->{"Conditional"};
+        if ($conditional) {
+            $conditionals{$name} = $conditional;
+        }
+    }
+
+    if (!($dataNode->extendedAttributes->{"OmitConstructor"} || $dataNode->extendedAttributes->{"CustomConstructor"})) {
+        push(@hashKeys, "constructor");
+        my $getter = "js" . $interfaceName . "Constructor";
+        push(@hashValue1, $getter);
+        push(@hashValue2, "0");
+        push(@hashSpecials, "DontEnum|ReadOnly"); # FIXME: Setting the constructor should be possible.
+    }
+
+    $object->GenerateHashTable($hashName, $hashSize,
+                               \@hashKeys, \@hashSpecials,
+                               \@hashValue1, \@hashValue2,
+                               \%conditionals);
+    return $numAttributes;
+}
+
 sub GenerateImplementation
 {
     my ($object, $dataNode) = @_;
@@ -973,62 +1059,7 @@ sub GenerateImplementation
 
     push(@implContent, "ASSERT_CLASS_FITS_IN_CELL($className);\n\n");
 
-    # - Add all attributes in a hashtable definition
-    my $numAttributes = @{$dataNode->attributes};
-    $numAttributes++ if (!($dataNode->extendedAttributes->{"OmitConstructor"} || $dataNode->extendedAttributes->{"CustomConstructor"}));
-
-    if ($numAttributes > 0) {
-        my $hashSize = $numAttributes;
-        my $hashName = $className . "Table";
-
-        my @hashKeys = ();
-        my @hashSpecials = ();
-        my @hashValue1 = ();
-        my @hashValue2 = ();
-        my %conditionals = ();
-
-        my @entries = ();
-
-        foreach my $attribute (@{$dataNode->attributes}) {
-            my $name = $attribute->signature->name;
-            push(@hashKeys, $name);
-
-            my @specials = ();
-            push(@specials, "DontDelete") unless $attribute->signature->extendedAttributes->{"Deletable"};
-            push(@specials, "DontEnum") if $attribute->signature->extendedAttributes->{"DontEnum"};
-            push(@specials, "ReadOnly") if $attribute->type =~ /readonly/;
-            my $special = (@specials > 0) ? join("|", @specials) : "0";
-            push(@hashSpecials, $special);
-
-            my $getter = "js" . $interfaceName . $codeGenerator->WK_ucfirst($attribute->signature->name) . ($attribute->signature->type =~ /Constructor$/ ? "Constructor" : "");
-            push(@hashValue1, $getter);
-    
-            if ($attribute->type =~ /readonly/) {
-                push(@hashValue2, "0");
-            } else {
-                my $setter = "setJS" . $interfaceName . $codeGenerator->WK_ucfirst($attribute->signature->name) . ($attribute->signature->type =~ /Constructor$/ ? "Constructor" : "");
-                push(@hashValue2, $setter);
-            }
-
-            my $conditional = $attribute->signature->extendedAttributes->{"Conditional"};
-            if ($conditional) {
-                $conditionals{$name} = $conditional;
-            }
-        }
-
-        if (!($dataNode->extendedAttributes->{"OmitConstructor"} || $dataNode->extendedAttributes->{"CustomConstructor"})) {
-            push(@hashKeys, "constructor");
-            my $getter = "js" . $interfaceName . "Constructor";
-            push(@hashValue1, $getter);
-            push(@hashValue2, "0");
-            push(@hashSpecials, "DontEnum|ReadOnly"); # FIXME: Setting the constructor should be possible.
-        }
-
-        $object->GenerateHashTable($hashName, $hashSize,
-                                   \@hashKeys, \@hashSpecials,
-                                   \@hashValue1, \@hashValue2,
-                                   \%conditionals);
-    }
+    my $numAttributes = GenerateAttributesHashTable($object, $dataNode);
 
     my $numConstants = @{$dataNode->constants};
     my $numFunctions = @{$dataNode->functions};
@@ -1681,72 +1712,94 @@ sub GenerateImplementation
                     $implIncludes{"JSDOMBinding.h"} = 1;
                 }
 
-                my $paramIndex = 0;
-                my $functionString = ($podType ? "podImp." : "imp->") . $functionImplementationName . "(";
+                if ($function->signature->name eq "addEventListener") {
+                    push(@implContent, GenerateEventListenerCall($className, "add"));
+                } elsif ($function->signature->name eq "removeEventListener") {
+                    push(@implContent, GenerateEventListenerCall($className, "remove"));
+                } else {
+                    my $paramIndex = 0;
+                    my $functionString = ($podType ? "podImp." : "imp->") . $functionImplementationName . "(";
 
-                my $hasOptionalArguments = 0;
+                    my $hasOptionalArguments = 0;
 
-                if ($function->signature->extendedAttributes->{"CustomArgumentHandling"}) {
-                    push(@implContent, "    ScriptCallStack callStack(exec, args, $numParameters);\n");
-                    $implIncludes{"ScriptCallStack.h"} = 1;
-                }
-
-                foreach my $parameter (@{$function->parameters}) {
-                    if (!$hasOptionalArguments && $parameter->extendedAttributes->{"Optional"}) {
-                        push(@implContent, "\n    int argsCount = args.size();\n");
-                        $hasOptionalArguments = 1;
+                    if ($function->signature->extendedAttributes->{"CustomArgumentHandling"}) {
+                        push(@implContent, "    ScriptCallStack callStack(exec, args, $numParameters);\n");
+                        $implIncludes{"ScriptCallStack.h"} = 1;
                     }
 
-                    if ($hasOptionalArguments) {
-                        push(@implContent, "    if (argsCount < " . ($paramIndex + 1) . ") {\n");
-                        GenerateImplementationFunctionCall($function, $functionString, $paramIndex, "    " x 2, $podType, $implClassName);
-                        push(@implContent, "    }\n\n");
-                    }
-
-                    my $name = $parameter->name;
-                    
-                    if ($parameter->type eq "XPathNSResolver") {
-                        push(@implContent, "    RefPtr<XPathNSResolver> customResolver;\n");
-                        push(@implContent, "    XPathNSResolver* resolver = toXPathNSResolver(args.at($paramIndex));\n");
-                        push(@implContent, "    if (!resolver) {\n");
-                        push(@implContent, "        customResolver = JSCustomXPathNSResolver::create(exec, args.at($paramIndex));\n");
-                        push(@implContent, "        if (exec->hadException())\n");
-                        push(@implContent, "            return jsUndefined();\n");
-                        push(@implContent, "        resolver = customResolver.get();\n");
-                        push(@implContent, "    }\n");
-                    } else {
-                        push(@implContent, "    " . GetNativeTypeFromSignature($parameter) . " $name = " . JSValueToNative($parameter, "args.at($paramIndex)") . ";\n");
-
-                        # If a parameter is "an index" and it's negative it should throw an INDEX_SIZE_ERR exception.
-                        # But this needs to be done in the bindings, because the type is unsigned and the fact that it
-                        # was negative will be lost by the time we're inside the DOM.
-                        if ($parameter->extendedAttributes->{"IsIndex"}) {
-                            $implIncludes{"ExceptionCode.h"} = 1;
-                            push(@implContent, "    if ($name < 0) {\n");
-                            push(@implContent, "        setDOMException(exec, INDEX_SIZE_ERR);\n");
+                    my $callWith = $function->signature->extendedAttributes->{"CallWith"};
+                    if ($callWith) {
+                        my $callWithArg = "COMPILE_ASSERT(false)";
+                        if ($callWith eq "DynamicFrame") {
+                            push(@implContent, "    Frame* dynamicFrame = toDynamicFrame(exec);\n");
+                            push(@implContent, "    if (!dynamicFrame)\n");
                             push(@implContent, "        return jsUndefined();\n");
-                            push(@implContent, "    }\n");
+                            $callWithArg = "dynamicFrame";
+                        } elsif ($callWith eq "ScriptState") {
+                            $callWithArg = "exec";
                         }
+                        $functionString .= ", " if $paramIndex;
+                        $functionString .= $callWithArg;
+                        $paramIndex++;
                     }
 
-                    $functionString .= ", " if $paramIndex;
+                    foreach my $parameter (@{$function->parameters}) {
+                        if (!$hasOptionalArguments && $parameter->extendedAttributes->{"Optional"}) {
+                            push(@implContent, "\n    int argsCount = args.size();\n");
+                            $hasOptionalArguments = 1;
+                        }
 
-                    if ($parameter->type eq "NodeFilter") {
-                        $functionString .= "$name.get()";
-                    } else {
-                        $functionString .= $name;
+                        if ($hasOptionalArguments) {
+                            push(@implContent, "    if (argsCount < " . ($paramIndex + 1) . ") {\n");
+                            GenerateImplementationFunctionCall($function, $functionString, $paramIndex, "    " x 2, $podType, $implClassName);
+                            push(@implContent, "    }\n\n");
+                        }
+
+                        my $name = $parameter->name;
+                    
+                        if ($parameter->type eq "XPathNSResolver") {
+                            push(@implContent, "    RefPtr<XPathNSResolver> customResolver;\n");
+                            push(@implContent, "    XPathNSResolver* resolver = toXPathNSResolver(args.at($paramIndex));\n");
+                            push(@implContent, "    if (!resolver) {\n");
+                            push(@implContent, "        customResolver = JSCustomXPathNSResolver::create(exec, args.at($paramIndex));\n");
+                            push(@implContent, "        if (exec->hadException())\n");
+                            push(@implContent, "            return jsUndefined();\n");
+                            push(@implContent, "        resolver = customResolver.get();\n");
+                            push(@implContent, "    }\n");
+                        } else {
+                            push(@implContent, "    " . GetNativeTypeFromSignature($parameter) . " $name = " . JSValueToNative($parameter, "args.at($paramIndex)") . ";\n");
+
+                            # If a parameter is "an index" and it's negative it should throw an INDEX_SIZE_ERR exception.
+                            # But this needs to be done in the bindings, because the type is unsigned and the fact that it
+                            # was negative will be lost by the time we're inside the DOM.
+                            if ($parameter->extendedAttributes->{"IsIndex"}) {
+                                $implIncludes{"ExceptionCode.h"} = 1;
+                                push(@implContent, "    if ($name < 0) {\n");
+                                push(@implContent, "        setDOMException(exec, INDEX_SIZE_ERR);\n");
+                                push(@implContent, "        return jsUndefined();\n");
+                                push(@implContent, "    }\n");
+                            }
+                        }
+
+                        $functionString .= ", " if $paramIndex;
+
+                        if ($parameter->type eq "NodeFilter") {
+                            $functionString .= "$name.get()";
+                        } else {
+                            $functionString .= $name;
+                        }
+                        $paramIndex++;
                     }
-                    $paramIndex++;
-                }
 
-                if ($function->signature->extendedAttributes->{"NeedsUserGestureCheck"}) {
-                    $functionString .= ", " if $paramIndex;
-                    $functionString .= "processingUserGesture(exec)";
-                    $paramIndex++;
-                }
+                    if ($function->signature->extendedAttributes->{"NeedsUserGestureCheck"}) {
+                        $functionString .= ", " if $paramIndex;
+                        $functionString .= "processingUserGesture(exec)";
+                        $paramIndex++;
+                    }
 
-                push(@implContent, "\n");
-                GenerateImplementationFunctionCall($function, $functionString, $paramIndex, "    ", $podType, $implClassName);
+                    push(@implContent, "\n");
+                    GenerateImplementationFunctionCall($function, $functionString, $paramIndex, "    ", $podType, $implClassName);
+                }
             }
             push(@implContent, "}\n\n");
         }
@@ -1864,6 +1917,12 @@ sub GenerateImplementationFunctionCall()
     } else {
         push(@implContent, "\n" . $indent . "JSC::JSValue result = " . NativeToJSValue($function->signature, 1, $implClassName, "", $functionString, "castedThisObj") . ";\n");
         push(@implContent, $indent . "setDOMException(exec, ec);\n") if @{$function->raisesExceptions};
+
+        $callWith = $function->signature->extendedAttributes->{"CallWith"};
+        if ($callWith and $callWith eq "ScriptState") {
+            push(@implContent, $indent . "if (exec->hadException())\n");
+            push(@implContent, $indent . "    return jsUndefined();\n");
+        }
 
         if ($podType and not $function->signature->extendedAttributes->{"Immutable"}) {
             # Immutable methods do not commit changes back to the instance, thus producing
@@ -2186,6 +2245,11 @@ tableSizeLoop:
 
     # Dump the hash table
     my $count = scalar @{$keys} + 1;
+    push(@implContent, "#if ENABLE(JIT)\n");
+    push(@implContent, "#define THUNK_GENERATOR(generator) , generator\n");
+    push(@implContent, "#else\n");
+    push(@implContent, "#define THUNK_GENERATOR(generator)\n");
+    push(@implContent, "#endif\n");
     push(@implContent, "\nstatic const HashTableValue $nameEntries\[$count\] =\n\{\n");
     $i = 0;
     foreach my $key (@{$keys}) {
@@ -2205,14 +2269,15 @@ tableSizeLoop:
         } else {
             $targetType = "static_cast<PropertySlot::GetValueFunc>";
         }
-        push(@implContent, "    { \"$key\", @$specials[$i], (intptr_t)" . $targetType . "(@$value1[$i]), (intptr_t)@$value2[$i] },\n");
+        push(@implContent, "    { \"$key\", @$specials[$i], (intptr_t)" . $targetType . "(@$value1[$i]), (intptr_t)@$value2[$i] THUNK_GENERATOR(0) },\n");
         if ($conditional) {
             push(@implContent, "#endif\n");
         }
         ++$i;
     }
-    push(@implContent, "    { 0, 0, 0, 0 }\n");
+    push(@implContent, "    { 0, 0, 0, 0 THUNK_GENERATOR(0) }\n");
     push(@implContent, "};\n\n");
+    push(@implContent, "#undef THUNK_GENERATOR\n");
     my $perfectSizeMask = $perfectSize - 1;
     my $compactSizeMask = $numEntries - 1;
     push(@implContent, "static JSC_CONST_HASHTABLE HashTable $name =\n");

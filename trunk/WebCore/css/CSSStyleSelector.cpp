@@ -31,6 +31,7 @@
 #include "CSSFontFaceRule.h"
 #include "CSSImportRule.h"
 #include "CSSMediaRule.h"
+#include "CSSPageRule.h"
 #include "CSSParser.h"
 #include "CSSPrimitiveValueMappings.h"
 #include "CSSPropertyNames.h"
@@ -360,6 +361,7 @@ public:
     void addRulesFromSheet(CSSStyleSheet*, const MediaQueryEvaluator&, CSSStyleSelector* = 0);
     
     void addRule(CSSStyleRule* rule, CSSSelector* sel);
+    void addPageRule(CSSStyleRule* rule, CSSSelector* sel);
     void addToRuleSet(AtomicStringImpl* key, AtomRuleMap& map,
                       CSSStyleRule* rule, CSSSelector* sel);
     
@@ -367,13 +369,16 @@ public:
     CSSRuleDataList* getClassRules(AtomicStringImpl* key) { return m_classRules.get(key); }
     CSSRuleDataList* getTagRules(AtomicStringImpl* key) { return m_tagRules.get(key); }
     CSSRuleDataList* getUniversalRules() { return m_universalRules; }
+    CSSRuleDataList* getPageRules() { return m_pageRules; }
     
 public:
     AtomRuleMap m_idRules;
     AtomRuleMap m_classRules;
     AtomRuleMap m_tagRules;
     CSSRuleDataList* m_universalRules;
+    CSSRuleDataList* m_pageRules;
     unsigned m_ruleCount;
+    unsigned m_pageRuleCount;
 };
 
 static CSSRuleSet* defaultStyle;
@@ -488,6 +493,7 @@ void CSSStyleSelector::addKeyframeStyle(PassRefPtr<WebKitCSSKeyframesRule> rule)
 void CSSStyleSelector::init()
 {
     m_element = 0;
+    m_haveCachedLinkState = false;
     m_matchedDecls.clear();
     m_ruleList = 0;
     m_rootDefaultStyle = 0;
@@ -696,9 +702,9 @@ void CSSStyleSelector::matchRulesForList(CSSRuleDataList* rules, int& firstRuleI
     if (!rules)
         return;
 
+    const AtomicString& localName = m_element->localName();
     for (CSSRuleData* d = rules->first(); d; d = d->next()) {
         CSSStyleRule* rule = d->rule();
-        const AtomicString& localName = m_element->localName();
         const AtomicString& selectorLocalName = d->selector()->m_tag.localName();
         if ((localName == selectorLocalName || selectorLocalName == starAtom) && checkSelector(d->selector())) {
             // If the rule has no properties to apply, then ignore it.
@@ -802,8 +808,11 @@ void CSSStyleSelector::sortMatchedRules(unsigned start, unsigned end)
         m_matchedRules[i] = rulesMergeBuffer[i - start];
 }
 
-void CSSStyleSelector::initElement(Element* e)
+inline void CSSStyleSelector::initElement(Element* e)
 {
+    if (m_element != e)
+        m_haveCachedLinkState = false;
+
     m_element = e;
     m_styledElement = m_element && m_element->isStyledElement() ? static_cast<StyledElement*>(m_element) : 0;
 }
@@ -876,10 +885,17 @@ CSSStyleSelector::SelectorChecker::SelectorChecker(Document* document, bool stri
 {
 }
 
-EInsideLink CSSStyleSelector::SelectorChecker::determineLinkState(Element* element) const
+inline EInsideLink CSSStyleSelector::SelectorChecker::determineLinkState(Element* element) const
 {
     if (!element->isLink())
         return NotInsideLink;
+    return determineLinkStateSlowCase(element);
+}
+    
+
+EInsideLink CSSStyleSelector::SelectorChecker::determineLinkStateSlowCase(Element* element) const
+{
+    ASSERT(element->isLink());
     
     const AtomicString* attr = linkAttribute(element);
     if (!attr || attr->isNull())
@@ -1028,7 +1044,7 @@ bool CSSStyleSelector::canShareStyleWithElement(Node* n)
                     mappedAttrsMatch = s->mappedAttributes()->mapsEquivalent(m_styledElement->mappedAttributes());
                 if (mappedAttrsMatch) {
                     if (s->isLink()) {
-                        if (m_checker.determineLinkState(m_element) != style->insideLink())
+                        if (currentElementLinkState() != style->insideLink())
                             return false;
                     }
                     return true;
@@ -1039,7 +1055,7 @@ bool CSSStyleSelector::canShareStyleWithElement(Node* n)
     return false;
 }
 
-RenderStyle* CSSStyleSelector::locateSharedStyle()
+ALWAYS_INLINE RenderStyle* CSSStyleSelector::locateSharedStyle()
 {
     if (m_styledElement && !m_styledElement->inlineStyleDecl() && !m_styledElement->hasID() && !m_styledElement->document()->usesSiblingRules()) {
         // Check previous siblings.
@@ -1172,7 +1188,7 @@ PassRefPtr<RenderStyle> CSSStyleSelector::styleForElement(Element* e, RenderStyl
 
     if (e->isLink()) {
         m_style->setIsLink(true);
-        m_style->setInsideLink(m_checker.determineLinkState(e));
+        m_style->setInsideLink(currentElementLinkState());
     }
     
     if (simpleDefaultStyleSheet && !elementCanUseSimpleDefaultStyle(e))
@@ -2669,7 +2685,9 @@ CSSValue* CSSStyleSelector::resolveVariableDependentValue(CSSVariableDependentVa
 CSSRuleSet::CSSRuleSet()
 {
     m_universalRules = 0;
+    m_pageRules = 0;
     m_ruleCount = 0;
+    m_pageRuleCount = 0;
 }
 
 CSSRuleSet::~CSSRuleSet()
@@ -2679,6 +2697,7 @@ CSSRuleSet::~CSSRuleSet()
     deleteAllValues(m_tagRules);
 
     delete m_universalRules; 
+    delete m_pageRules;
 }
 
 
@@ -2718,6 +2737,14 @@ void CSSRuleSet::addRule(CSSStyleRule* rule, CSSSelector* sel)
         m_universalRules->append(m_ruleCount++, rule, sel);
 }
 
+void CSSRuleSet::addPageRule(CSSStyleRule* rule, CSSSelector* sel)
+{
+    if (!m_pageRules)
+        m_pageRules = new CSSRuleDataList(m_pageRuleCount++, rule, sel);
+    else
+        m_pageRules->append(m_pageRuleCount++, rule, sel);
+}
+
 void CSSRuleSet::addRulesFromSheet(CSSStyleSheet* sheet, const MediaQueryEvaluator& medium, CSSStyleSelector* styleSelector)
 {
     if (!sheet)
@@ -2733,9 +2760,14 @@ void CSSRuleSet::addRulesFromSheet(CSSStyleSheet* sheet, const MediaQueryEvaluat
     for (int i = 0; i < len; i++) {
         StyleBase* item = sheet->item(i);
         if (item->isStyleRule()) {
-            CSSStyleRule* rule = static_cast<CSSStyleRule*>(item);
-            for (CSSSelector* s = rule->selectorList().first(); s; s = CSSSelectorList::next(s))
-                addRule(rule, s);
+            if (item->isPageRule()) {
+                CSSPageRule* pageRule = static_cast<CSSPageRule*>(item);
+                addPageRule(pageRule, pageRule->selectorList().first());
+            } else {
+                CSSStyleRule* rule = static_cast<CSSStyleRule*>(item);
+                for (CSSSelector* s = rule->selectorList().first(); s; s = CSSSelectorList::next(s))
+                    addRule(rule, s);
+            }
         }
         else if (item->isImportRule()) {
             CSSImportRule* import = static_cast<CSSImportRule*>(item);

@@ -747,15 +747,6 @@ int GraphicsContext3D::texImage2D(unsigned target, unsigned level, unsigned inte
     return -1;
 }
 
-int GraphicsContext3D::texImage2D(unsigned target, unsigned level, Image* image, bool flipY, bool premultiplyAlpha)
-{
-    // FIXME: need to support flipY and premultiplyAlpha
-    UNUSED_PARAM(flipY);
-    UNUSED_PARAM(premultiplyAlpha);
-    
-    return -1;
-}
-
 int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned xoff, unsigned yoff, unsigned width, unsigned height, unsigned format, unsigned type, void* pixels)
 {
     // FIXME: we will need to deal with PixelStore params when dealing with image buffers that differ from the subimage size
@@ -768,21 +759,6 @@ int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned x
     UNUSED_PARAM(format);
     UNUSED_PARAM(type);
     UNUSED_PARAM(pixels);
-    return -1;
-}
-
-int GraphicsContext3D::texSubImage2D(unsigned target, unsigned level, unsigned xoff, unsigned yoff, Image* image, bool flipY, bool premultiplyAlpha)
-{
-    // FIXME: we will need to deal with PixelStore params when dealing with image buffers that differ from the subimage size
-    UNUSED_PARAM(target);
-    UNUSED_PARAM(level);
-    UNUSED_PARAM(xoff);
-    UNUSED_PARAM(yoff);
-    UNUSED_PARAM(image);
-
-    // FIXME: need to support flipY and premultiplyAlpha    
-    UNUSED_PARAM(flipY);
-    UNUSED_PARAM(premultiplyAlpha);
     return -1;
 }
 

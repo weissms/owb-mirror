@@ -50,16 +50,16 @@
 #import "WebFrameViewInternal.h"
 #import "WebHTMLRepresentationPrivate.h"
 #import "WebHTMLViewInternal.h"
-#import "WebHistoryItemInternal.h"
 #import "WebHistoryInternal.h"
+#import "WebHistoryItemInternal.h"
 #import "WebIconDatabaseInternal.h"
 #import "WebKitErrorsPrivate.h"
 #import "WebKitLogging.h"
 #import "WebKitNSStringExtras.h"
-#import "WebNavigationData.h"
 #import "WebNSURLExtras.h"
-#import "WebNetscapePluginView.h"
+#import "WebNavigationData.h"
 #import "WebNetscapePluginPackage.h"
+#import "WebNetscapePluginView.h"
 #import "WebPanelAuthenticationHandler.h"
 #import "WebPluginController.h"
 #import "WebPluginPackage.h"
@@ -73,7 +73,6 @@
 #import "WebUIDelegate.h"
 #import "WebUIDelegatePrivate.h"
 #import "WebViewInternal.h"
-#import <WebKitSystemInterface.h>
 #import <WebCore/AuthenticationMac.h>
 #import <WebCore/BlockExceptions.h>
 #import <WebCore/CachedFrame.h>
@@ -89,10 +88,10 @@
 #import <WebCore/FrameTree.h>
 #import <WebCore/FrameView.h>
 #import <WebCore/HTMLAppletElement.h>
-#import <WebCore/HTMLHeadElement.h>
 #import <WebCore/HTMLFormElement.h>
 #import <WebCore/HTMLFrameElement.h>
 #import <WebCore/HTMLFrameOwnerElement.h>
+#import <WebCore/HTMLHeadElement.h>
 #import <WebCore/HTMLNames.h>
 #import <WebCore/HTMLPlugInElement.h>
 #import <WebCore/HistoryItem.h>
@@ -115,8 +114,10 @@
 #import <WebCore/Widget.h>
 #import <WebKit/DOMElement.h>
 #import <WebKit/DOMHTMLFormElement.h>
+#import <WebKitSystemInterface.h>
 #import <runtime/InitializeThreading.h>
 #import <wtf/PassRefPtr.h>
+#import <wtf/Threading.h>
 
 #if ENABLE(MAC_JAVA_BRIDGE)
 #import "WebJavaPlugIn.h"
@@ -412,6 +413,27 @@ void WebFrameLoaderClient::dispatchDidReceiveAuthenticationChallenge(DocumentLoa
     NSWindow *window = [webView hostWindow] ? [webView hostWindow] : [webView window];
     [[WebPanelAuthenticationHandler sharedHandler] startAuthentication:webChallenge window:window];
 }
+
+#if USE(PROTECTION_SPACE_AUTH_CALLBACK)
+bool WebFrameLoaderClient::canAuthenticateAgainstProtectionSpace(DocumentLoader* loader, unsigned long identifier, const ProtectionSpace& protectionSpace)
+{
+    WebView *webView = getWebView(m_webFrame.get());
+    WebResourceDelegateImplementationCache* implementations = WebViewGetResourceLoadDelegateImplementations(webView);
+    
+    NSURLProtectionSpace *webProtectionSpace = mac(protectionSpace);
+    
+    if (implementations->canAuthenticateAgainstProtectionSpaceFunc) {
+        if (id resource = [webView _objectForIdentifier:identifier]) {
+            return CallResourceLoadDelegateReturningBoolean(NO, implementations->canAuthenticateAgainstProtectionSpaceFunc, webView, @selector(webView:resource:canAuthenticateAgainstProtectionSpace:forDataSource:), resource, webProtectionSpace, dataSource(loader));
+        }
+    }
+
+    // If our resource load delegate doesn't handle the question, then only send authentication
+    // challenges for pre-10.6 protection spaces.  This is the same as the default implementation
+    // in CFNetwork.
+    return (protectionSpace.authenticationScheme() < ProtectionSpaceAuthenticationSchemeClientCertificateRequested);
+}
+#endif
 
 void WebFrameLoaderClient::dispatchDidCancelAuthenticationChallenge(DocumentLoader* loader, unsigned long identifier, const AuthenticationChallenge&challenge)
 {
@@ -1792,6 +1814,7 @@ jobject WebFrameLoaderClient::javaApplet(NSView* view)
 + (void)initialize
 {
     JSC::initializeThreading();
+    WTF::initializeMainThreadToProcessMainThread();
 #ifndef BUILDING_ON_TIGER
     WebCoreObjCFinalizeOnMainThread(self);
 #endif

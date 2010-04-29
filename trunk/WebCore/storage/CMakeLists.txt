@@ -3,6 +3,7 @@ if(ENABLE_DATABASE)
         storage/ChangeVersionWrapper.cpp
         storage/Database.cpp
         storage/DatabaseAuthorizer.cpp
+        storage/DatabaseSync.cpp
         storage/DatabaseTask.cpp
         storage/DatabaseThread.cpp
         storage/DatabaseTracker.cpp
@@ -14,6 +15,7 @@ if(ENABLE_DATABASE)
         storage/SQLTransaction.cpp
         storage/SQLTransactionClient.cpp
         storage/SQLTransactionCoordinator.cpp
+        storage/SQLTransactionSync.cpp
     )
     list(APPEND IDL_SRC
         storage/Database.idl

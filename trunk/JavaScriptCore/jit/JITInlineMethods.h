@@ -323,22 +323,7 @@ ALWAYS_INLINE void JIT::sampleCodeBlock(CodeBlock* codeBlock)
 #endif
 #endif
 
-inline JIT::Address JIT::addressFor(unsigned index, RegisterID base)
-{
-    return Address(base, (index * sizeof(Register)));
-}
-
 #if USE(JSVALUE32_64)
-
-inline JIT::Address JIT::tagFor(unsigned index, RegisterID base)
-{
-    return Address(base, (index * sizeof(Register)) + OBJECT_OFFSETOF(JSValue, u.asBits.tag));
-}
-
-inline JIT::Address JIT::payloadFor(unsigned index, RegisterID base)
-{
-    return Address(base, (index * sizeof(Register)) + OBJECT_OFFSETOF(JSValue, u.asBits.payload));
-}
 
 inline void JIT::emitLoadTag(unsigned index, RegisterID tag)
 {
@@ -560,7 +545,7 @@ inline bool JIT::getMappedTag(unsigned virtualRegisterIndex, RegisterID& tag)
 inline void JIT::emitJumpSlowCaseIfNotJSCell(unsigned virtualRegisterIndex)
 {
     if (!m_codeBlock->isKnownNotImmediate(virtualRegisterIndex))
-        addSlowCase(branch32(NotEqual, tagFor(virtualRegisterIndex), Imm32(JSValue::CellTag)));
+        addSlowCase(emitJumpIfNotJSCell(virtualRegisterIndex));
 }
 
 inline void JIT::emitJumpSlowCaseIfNotJSCell(unsigned virtualRegisterIndex, RegisterID tag)
@@ -737,14 +722,6 @@ ALWAYS_INLINE void JIT::emitJumpSlowCaseIfNotJSCell(RegisterID reg, int vReg)
 }
 
 #if USE(JSVALUE64)
-ALWAYS_INLINE JIT::Jump JIT::emitJumpIfImmediateNumber(RegisterID reg)
-{
-    return branchTestPtr(NonZero, reg, tagTypeNumberRegister);
-}
-ALWAYS_INLINE JIT::Jump JIT::emitJumpIfNotImmediateNumber(RegisterID reg)
-{
-    return branchTestPtr(Zero, reg, tagTypeNumberRegister);
-}
 
 inline void JIT::emitLoadDouble(unsigned index, FPRegisterID value)
 {

@@ -191,6 +191,10 @@ namespace WebCore {
         CSSRule* createStyleRule(Vector<CSSSelector*>* selectors);
         CSSRule* createFontFaceRule();
         CSSRule* createVariablesRule(MediaList*, bool variablesKeyword);
+        CSSRule* createPageRule(CSSSelector* pageSelector);
+        CSSRule* createMarginAtRule(CSSSelector::MarginBoxType marginBox);
+        void startDeclarationsForMarginBox();
+        void endDeclarationsForMarginBox();
 
         MediaQueryExp* createFloatingMediaQueryExp(const AtomicString&, CSSParserValueList*);
         MediaQueryExp* sinkFloatingMediaQueryExp(MediaQueryExp*);
@@ -224,6 +228,7 @@ namespace WebCore {
         CSSSelectorList* m_selectorListForParseSelector;
         unsigned m_numParsedProperties;
         unsigned m_maxParsedProperties;
+        unsigned m_numParsedPropertiesBeforeMarginBox;
 
         int m_inParseShorthand;
         int m_currentShorthand;
@@ -258,6 +263,18 @@ namespace WebCore {
         void clearVariables();
 
         void deleteFontFaceOnlyValues();
+
+        enum SizeParameterType {
+            None,
+            Auto,
+            Length,
+            PageSize,
+            Orientation,
+        };
+
+        bool parsePage(int propId, bool important);
+        bool parseSize(int propId, bool important);
+        SizeParameterType parseSizeParameter(CSSValueList* parsedValues, CSSParserValue* value, SizeParameterType prevParamType);
 
         UChar* m_data;
         UChar* yytext;

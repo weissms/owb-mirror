@@ -8,7 +8,9 @@ if(ENABLE_MATHML)
         mathml/RenderMathMLFraction.cpp
         mathml/RenderMathMLMath.cpp
         mathml/RenderMathMLOperator.cpp
+        mathml/RenderMathMLRoot.cpp
         mathml/RenderMathMLRow.cpp
+        mathml/RenderMathMLSquareRoot.cpp
         mathml/RenderMathMLSubSup.cpp
         mathml/RenderMathMLUnderOver.cpp
     )

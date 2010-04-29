@@ -41,6 +41,7 @@
 #include <debugger/Debugger.h>
 #include <runtime/InitializeThreading.h>
 #include <runtime/JSLock.h>
+#include <wtf/Threading.h>
 
 #if ENABLE(DOM_STORAGE)
 #include "StorageNamespace.h"
@@ -58,6 +59,7 @@ namespace WebCore {
 void ScriptController::initializeThreading()
 {
     JSC::initializeThreading();
+    WTF::initializeMainThread();
 }
 
 ScriptController::ScriptController(Frame* frame)

@@ -147,7 +147,7 @@ static inline bool scrollNode(float delta, WheelEvent::Granularity granularity, 
     return false;
 }
 
-#if !PLATFORM(MAC) || ENABLE(EXPERIMENTAL_SINGLE_VIEW_MODE)
+#if !PLATFORM(MAC)
 
 inline bool EventHandler::eventLoopHandleMouseUp(const MouseEventWithHitTestResults&)
 {
@@ -192,7 +192,7 @@ EventHandler::EventHandler(Frame* frame)
     , m_mouseDownTimestamp(0)
     , m_useLatchedWheelEventNode(false)
     , m_widgetIsLatched(false)
-#if PLATFORM(MAC) && !ENABLE(EXPERIMENTAL_SINGLE_VIEW_MODE)
+#if PLATFORM(MAC)
     , m_mouseDownView(nil)
     , m_sendingEventToSubview(false)
     , m_activationEventNumber(0)
@@ -465,6 +465,30 @@ bool EventHandler::handleMousePressEvent(const MouseEventWithHitTestResults& eve
     return swallowEvent;
 }
 
+// There are two kinds of renderer that can autoscroll.
+static bool canAutoscroll(RenderObject* renderer)
+{
+    if (!renderer->isBox())
+        return false;
+
+    // Check for a box that can be scrolled in its own right.
+    if (toRenderBox(renderer)->canBeScrolledAndHasScrollableArea())
+        return true;
+
+    // Check for a box that represents the top level of a web page.
+    // This can be scrolled by calling Chrome::scrollRectIntoView.
+    // This only has an effect on the Mac platform in applications
+    // that put web views into scrolling containers, such as Mac OS X Mail.
+    // The code for this is in RenderLayer::scrollRectToVisible.
+    if (renderer->node() != renderer->document())
+        return false;
+    Frame* frame = renderer->document()->frame();
+    if (!frame)
+        return false;
+    Page* page = frame->page();
+    return page && page->mainFrame() == frame;
+}
+
 #if ENABLE(DRAG_SUPPORT)
 bool EventHandler::handleMouseDraggedEvent(const MouseEventWithHitTestResults& event)
 {
@@ -485,10 +509,9 @@ bool EventHandler::handleMouseDraggedEvent(const MouseEventWithHitTestResults& e
     m_mouseDownMayStartDrag = false;
 
     if (m_mouseDownMayStartAutoscroll && !m_panScrollInProgress) {            
-        // If the selection is contained in a layer that can scroll, that layer should handle the autoscroll
-        // Otherwise, let the bridge handle it so the view can scroll itself.
+        // Find a renderer that can autoscroll.
         RenderObject* renderer = targetNode->renderer();
-        while (renderer && (!renderer->isBox() || !toRenderBox(renderer)->canBeScrolledAndHasScrollableArea())) {
+        while (renderer && !canAutoscroll(renderer)) {
             if (!renderer->parent() && renderer->node() == renderer->document() && renderer->document()->ownerElement())
                 renderer = renderer->document()->ownerElement()->renderer();
             else
@@ -791,7 +814,7 @@ void EventHandler::updateAutoscrollRenderer()
     if (Node* nodeAtPoint = hitTest.innerNode())
         m_autoscrollRenderer = nodeAtPoint->renderer();
 
-    while (m_autoscrollRenderer && (!m_autoscrollRenderer->isBox() || !toRenderBox(m_autoscrollRenderer)->canBeScrolledAndHasScrollableArea()))
+    while (m_autoscrollRenderer && !canAutoscroll(m_autoscrollRenderer))
         m_autoscrollRenderer = m_autoscrollRenderer->parent();
 }
 
@@ -1665,7 +1688,7 @@ void EventHandler::clearDragState()
     m_dragTarget = 0;
     m_capturingMouseEventsNode = 0;
     m_shouldOnlyFireDragOverEvent = false;
-#if PLATFORM(MAC) && !ENABLE(EXPERIMENTAL_SINGLE_VIEW_MODE)
+#if PLATFORM(MAC)
     m_sendingEventToSubview = false;
 #endif
 }
@@ -1789,8 +1812,15 @@ bool EventHandler::dispatchMouseEvent(const AtomicString& eventType, Node* targe
 
     if (m_nodeUnderMouse)
         swallowEvent = m_nodeUnderMouse->dispatchMouseEvent(mouseEvent, eventType, clickCount);
-    
+
     if (!swallowEvent && eventType == eventNames().mousedownEvent) {
+
+        // If clicking on a frame scrollbar, do not mess up with content focus.
+        if (FrameView* view = m_frame->view()) {
+            if (view->scrollbarAtPoint(mouseEvent.pos()))
+                return false;
+        }
+
         // The layout needs to be up to date to determine if an element is focusable.
         m_frame->document()->updateLayoutIgnorePendingStylesheets();
 
@@ -2785,6 +2815,13 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
             touches->append(touch);
 
         // Now build up the correct list for changedTouches.
+        // Note that  any touches that are in the TouchStationary state (e.g. if
+        // the user had several points touched but did not move them all) should
+        // only be present in the touches list. They may also be added to the
+        // targetTouches list later, but should never be in the changedTouches
+        // list so we do not handle them explicitly here.
+        // See https://bugs.webkit.org/show_bug.cgi?id=37609 for further discussion
+        // about the TouchStationary state.
         if (point.state() == PlatformTouchPoint::TouchReleased)
             releasedTouches->append(touch);
         else if (point.state() == PlatformTouchPoint::TouchCancelled)

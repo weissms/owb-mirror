@@ -2332,15 +2332,33 @@ sub GenerateFunctionCallString()
         $functionString = "listImp->${name}(";
     }
 
-    my $first = 1;
     my $index = 0;
+    my $hasScriptState = 0;
+
+    my $callWith = $function->signature->extendedAttributes->{"CallWith"};
+    if ($callWith) {
+        my $callWithArg = "COMPILE_ASSERT(false)";
+        if ($callWith eq "DynamicFrame") {
+            $result .= $indent . "Frame* enteredFrame = V8Proxy::retrieveFrameForEnteredContext();\n";
+            $result .= $indent . "if (!enteredFrame)\n";
+            $result .= $indent . "    return v8::Undefined();\n";
+            $callWithArg = "enteredFrame";
+        } elsif ($callWith eq "ScriptState") {
+            $result .= $indent . "EmptyScriptState state;\n";
+            $callWithArg = "&state";
+            $hasScriptState = 1;
+        }
+        $functionString .= ", " if $index;
+        $functionString .= $callWithArg;
+        $index++;
+        $numberOfParameters++
+    }
 
     foreach my $parameter (@{$function->parameters}) {
         if ($index eq $numberOfParameters) {
             last;
         }
-        if ($first) { $first = 0; }
-        else { $functionString .= ", "; }
+        $functionString .= ", " if $index;
         my $paramName = $parameter->name;
         my $paramType = $parameter->type;
 
@@ -2359,22 +2377,23 @@ sub GenerateFunctionCallString()
     }
 
     if ($function->signature->extendedAttributes->{"CustomArgumentHandling"}) {
-        $functionString .= ", " if not $first;
+        $functionString .= ", " if $index;
         $functionString .= "callStack.get()";
-        if ($first) { $first = 0; }
+        $index++;
     }
 
     if ($function->signature->extendedAttributes->{"NeedsUserGestureCheck"}) {
-        $functionString .= ", " if not $first;
+        $functionString .= ", " if $index;
         # FIXME: We need to pass DOMWrapperWorld as a parameter.
         # See http://trac.webkit.org/changeset/54182
         $functionString .= "processingUserGesture()";
-        if ($first) { $first = 0; }
+        $index++;
     }
 
     if (@{$function->raisesExceptions}) {
-        $functionString .= ", " if not $first;
+        $functionString .= ", " if $index;
         $functionString .= "ec";
+        $index++;
     }
     $functionString .= ")";
 
@@ -2387,7 +2406,7 @@ sub GenerateFunctionCallString()
         $result .= $indent . GetNativeType($returnType, 0) . " result = *imp;\n" . $indent . "$functionString;\n";
     } elsif ($returnsListItemPodType) {
         $result .= $indent . "RefPtr<SVGPODListItem<$nativeReturnType> > result = $functionString;\n";
-    } elsif (@{$function->raisesExceptions} or $returnsPodType or $isPodType or IsSVGTypeNeedingContextParameter($returnType)) {
+    } elsif ($hasScriptState or @{$function->raisesExceptions} or $returnsPodType or $isPodType or IsSVGTypeNeedingContextParameter($returnType)) {
         $result .= $indent . $nativeReturnType . " result = $functionString;\n";
     } else {
         # Can inline the function call into the return statement to avoid overhead of using a Ref<> temporary
@@ -2396,7 +2415,13 @@ sub GenerateFunctionCallString()
     }
 
     if (@{$function->raisesExceptions}) {
-        $result .= $indent . "if (UNLIKELY(ec))\n" . $indent . "    goto fail;\n";
+        $result .= $indent . "if (UNLIKELY(ec))\n";
+        $result .= $indent . "    goto fail;\n";
+    }
+
+    if ($hasScriptState) {
+        $result .= $indent . "if (state.hadException())\n";
+        $result .= $indent . "    return throwError(state.exception());\n"
     }
 
     # If the return type is a POD type, separate out the wrapper generation
@@ -2827,6 +2852,8 @@ sub ReturnNativeToJSValue
     return "return v8::Integer::NewFromUnsigned($value)" if $nativeType eq "unsigned";
 
     return "return v8DateOrNull($value)" if $type eq "Date";
+    # long long and unsigned long long are not representable in ECMAScript.
+    return "return v8::Number::New(static_cast<double>($value))" if $type eq "long long" or $type eq "unsigned long long";
     return "return v8::Number::New($value)" if $codeGenerator->IsPrimitiveType($type) or $type eq "SVGPaintType";
     return "return $value.v8Value()" if $nativeType eq "ScriptValue";
 

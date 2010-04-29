@@ -26,8 +26,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// This IDL file is for testing the V8 generator and for tracking changes
-// in its ouput.
+// This IDL file is for testing the bindings code generator and for tracking
+// changes in its ouput.
 module test {
     interface TestObj {
         // Attributes
@@ -35,6 +35,8 @@ module test {
         readonly attribute DOMString       readOnlyStringAttr;
         readonly attribute TestObj         readOnlyTestObjAttr;
         attribute long                     intAttr;
+        attribute long long                longLongAttr;
+        attribute unsigned long long       unsignedLongLongAttr;
         attribute DOMString                stringAttr;
         attribute TestObj                  testObjAttr;
 
@@ -57,15 +59,40 @@ module test {
         [Custom] void customMethod();
         [Custom] void customMethodWithArgs(in long intArg, in DOMString strArg, in TestObj objArg);
 
+        [CustomArgumentHandling] void customArgsAndException(in log intArg)
+            raises(DOMException);
+
+        void addEventListener(in DOMString type, 
+                              in EventListener listener, 
+                              in boolean useCapture);
+        void removeEventListener(in DOMString type, 
+                                 in EventListener listener, 
+                                 in boolean useCapture);
+
+        // 'CallWith' extended attribute
+        [CallWith=DynamicFrame] void withDynamicFrame();
+        [CallWith=DynamicFrame] void withDynamicFrameAndArg(in long intArg);
+        [CallWith=DynamicFrame] void withDynamicFrameAndOptionalArg(in long intArg, in [Optional] long optionalArg);
+        [NeedsUserGestureCheck, CallWith=DynamicFrame] void withDynamicFrameAndUserGesture(in long intArg);
+        [NeedsUserGestureCheck, CallWith=DynamicFrame] void withDynamicFrameAndUserGestureASAD(in long intArg, in [Optional] long optionalArg);
+        [CallWith=ScriptState] void withScriptStateVoid();
+        [CallWith=ScriptState] TestObj withScriptStateObj();
+        [CallWith=ScriptState] void withScriptStateVoidException()
+            raises(DOMException);
+        [CallWith=ScriptState] TestObj withScriptStateObjException()
+            raises(DOMException);
+
         // 'Optional' extended attribute
         void    methodWithOptionalArg(in [Optional] long opt);
         void    methodWithNonOptionalArgAndOptionalArg(in long nonOpt, in [Optional] long opt);
         void    methodWithNonOptionalArgAndTwoOptionalArgs(in long nonOpt, in [Optional] long opt1, in long opt2);
 
+#ifdef TESTING_V8
         // Overloads
         void    overloadedMethod(in TestObj objArg, in DOMString strArg);
         void    overloadedMethod(in TestObj objArg, in [Optional] long intArg);
         void    overloadedMethod(in DOMString strArg);
         void    overloadedMethod(in long intArg);
+#endif
     };
 }

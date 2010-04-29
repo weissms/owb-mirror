@@ -38,7 +38,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSDOMWindowShell.cpp
     bindings/js/JSDocumentCustom.cpp
     bindings/js/JSDOMWrapper.cpp
-    bindings/js/JSDocumentFragmentCustom.cpp
     bindings/js/JSElementCustom.cpp
     bindings/js/JSEventCustom.cpp
     bindings/js/JSEventListener.cpp
@@ -206,7 +205,6 @@ endif(ENABLE_WEB_SOCKETS)
 
 if(ENABLE_WORKERS)
     list(APPEND WEBCORE_SRC
-        bindings/js/JSAbstractWorkerCustom.cpp
         bindings/js/JSDedicatedWorkerContextCustom.cpp
         bindings/js/JSWorkerConstructor.cpp
         bindings/js/JSWorkerContextBase.cpp
@@ -268,7 +266,6 @@ endif(ENABLE_CEHTML)
 if(ENABLE_EVENTSOURCE)
     list(APPEND WEBCORE_SRC
         bindings/js/JSEventSourceConstructor.cpp
-        bindings/js/JSEventSourceCustom.cpp
     )
 endif(ENABLE_EVENTSOURCE)
 

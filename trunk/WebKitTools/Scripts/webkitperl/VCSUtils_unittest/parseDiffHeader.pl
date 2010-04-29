@@ -183,7 +183,7 @@ END
     # Header keys to check
     svnConvertedText => <<'END',
 Index: WebKitTools/WebCore/rendering/style/StyleFlexibleBoxData.h
-===================================================================
+index f5d5e74..3b6aa92 100644
 --- WebKitTools/WebCore/rendering/style/StyleFlexibleBoxData.h
 +++ WebKitTools/WebCore/rendering/style/StyleFlexibleBoxData.h
 END
@@ -196,7 +196,7 @@ END
 },
 {
     # New test
-    diffName => "Git: unrecognized lines",
+    diffName => "Git: new file",
     inputText => <<'END',
 diff --git a/LayoutTests/http/tests/security/listener/xss-inactive-closure.html b/LayoutTests/http/tests/security/listener/xss-inactive-closure.html
 new file mode 100644
@@ -209,7 +209,8 @@ END
     # Header keys to check
     svnConvertedText => <<'END',
 Index: WebKitTools/LayoutTests/http/tests/security/listener/xss-inactive-closure.html
-===================================================================
+new file mode 100644
+index 0000000..3c9f114
 --- WebKitTools/LayoutTests/http/tests/security/listener/xss-inactive-closure.html
 +++ WebKitTools/LayoutTests/http/tests/security/listener/xss-inactive-closure.html
 END
@@ -219,6 +220,103 @@ END
     # Other values to check
     lastReadLine => "@@ -0,0 +1,34 @@\n",
     nextLine => "+<html>\n",
+},
+{
+    # New test
+    diffName => "SVN: binary file",
+    inputText => <<'END',
+Index: WebKitTools/test_file.swf
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+
+Property changes on: test_file.swf
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+
+Q1dTBx0AAAB42itg4GlgYJjGwMDDyODMxMDw34GBgQEAJPQDJA==
+END
+    # Header keys to check
+    svnConvertedText => <<'END',
+Index: WebKitTools/test_file.swf
+===================================================================
+Cannot display: file marked as a binary type.
+END
+    copiedFromPath => undef,
+    indexPath => "test_file.swf",
+    sourceRevision => undef,
+    # Other values to check
+    lastReadLine => "svn:mime-type = application/octet-stream\n",
+    nextLine => "\n",
+},
+{
+    # New test
+    diffName => "Git: binary addition",
+    inputText => <<'END',
+diff --git a/foo.gif b/foo.gif
+new file mode 100644
+index 0000000000000000000000000000000000000000..64a9532e7794fcd791f6f12157406d9060151690
+GIT binary patch
+literal 512
+zcmZ?wbhEHbRAx|MU|?iW{Kxc~?KofD;ckY;H+&5HnHl!!GQMD7h+sU{_)e9f^V3c?
+zhJP##HdZC#4K}7F68@!1jfWQg2daCm-gs#3|JREDT>c+pG4L<_2;w##WMO#ysPPap
+zLqpAf1OE938xAsSp4!5f-o><?VKe(#0jEcwfHGF4%M1^kRs14oVBp2ZEL{E1N<-zJ
+zsfLmOtKta;2_;2c#^S1-8cf<nb!QnGl>c!Xe6RXvrEtAWBvSDTgTO1j3vA31Puw!A
+zs(87q)j_mVDTqBo-P+03-P5mHCEnJ+x}YdCuS7#bCCyePUe(ynK+|4b-3qK)T?Z&)
+zYG+`tl4h?GZv_$t82}X4*DTE|$;{DEiPyF@)U-1+FaX++T9H{&%cag`W1|zVP@`%b
+zqiSkp6{BTpWTkCr!=<C6Q=?#~R8^JfrliAF6Q^gV9Iup8RqCXqqhqC`qsyhk<-nlB
+z00f{QZvfK&|Nm#oZ0TQl`Yr$BIa6A@16O26ud7H<QM=xl`toLKnz-3h@9c9q&wm|X
+z{89I|WPyD!*M?gv?q`;L=2YFeXrJQNti4?}s!zFo=5CzeBxC69xA<zrjP<wUcCRh4
+ptUl-ZG<%a~#LwkIWv&q!KSCH7tQ8cJDiw+|GV?MN)RjY50RTb-xvT&H
+
+literal 0
+HcmV?d00001
+
+END
+    # Header keys to check
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo.gif
+new file mode 100644
+index 0000000000000000000000000000000000000000..64a9532e7794fcd791f6f12157406d9060151690
+GIT binary patch
+END
+    copiedFromPath => undef,
+    indexPath => "foo.gif",
+    sourceRevision => undef,
+    # Other values to check
+    lastReadLine => "literal 512\n",
+    nextLine => "zcmZ?wbhEHbRAx|MU|?iW{Kxc~?KofD;ckY;H+&5HnHl!!GQMD7h+sU{_)e9f^V3c?\n",
+},
+{
+    # New test
+    diffName => "Git: binary deletion",
+    inputText => <<'END',
+diff --git a/foo.gif b/foo.gif
+deleted file mode 100644
+index 323fae0..0000000
+GIT binary patch
+literal 0
+HcmV?d00001
+
+literal 7
+OcmYex&reD$;sO8*F9L)B
+
+END
+    # Header keys to check
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo.gif
+deleted file mode 100644
+index 323fae0..0000000
+GIT binary patch
+END
+    copiedFromPath => undef,
+    indexPath => "foo.gif",
+    sourceRevision => undef,
+    # Other values to check
+    lastReadLine => "literal 0\n",
+    nextLine => "HcmV?d00001\n",
 },
 );
 
@@ -247,19 +345,20 @@ sub testParseDiffHeaderAssertionArgs($)
     my $testNameStart = "parseDiffHeader(): [$testCaseHashRef->{diffName}] ";
 
     my @assertionArgsArrayRefs; # Return value
-    my @assertionArgs;
+    my $assertionArgsRef;
+
     foreach my $diffHeaderHashRefKey (@diffHeaderHashRefKeys) {
         my $testName = "${testNameStart}key=\"$diffHeaderHashRefKey\"";
-        @assertionArgs = ($headerHashRef->{$diffHeaderHashRefKey}, $testCaseHashRef->{$diffHeaderHashRefKey}, $testName);
-        push(@assertionArgsArrayRefs, \@assertionArgs);
+        $assertionArgsRef = [$headerHashRef->{$diffHeaderHashRefKey}, $testCaseHashRef->{$diffHeaderHashRefKey}, $testName];
+        push(@assertionArgsArrayRefs, $assertionArgsRef);
     }
 
-    @assertionArgs = ($lastReadLine, $testCaseHashRef->{lastReadLine}, "${testNameStart}lastReadLine");
-    push(@assertionArgsArrayRefs, \@assertionArgs);
+    $assertionArgsRef = [$lastReadLine, $testCaseHashRef->{lastReadLine}, "${testNameStart}lastReadLine"];
+    push(@assertionArgsArrayRefs, $assertionArgsRef);
 
     my $nextLine = <$fileHandle>;
-    @assertionArgs = ($nextLine, $testCaseHashRef->{nextLine}, "${testNameStart}nextLine");
-    push(@assertionArgsArrayRefs, \@assertionArgs);
+    $assertionArgsRef = [$nextLine, $testCaseHashRef->{nextLine}, "${testNameStart}nextLine"];
+    push(@assertionArgsArrayRefs, $assertionArgsRef);
 
     return @assertionArgsArrayRefs;
 }

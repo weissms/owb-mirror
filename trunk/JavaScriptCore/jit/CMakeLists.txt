@@ -1,5 +1,6 @@
 list(APPEND JSC_SRC
     jit/ExecutableAllocator.cpp
+    jit/ExecutableAllocatorPosix.cpp
     jit/JIT.cpp
     jit/JITArithmetic.cpp
     jit/JITCall.cpp
@@ -7,7 +8,6 @@ list(APPEND JSC_SRC
     jit/JITPropertyAccess.cpp
     jit/JITPropertyAccess32_64.cpp
     jit/JITStubs.cpp
-    jit/ExecutableAllocatorPosix.cpp
-    jit/ExecutableAllocatorSymbian.cpp
+    jit/ThunkGenerators.cpp
 )
 

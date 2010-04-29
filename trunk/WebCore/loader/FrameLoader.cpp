@@ -510,7 +510,7 @@ void FrameLoader::submitForm(const char* action, const String& url, PassRefPtr<F
         m_submittedFormURL = u;
     }
 
-    formData->generateFiles(m_frame->page()->chrome()->client());
+    formData->generateFiles(m_frame->document());
     
     if (!m_outgoingReferrer.isEmpty())
         frameRequest.resourceRequest().setHTTPReferrer(m_outgoingReferrer);
@@ -3683,7 +3683,7 @@ void FrameLoader::navigateToDifferentDocument(HistoryItem* item, FrameLoadType l
     // If this was a repost that failed the page cache, we might try to repost the form.
     NavigationAction action;
     if (formData) {
-        formData->generateFiles(m_frame->page()->chrome()->client());
+        formData->generateFiles(m_frame->document());
 
         request.setHTTPMethod("POST");
         request.setHTTPBody(formData);
@@ -3815,6 +3815,13 @@ bool FrameLoader::shouldUseCredentialStorage(ResourceLoader* loader)
 {
     return m_client->shouldUseCredentialStorage(loader->documentLoader(), loader->identifier());
 }
+
+#if USE(PROTECTION_SPACE_AUTH_CALLBACK)
+bool FrameLoader::canAuthenticateAgainstProtectionSpace(ResourceLoader* loader, const ProtectionSpace& protectionSpace)
+{
+    return m_client->canAuthenticateAgainstProtectionSpace(loader->documentLoader(), loader->identifier(), protectionSpace);
+}
+#endif
 
 void FrameLoader::setTitle(const String& title)
 {

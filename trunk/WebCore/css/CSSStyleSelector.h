@@ -35,6 +35,7 @@
 namespace WebCore {
 
 class CSSMutableStyleDeclaration;
+class CSSPageRule;
 class CSSPrimitiveValue;
 class CSSProperty;
 class CSSFontFace;
@@ -85,7 +86,6 @@ public:
                          bool strictParsing, bool matchAuthorAndUserStyles);
         ~CSSStyleSelector();
 
-        void initElement(Element*);
         void initForStyleResolve(Element*, RenderStyle* parentStyle = 0, PseudoId = NOPSEUDO);
         PassRefPtr<RenderStyle> styleForElement(Element*, RenderStyle* parentStyle = 0, bool allowSharing = true, bool resolveForRootDefault = false, bool matchVisitedLinks = false);
         void keyframeStylesForAnimation(Element*, const RenderStyle*, KeyframeList& list);
@@ -101,6 +101,7 @@ public:
 #endif
 
     private:
+        void initElement(Element*);
         RenderStyle* locateSharedStyle();
         Node* locateCousinList(Element* parent, unsigned depth = 1);
         bool canShareStyleWithElement(Node*);
@@ -155,6 +156,7 @@ public:
         void resolveVariablesForDeclaration(CSSMutableStyleDeclaration* decl, CSSMutableStyleDeclaration* newDecl, HashSet<String>& usedBlockVariables);
 
         void addKeyframeStyle(PassRefPtr<WebKitCSSKeyframesRule> rule);
+        void addPageStyle(PassRefPtr<CSSPageRule>);
 
         static bool createTransformOperations(CSSValue* inValue, RenderStyle* inStyle, RenderStyle* rootStyle, TransformOperations& outOperations);
 
@@ -201,6 +203,7 @@ public:
             bool checkScrollbarPseudoClass(CSSSelector*, PseudoId& dynamicPseudo) const;
 
             EInsideLink determineLinkState(Element* element) const;
+            EInsideLink determineLinkStateSlowCase(Element* element) const;
             void allVisitedStateChanged();
             void visitedStateChanged(LinkHash visitedHash);
 
@@ -263,6 +266,19 @@ public:
 #endif
 
         StyleImage* styleImage(CSSValue* value);
+
+
+        EInsideLink currentElementLinkState() const
+        {
+            if (!m_haveCachedLinkState) {
+                m_cachedLinkState = m_checker.determineLinkState(m_element);
+                m_haveCachedLinkState = true;
+            }
+            return m_cachedLinkState;
+        }
+
+        mutable EInsideLink m_cachedLinkState;
+        mutable bool m_haveCachedLinkState;
 
         // We collect the set of decls that match in |m_matchedDecls|.  We then walk the
         // set of matched decls four times, once for those properties that others depend on (like font-size),
@@ -359,7 +375,7 @@ public:
         CSSRuleData* m_first;
         CSSRuleData* m_last;
     };
-    
+
 } // namespace WebCore
 
 #endif // CSSStyleSelector_h

@@ -55,9 +55,12 @@ WebInspector.SourceFrame.prototype = {
     {
         this._visible = visible;
         this._createViewerIfNeeded();
-        if (!visible && this._textViewer)
-            this._textViewer.freeCachedElements();
-            
+        
+        if (!visible) {
+            this._hidePopup();
+            if (this._textViewer)
+                this._textViewer.freeCachedElements();
+        }
     },
 
     get executionLine()
@@ -147,6 +150,11 @@ WebInspector.SourceFrame.prototype = {
     updateContent: function(content)
     {
         this._textModel.setText(null, content);
+    },
+
+    get textModel()
+    {
+        return this._textModel;
     },
 
     highlightLine: function(line)
