@@ -328,7 +328,7 @@ void HTMLSelectElement::dispatchBlurEvent()
 
 void HTMLSelectElement::defaultEventHandler(Event* event)
 {
-    SelectElement::defaultEventHandler(m_data, this, event, form());
+    SelectElement::defaultEventHandler(m_data, this, event);
     if (event->defaultHandled())
         return;
     HTMLFormControlElementWithState::defaultEventHandler(event);

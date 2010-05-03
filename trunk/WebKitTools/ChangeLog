@@ -1,3 +1,168 @@
+2010-05-03  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Unreviewed.
+
+        Corrected a file path in the ChangeLog entry for r58663 (bug 38319) below.
+
+2010-05-02  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38319
+
+        * Scripts/VCSUtils.pm:
+          - In parseDiffHeader()--
+            - Added an "scmFormat" hash key to the return value to represent
+              whether the diff is Git or SVN formatted.
+            - Adjusted the code so the value of "copiedFromPath" will
+              be undef rather than "does not exist" if the file was not
+              copied.
+
+        * Scripts/webkitperl/VCSUtils_unittest/parseDiff.pl:
+          - Added a FIXME to refactor these unit tests to use is_deeply().
+
+        * Scripts/webkitperl/VCSUtils_unittest/parseDiffHeader.pl:
+          - Updated the unit tests to test the "scmFormat" value.
+          - Simplified the unit tests by refactoring them to use is_deeply().
+
+2010-05-01  Daniel Bates  <dbates@rim.com>
+
+        Reviewed by Chris Jerdonek.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38423
+
+        Adds infrastructure to change the file mode of a file using
+        the appropriate SCM-specific routines.
+
+        No functionality was changed, so no new tests.
+
+        * Scripts/VCSUtils.pm: Added subroutines scmToggleExecutableBit,
+        scmAddExecutableBit, and scmRemoveExecutableBit.
+        * Scripts/svn-apply: Check for the hash key executableBitDelta
+        and toggle the executable bit.
+        * Scripts/svn-unapply: Ditto.
+
+2010-04-30  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Enabled accelerated compositing in DRT for Windows
+        https://bugs.webkit.org/show_bug.cgi?id=38404
+
+        * DumpRenderTree/win/DumpRenderTree.cpp:
+        (main):
+
+2010-04-30  Anders Carlsson  <andersca@apple.com>
+
+        Try to fix GTK+ build.
+
+        * DumpRenderTree/unix/TestNetscapePlugin/TestNetscapePlugin.cpp:
+        (webkit_test_plugin_new_stream):
+
+2010-04-30  Anders Carlsson  <andersca@apple.com>
+
+        Fix build.
+
+        * DumpRenderTree/unix/TestNetscapePlugin/TestNetscapePlugin.cpp:
+
+2010-04-30  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Timothy Hatcher.
+
+        Next step towards fixing
+        
+        https://bugs.webkit.org/show_bug.cgi?id=20784
+        move npapi.h to C99 integer types
+
+        Use the C99 types everywhere. The "old" types are still around but will be removed
+        in a subsequent commit.
+
+        * DumpRenderTree/TestNetscapePlugIn.subproj/PluginObject.cpp:
+        (int32VariantToIdentifier):
+        (doubleVariantToIdentifier):
+        (testIdentifierToInt):
+        (testGetIntIdentifier):
+        * DumpRenderTree/TestNetscapePlugIn.subproj/main.cpp:
+        (NPP_New):
+        (NPP_NewStream):
+        (NPP_WriteReady):
+        (NPP_Write):
+        (NPP_HandleEvent):
+        * DumpRenderTree/win/TestNetscapePlugin/main.cpp:
+        (NPP_New):
+        (NPP_NewStream):
+        (NPP_WriteReady):
+        (NPP_Write):
+        (NPP_HandleEvent):
+
+2010-04-30  Steve Block  <steveblock@google.com>
+
+        Reviewed by Jeremy Orlow.
+
+        Changed Steve Block from committer to reviewer.
+
+        * Scripts/webkitpy/common/config/committers.py:
+
+2010-04-28  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        webkit-patch doesn't work if a git repo is tracking multiple svn repos
+        https://bugs.webkit.org/show_bug.cgi?id=38290
+        
+        Getting the tests to pass required getting our SVN repo to more closely
+        match the real svn.webkit.org repo by having a trunk directory.
+        That involved adding an extra commit at the beginning and thus changing
+        all the commit numbers in the tests.
+
+        * Scripts/webkitpy/common/checkout/scm.py:
+
+2010-04-29  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Adam Barth.
+
+        new-run-webkit-tests can deadlock with Chromium's TestShell
+        https://bugs.webkit.org/show_bug.cgi?id=38298
+
+        Fix _write_command_and_read_line to never send unicode() to
+        test_shell, instead to always encode as utf-8.  This was causing
+        random hangs because if test_shell ever encounters a \0 in the
+        stream it can deadlock with NRWT.
+
+        There is still a deadlock bug to fix in NRWT/test_shell design, however
+        this fix should make the deadlock occur less often.
+
+        * Scripts/webkitpy/layout_tests/port/chromium.py:
+        * Scripts/webkitpy/layout_tests/port/chromium_unittest.py:
+
+2010-04-29  Chris Jerdonek  <cjerdonek@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Refactored svn-apply and svn-unapply to use the new
+        parsePatch() subroutine.
+
+        https://bugs.webkit.org/show_bug.cgi?id=34033
+
+        * Scripts/VCSUtils.pm:
+          - Consolidated %diffHash documentation.
+          - Added prepareParsedPatch().
+
+        * Scripts/svn-apply:
+          - Replaced main while loop with calls to parsePatch() and
+            prepareParsedPatch().
+
+        * Scripts/svn-unapply:
+          - Replaced main while loop with calls to parsePatch() and
+            prepareParsedPatch().
+
+        * Scripts/test-webkitperl:
+          - Changed to render relative test paths rather than absolute
+            test paths.
+
+        * Scripts/webkitperl/VCSUtils_unittest/prepareParsedPatch.pl: Added.
+          - Added unit tests for prepareParsedPatch().
+
 2010-04-29  Chris Jerdonek  <cjerdonek@webkit.org>
 
         Reviewed by Eric Seidel.

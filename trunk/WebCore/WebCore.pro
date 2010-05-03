@@ -55,8 +55,6 @@ CONFIG(standalone_package) {
     isEmpty(JSC_GENERATED_SOURCES_DIR):JSC_GENERATED_SOURCES_DIR = $$PWD/../JavaScriptCore/generated
 
     PRECOMPILED_HEADER = $$PWD/../WebKit/qt/WebKit_pch.h
-
-    symbian: TARGET += $${QT_LIBINFIX}
 } else {
     isEmpty(WC_GENERATED_SOURCES_DIR):WC_GENERATED_SOURCES_DIR = generated
     isEmpty(JSC_GENERATED_SOURCES_DIR):JSC_GENERATED_SOURCES_DIR = ../JavaScriptCore/generated
@@ -71,12 +69,13 @@ CONFIG(standalone_package) {
 
 CONFIG(QTDIR_build) {
     include($$QT_SOURCE_TREE/src/qbase.pri)
-    # Qt will set the version for us when building in Qt's tree
 } else {
-    VERSION = $${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION}
     DESTDIR = $$OUTPUT_DIR/lib
     !static: DEFINES += QT_MAKEDLL
+    symbian: TARGET += $${QT_LIBINFIX}
 }
+include($$PWD/../WebKit/qt/qtwebkit_version.pri)
+VERSION = $${QT_WEBKIT_MAJOR_VERSION}.$${QT_WEBKIT_MINOR_VERSION}.$${QT_WEBKIT_PATCH_VERSION}
 
 unix {
     QMAKE_PKGCONFIG_REQUIRES = QtCore QtGui QtNetwork
@@ -188,6 +187,7 @@ INCLUDEPATH = \
     $$PWD/loader/appcache \
     $$PWD/loader/archive \
     $$PWD/loader/icon \
+    $$PWD/mathml \
     $$PWD/notifications \
     $$PWD/page \
     $$PWD/page/animation \
@@ -568,7 +568,6 @@ SOURCES += \
     editing/ReplaceSelectionCommand.cpp \
     editing/SelectionController.cpp \
     editing/SetNodeAttributeCommand.cpp \
-    editing/SmartReplace.cpp \
     editing/SmartReplaceICU.cpp \
     editing/SplitElementCommand.cpp \
     editing/SplitTextNodeCommand.cpp \
@@ -1483,6 +1482,19 @@ HEADERS += \
     loader/TextResourceDecoder.h \
     loader/ThreadableLoader.h \
     loader/WorkerThreadableLoader.h \
+    mathml/MathMLElement.h \
+    mathml/MathMLInlineContainerElement.h \
+    mathml/MathMLMathElement.h \
+    mathml/MathMLTextElement.h \
+    mathml/RenderMathMLBlock.h \
+    mathml/RenderMathMLFraction.h \
+    mathml/RenderMathMLMath.h \
+    mathml/RenderMathMLOperator.h \
+    mathml/RenderMathMLRoot.h \
+    mathml/RenderMathMLRow.h \
+    mathml/RenderMathMLSquareRoot.h \
+    mathml/RenderMathMLSubSup.h \
+    mathml/RenderMathMLUnderOver.h \
     notifications/Notification.h \
     notifications/NotificationCenter.h \
     notifications/NotificationPresenter.h \
@@ -2065,6 +2077,7 @@ SOURCES += \
     platform/network/qt/DnsPrefetchHelper.cpp \
     platform/network/qt/QNetworkReplyHandler.cpp \
     editing/qt/EditorQt.cpp \
+    editing/qt/SmartReplaceQt.cpp \
     platform/qt/ClipboardQt.cpp \
     platform/qt/ContextMenuItemQt.cpp \
     platform/qt/ContextMenuQt.cpp \
@@ -2465,6 +2478,23 @@ contains(DEFINES, ENABLE_FILTERS=1) {
         platform/graphics/filters/FilterEffect.cpp \
         platform/graphics/filters/SourceAlpha.cpp \
         platform/graphics/filters/SourceGraphic.cpp
+}
+
+contains(DEFINES, ENABLE_MATHML=1) {
+    SOURCES += \
+        mathml/MathMLElement.cpp \
+        mathml/MathMLInlineContainerElement.cpp \
+        mathml/MathMLMathElement.cpp \
+        mathml/MathMLTextElement.cpp \
+        mathml/RenderMathMLBlock.cpp \
+        mathml/RenderMathMLFraction.cpp \
+        mathml/RenderMathMLMath.cpp \
+        mathml/RenderMathMLOperator.cpp \
+        mathml/RenderMathMLRoot.cpp \
+        mathml/RenderMathMLRow.cpp \
+        mathml/RenderMathMLSquareRoot.cpp \
+        mathml/RenderMathMLSubSup.cpp \
+        mathml/RenderMathMLUnderOver.cpp
 }
 
 contains(DEFINES, ENABLE_WML=1) {

@@ -177,9 +177,20 @@ sub SkipAttribute {
 
 sub SkipFunction {
     my $function = shift;
+    my $decamelize = shift;
+    my $prefix = shift;
 
-    # FIXME: skip all custom methods; is this ok?
-    if ($function->signature->extendedAttributes->{"Custom"}) {
+    my $functionName = "webkit_dom_" . $decamelize . "_" . $prefix . decamelize($function->signature->name);
+    my $isCustomFunction = $function->signature->extendedAttributes->{"Custom"} ||
+        $function->signature->extendedAttributes->{"CustomArgumentHandling"};
+
+    if ($isCustomFunction &&
+        $functionName ne "webkit_dom_node_replace_child" &&
+        $functionName ne "webkit_dom_node_insert_before" &&
+        $functionName ne "webkit_dom_node_replace_child" &&
+        $functionName ne "webkit_dom_node_append_child" &&
+        $functionName ne "webkit_dom_html_collection_item" &&
+        $functionName ne "webkit_dom_html_collection_named_item") {
         return 1;
     }
 
@@ -271,6 +282,39 @@ sub IsGDOMClassType {
     return 1;
 }
 
+sub GetReadableProperties {
+    my $properties = shift;
+
+    my @result = ();
+
+    foreach my $property (@{$properties}) {
+        if (!SkipAttribute($property)) {
+            push(@result, $property);
+        }
+    }
+
+    return @result;
+}
+
+sub GetWriteableProperties {
+    my $properties = shift;
+    my @result = ();
+
+    foreach my $property (@{$properties}) {
+        my $writeable = $property->type !~ /^readonly/;
+        my $gtype = GetGValueTypeName($property->signature->type);
+        my $hasGtypeSignature = ($gtype eq "boolean" || $gtype eq "float" || $gtype eq "double" ||
+                                 $gtype eq "uint64" || $gtype eq "ulong" || $gtype eq "long" || 
+                                 $gtype eq "uint" || $gtype eq "ushort" || $gtype eq "uchar" ||
+                                 $gtype eq "char" || $gtype eq "string");
+        if ($writeable && $hasGtypeSignature) {
+            push(@result, $property);
+        }
+    }
+
+    return @result;
+}
+
 sub GenerateProperties {
     my ($object, $interfaceName, $dataNode) = @_;
 
@@ -291,24 +335,45 @@ EOF
     my @txtSetProps = ();
     my @txtGetProps = ();
 
+    my @readableProperties = GetReadableProperties($dataNode->attributes);
+
     my $privFunction = GetCoreObject($interfaceName, "coreSelf", "self");
 
     my $txtGetProp = << "EOF";
 static void ${lowerCaseIfaceName}_get_property(GObject* object, guint prop_id, GValue* value, GParamSpec* pspec)
 {
+EOF
+    push(@txtGetProps, $txtGetProp);
+    if (scalar @readableProperties > 0) {
+        $txtGetProp = << "EOF";
     ${className}* self = WEBKIT_DOM_${clsCaps}(object);
     $privFunction
+EOF
+    push(@txtGetProps, $txtGetProp);
+    }
 
+    $txtGetProp = << "EOF";
     switch (prop_id) {
 EOF
     push(@txtGetProps, $txtGetProp);
 
+    my @writeableProperties = GetWriteableProperties(\@readableProperties);
+
     my $txtSetProps = << "EOF";
 static void ${lowerCaseIfaceName}_set_property(GObject* object, guint prop_id, const GValue* value, GParamSpec* pspec)
 {
+EOF
+    push(@txtSetProps, $txtSetProps);
+
+    if (scalar @writeableProperties > 0) {
+        $txtSetProps = << "EOF";
     ${className} *self = WEBKIT_DOM_${clsCaps}(object);
     $privFunction
+EOF
+        push(@txtSetProps, $txtSetProps);
+    }
 
+    $txtSetProps = << "EOF";
     switch (prop_id) {
 EOF
     push(@txtSetProps, $txtSetProps);
@@ -316,11 +381,7 @@ EOF
     # Iterate over the interface attributes and generate a property for
     # each one of them.
   SKIPENUM:
-    foreach my $attribute (@{$dataNode->attributes}) {
-        if (SkipAttribute($attribute)) {
-            next SKIPENUM;
-        }
-
+    foreach my $attribute (@readableProperties) {
         my $camelPropName = $attribute->signature->name;
         my $setPropNameFunction = $codeGenerator->WK_ucfirst($camelPropName);
         my $getPropNameFunction = $codeGenerator->WK_lcfirst($camelPropName);
@@ -378,11 +439,7 @@ EOF
             $getterContentHead = "coreSelf->${getPropNameFunction}(";
         }
 
-        if ($writeable && ($gtype eq "boolean" || $gtype eq "float" || $gtype eq "double" ||
-                           $gtype eq "uint64" || $gtype eq "ulong" || $gtype eq "long" || 
-                           $gtype eq "uint" || $gtype eq "ushort" || $gtype eq "uchar" ||
-                           $gtype eq "char" || $gtype eq "string")) {
-
+        if (grep {$_ eq $attribute} @writeableProperties) {
             push(@txtSetProps, "   case ${propEnum}:\n    {\n");
             push(@txtSetProps, "        WebCore::ExceptionCode ec = 0;\n") if @{$attribute->setterExceptions};
             push(@txtSetProps, "        ${setterContentHead}");
@@ -632,13 +689,14 @@ sub addIncludeInBody {
 sub GenerateFunction {
     my ($object, $interfaceName, $function, $prefix) = @_;
 
-    if (SkipFunction($function)) {
+    my $decamelize = FixUpDecamelizedName(decamelize($interfaceName));
+
+    if (SkipFunction($function, $decamelize, $prefix)) {
         return;
     }
 
     my $functionSigName = $function->signature->name;
     my $functionSigType = $function->signature->type;
-    my $decamelize = FixUpDecamelizedName(decamelize($interfaceName));
     my $functionName = "webkit_dom_" . $decamelize . "_" . $prefix . decamelize($functionSigName);
     my $returnType = GetGlibTypeName($functionSigType);
     my $returnValueIsGDOMType = IsGDOMClassType($functionSigType);
@@ -687,19 +745,6 @@ sub GenerateFunction {
         }
 
         $implIncludes{"${functionSigType}.h"} = 1;
-    }
-
-    # skip custom functions for now
-    # but skip from here to allow some headers to be created
-    # for a successful compile.
-    if ($isCustomFunction &&
-        $functionName ne "webkit_dom_node_remove_child" && 
-        $functionName ne "webkit_dom_node_insert_before" &&
-        $functionName ne "webkit_dom_node_replace_child" &&
-        $functionName ne "webkit_dom_node_append_child") {
-        push(@hBody, "\n/* TODO: custom function ${functionName} */\n\n");
-        push(@cBody, "\n/* TODO: custom function ${functionName} */\n\n");
-        return;
     }
 
     if(@{$function->raisesExceptions}) {
@@ -761,7 +806,15 @@ sub GenerateFunction {
     my $assignPre = "";
     my $assignPost = "";
 
-    if ($returnType ne "void" && !$isCustomFunction) {
+    # We need to special-case these Node methods because their C++
+    # signature is different from what we'd expect given their IDL
+    # description; see Node.h.
+    my $functionHasCustomReturn = $functionName eq "webkit_dom_node_append_child" ||
+        $functionName eq "webkit_dom_node_insert_before" ||
+        $functionName eq "webkit_dom_node_replace_child" ||
+        $functionName eq "webkit_dom_node_remove_child";
+        
+    if ($returnType ne "void" && !$functionHasCustomReturn) {
         if ($returnValueIsGDOMType) {
             $assign = "PassRefPtr<WebCore::${functionSigType}> g_res = ";
             $assignPre = "WTF::getPtr(";
@@ -780,12 +833,7 @@ sub GenerateFunction {
         }
     }
 
-    # We need to special-case these Node methods because their C++ signature is different
-    # from what we'd expect given their IDL description; see Node.h.
-    if ($functionName eq "webkit_dom_node_append_child" ||
-        $functionName eq "webkit_dom_node_insert_before" ||
-        $functionName eq "webkit_dom_node_replace_child" ||
-        $functionName eq "webkit_dom_node_remove_child") {
+    if ($functionHasCustomReturn) {
         my $customNodeAppendChild = << "EOF";
     bool ok = item->${functionSigName}(${callImplParams}${exceptions});
     if (ok)
@@ -852,7 +900,7 @@ EOF
         }
     }
 
-    if ($returnType ne "void" && !$isCustomFunction) {
+    if ($returnType ne "void" && !$functionHasCustomReturn) {
         if ($functionSigType ne "DOMObject") {
             if ($returnValueIsGDOMType) {
                 push(@cBody, "    ${returnType} res = static_cast<${returnType}>(WebKit::kit(g_res.get()));\n");

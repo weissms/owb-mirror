@@ -197,7 +197,7 @@ void PluginView::invalidateRegion(NPRegion)
     notImplemented();
 }
 
-NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32 len, const char* buf)
+NPError PluginView::handlePostReadFile(Vector<char>& buffer, uint32_t len, const char* buf)
 {
     String filename(buf, len);
 
@@ -226,9 +226,9 @@ bool PluginView::platformGetValueStatic(NPNVariable variable, void* value, NPErr
     switch (variable) {
     case NPNVToolkit:
 #if PLATFORM(GTK)
-        *static_cast<uint32*>(value) = 2;
+        *static_cast<uint32_t*>(value) = 2;
 #else
-        *static_cast<uint32*>(value) = 0;
+        *static_cast<uint32_t*>(value) = 0;
 #endif
         *result = NPERR_NO_ERROR;
         return true;

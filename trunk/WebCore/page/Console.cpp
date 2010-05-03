@@ -292,6 +292,7 @@ void Console::markTimeline(ScriptCallStack* callStack)
 #if ENABLE(WML)
 String Console::lastWMLErrorMessage() const
 {
+#if ENABLE(INSPECTOR)
     Page* page = this->page();
     if (!page)
         return String();
@@ -310,7 +311,7 @@ String Console::lastWMLErrorMessage() const
 
         return message->message();
     }
-
+#endif
     return String();
 }
 #endif

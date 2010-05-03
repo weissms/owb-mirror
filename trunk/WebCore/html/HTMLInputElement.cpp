@@ -45,6 +45,7 @@
 #include "HTMLImageLoader.h"
 #include "HTMLNames.h"
 #include "HTMLOptionElement.h"
+#include "HTMLParser.h"
 #include "KeyboardEvent.h"
 #include "LocalizedStrings.h"
 #include "MappedAttribute.h"
@@ -65,7 +66,6 @@
 #include <wtf/HashMap.h>
 #include <wtf/MathExtras.h>
 #include <wtf/StdLibExtras.h>
-#include <wtf/dtoa.h>
 
 #if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
@@ -2067,10 +2067,10 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
     // FIXME: It would be better to refactor this for the different types of input element.
     // Having them all in one giant function makes this hard to read, and almost all the handling is type-specific.
 
-    bool clickDefaultFormButton = false;
+    bool implicitSubmission = false;
 
     if (isTextField() && evt->type() == eventNames().textInputEvent && evt->isTextEvent() && static_cast<TextEvent*>(evt)->data() == "\n")
-        clickDefaultFormButton = true;
+        implicitSubmission = true;
 
     if (inputType() == IMAGE && evt->isMouseEvent() && evt->type() == eventNames().clickEvent) {
         // record the mouse position for when we get the DOMActivate event
@@ -2109,7 +2109,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
     
     // Call the base event handler before any of our own event handling for almost all events in text fields.
     // Makes editing keyboard handling take precedence over the keydown and keypress handling in this function.
-    bool callBaseClassEarly = isTextField() && !clickDefaultFormButton
+    bool callBaseClassEarly = isTextField() && !implicitSubmission
         && (evt->type() == eventNames().keydownEvent || evt->type() == eventNames().keypressEvent);
     if (callBaseClassEarly) {
         HTMLFormControlElementWithState::defaultEventHandler(evt);
@@ -2163,6 +2163,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
             case MONTH:
             case NUMBER:
             case PASSWORD:
+            case RADIO:
             case RANGE:
             case SEARCH:
             case TELEPHONE:
@@ -2171,7 +2172,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
             case URL:
             case WEEK:
                 // Simulate mouse click on the default form button for enter for these types of elements.
-                clickDefaultFormButton = true;
+                implicitSubmission = true;
                 break;
             case BUTTON:
             case FILE:
@@ -2181,8 +2182,6 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
                 // Simulate mouse click for enter for these types of elements.
                 clickElement = true;
                 break;
-            case RADIO:
-                break; // Don't do anything for enter on a radio button.
             }
         } else if (charCode == ' ') {
             switch (inputType()) {
@@ -2316,7 +2315,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
         }        
     }
 
-    if (clickDefaultFormButton) {
+    if (implicitSubmission) {
         if (isSearchField()) {
             addSearchResult();
             onSearch();
@@ -2338,7 +2337,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
 
         // Form may never have been present, or may have been destroyed by code responding to the change event.
         if (formForSubmission)
-            formForSubmission->submitClick(evt);
+            formForSubmission->submitImplicitly(evt, isTextField());
 
         evt->setDefaultHandled();
         return;
@@ -2634,42 +2633,6 @@ bool HTMLInputElement::recalcWillValidate() const
         && inputType() != HIDDEN && inputType() != BUTTON && inputType() != RESET;
 }
 
-String HTMLInputElement::serializeForNumberType(double number)
-{
-    // According to HTML5, "the best representation of the number n as a floating
-    // point number" is a string produced by applying ToString() to n.
-    DtoaBuffer buffer;
-    unsigned length;
-    doubleToStringInJavaScriptFormat(number, buffer, &length);
-    return String(buffer, length);
-}
-
-bool HTMLInputElement::parseToDoubleForNumberType(const String& src, double* out)
-{
-    // See HTML5 2.4.4.3 `Real numbers.'
-
-    if (src.isEmpty())
-        return false;
-    // String::toDouble() accepts leading + \t \n \v \f \r and SPACE, which are invalid in HTML5.
-    // So, check the first character.
-    if (src[0] != '-' && (src[0] < '0' || src[0] > '9'))
-        return false;
-
-    bool valid = false;
-    double value = src.toDouble(&valid);
-    if (!valid)
-        return false;
-    // NaN and Infinity are not valid numbers according to the standard.
-    if (!isfinite(value))
-        return false;
-    // -0 -> 0
-    if (!value)
-        value = 0;
-    if (out)
-        *out = value;
-    return true;
-}
-
 bool HTMLInputElement::parseToDateComponents(InputType type, const String& formString, DateComponents* out)
 {
     if (formString.isEmpty())
@@ -2766,5 +2729,29 @@ HTMLOptionElement* HTMLInputElement::selectedOption() const
     return 0;
 }
 #endif // ENABLE(DATALIST)
+
+void HTMLInputElement::stepUpFromRenderer(int n)
+{
+    // The difference from stepUp()/stepDown() is:
+    // If the current value is invalid, the value will be
+    //  - the minimum value if n > 0
+    //  - the maximum value if n < 0
+
+    ASSERT(hasSpinButton());
+    if (!hasSpinButton())
+        return;
+    ASSERT(n);
+    if (!n)
+        return;
+
+    const double nan = numeric_limits<double>::quiet_NaN();
+    double current = parseToDouble(value(), nan);
+    if (!isfinite(current)) {
+        setValue(serialize(n > 0 ? minimum() : maximum()));
+        return;
+    }
+    ExceptionCode ec;
+    stepUp(n, ec);
+}
 
 } // namespace

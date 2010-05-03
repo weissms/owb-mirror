@@ -163,9 +163,12 @@ contains(DEFINES, ENABLE_WEB_SOCKETS=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_WE
 contains(DEFINES, ENABLE_TOUCH_EVENTS=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_TOUCH_EVENTS=1
 contains(DEFINES, ENABLE_TILED_BACKING_STORE=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_TILED_BACKING_STORE=1
 contains(DEFINES, ENABLE_NOTIFICATIONS=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_NOTIFICATIONS=1
+contains(DEFINES, ENABLE_PROGRESS_TAG=1): FEATURE_DEFINES_JAVASCRIPT += ENABLE_PROGRESS_TAG=1
 
 
 ## Derived source generators
+MATHML_NAMES = $$PWD/mathml/mathtags.in
+
 WML_NAMES = $$PWD/wml/WMLTagNames.in
 
 SVG_NAMES = $$PWD/svg/svgtags.in
@@ -209,6 +212,7 @@ contains(DEFINES, ENABLE_WCSS=1) {
 STYLESHEETS_EMBED = \
     $$PWD/css/html.css \
     $$PWD/css/quirks.css \
+    $$PWD/css/mathml.css \
     $$PWD/css/svg.css \
     $$PWD/css/view-source.css \
     $$PWD/css/wml.css \
@@ -591,6 +595,15 @@ IDL_BINDINGS += \
     xml/XPathResult.idl \
     xml/XPathEvaluator.idl \
     xml/XSLTProcessor.idl
+
+contains(DEFINES, ENABLE_MATHML=1) {
+    mathmlnames.output = $${WC_GENERATED_SOURCES_DIR}/MathMLNames.cpp
+    mathmlnames.input = MATHML_NAMES
+    mathmlnames.wkScript = $$PWD/dom/make_names.pl
+    mathmlnames.commands = perl -I$$PWD/bindings/scripts $$mathmlnames.wkScript --tags $$PWD/mathml/mathtags.in --attrs $$PWD/mathml/mathattrs.in --extraDefines \"$${DEFINES}\" --preprocessor \"$${QMAKE_MOC} -E\" --factory --wrapperFactory --outputDir $$WC_GENERATED_SOURCES_DIR
+    mathmlnames.wkExtraSources = $${WC_GENERATED_SOURCES_DIR}/MathMLElementFactory.cpp 
+    addExtraCompiler(mathmlnames)
+}
 
 contains(DEFINES, ENABLE_WML=1) {
     wmlnames.output = $${WC_GENERATED_SOURCES_DIR}/WMLNames.cpp

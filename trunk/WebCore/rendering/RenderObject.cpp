@@ -2500,12 +2500,6 @@ VisiblePosition RenderObject::createVisiblePosition(const Position& position)
 }
 
 #if ENABLE(SVG)
-const SVGRenderBase* RenderObject::toSVGRenderBase() const
-{
-    ASSERT_NOT_REACHED();
-    return 0;
-}
-
 RenderSVGResourceContainer* RenderObject::toRenderSVGResourceContainer()
 {
     ASSERT_NOT_REACHED();
@@ -2513,6 +2507,12 @@ RenderSVGResourceContainer* RenderObject::toRenderSVGResourceContainer()
 }
 
 FloatRect RenderObject::objectBoundingBox() const
+{
+    ASSERT_NOT_REACHED();
+    return FloatRect();
+}
+
+FloatRect RenderObject::strokeBoundingBox() const
 {
     ASSERT_NOT_REACHED();
     return FloatRect();

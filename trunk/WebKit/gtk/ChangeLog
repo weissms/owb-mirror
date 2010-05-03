@@ -1,3 +1,83 @@
+2010-05-03  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Oliver Hunt.
+
+        [GTK] GObject DOM bindings
+        https://bugs.webkit.org/show_bug.cgi?id=33590
+
+        Test webkit_dom_document_get_links.
+
+        * tests/testdomdocument.c:
+        (test_dom_document_get_links):
+        (main):
+
+2010-04-29  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] GObject DOM bindings
+        https://bugs.webkit.org/show_bug.cgi?id=33590
+
+        Test webkit_dom_document_get_element_by_id;
+
+        * tests/testdomdocument.c:
+        (test_dom_document_get_element_by_id):
+        (main):
+
+2010-04-29  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] GObject DOM bindings
+        https://bugs.webkit.org/show_bug.cgi?id=33590
+
+        Test webkit_dom_document_get_elements_by_class_name.
+
+        * tests/testdomdocument.c:
+        (test_dom_document_get_elements_by_class_name):
+        (main):
+
+2010-04-29  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] GObject DOM bindings
+        https://bugs.webkit.org/show_bug.cgi?id=33590
+
+        Test webkit_dom_document_get_elements_by_tag_name.
+
+        * tests/testdomdocument.c:
+        (test_dom_document_get_elements_by_tag_name):
+        (main):
+
+2010-04-29  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] GObject DOM bindings
+        https://bugs.webkit.org/show_bug.cgi?id=33590
+
+        Move WebKitDOMDocument unit tests to their own file.
+
+        * tests/testdomdocument.c: Added.
+        (finish_loading):
+        (dom_document_fixture_setup):
+        (dom_document_fixture_teardown):
+        (test_dom_document_title):
+        (main):
+        * tests/testwebview.c:
+
+2010-04-29  Xan Lopez  <xlopez@igalia.com>
+
+        Reviewed by Gustavo Noronha.
+
+        [GTK] GObject DOM bindings
+        https://bugs.webkit.org/show_bug.cgi?id=33590
+
+        Include <webkit/webkitdom.h> in the main webkit.h header.
+
+        * webkit/webkit.h:
+
 2010-04-29  Sam Weinig  <sam@webkit.org>
 
         Reviewed by Maciej Stachowiak.

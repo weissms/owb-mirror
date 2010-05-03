@@ -1,3 +1,186 @@
+2010-05-03  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Qt] Enable JIT for QtWebKit on Symbian
+        https://bugs.webkit.org/show_bug.cgi?id=38339
+
+        JIT on Symbian has been stable for quite some time, it
+        is time to turn it on by default.
+
+        * wtf/Platform.h:
+
+2010-04-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Add codegen support for unsigned right shift
+        https://bugs.webkit.org/show_bug.cgi?id=38375
+
+        Expose unsigned right shift in the macro assembler, and make use of it
+        from the jit.  Currently if the result is outside the range 0..2^31-1
+        we simply fall back to the slow case, even in JSVALUE64 and JSVALUE32_64
+        where technically we could still return an immediate value.
+
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::urshift32):
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::urshift32):
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::urshift32):
+        * assembler/X86Assembler.h:
+        (JSC::X86Assembler::):
+        (JSC::X86Assembler::shrl_i8r):
+        (JSC::X86Assembler::shrl_CLr):
+           Add unsigned right shift to the x86 assembler
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+           op_rshift no longer simply get thrown to a stub function
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_urshift):
+        (JSC::JIT::emitSlow_op_urshift):
+          JSVALUE32 and JSVALUE64 implementation.  Only supports
+          double lhs in JSVALUE64.
+        * jit/JITArithmetic32_64.cpp:
+        (JSC::JIT::emit_op_rshift):
+        (JSC::JIT::emitSlow_op_rshift):
+        (JSC::JIT::emit_op_urshift):
+        (JSC::JIT::emitSlow_op_urshift):
+          Refactor right shift code to have shared implementation between signed
+          and unsigned versions.
+
+2010-04-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Handle double on righthand side of a right shift
+        https://bugs.webkit.org/show_bug.cgi?id=38363
+
+        In 64-bit we support right shift of a double, and there's no
+        reason not to in 32-bit either.  This is a 1.1% sunspider
+        improvement in 32bit.
+
+        Given high performance javascript code frequently makes
+        use of bit operators to perform double->int conversion i'll
+        follow this patch up with similar patches for bitwise 'and'
+        and 'or'.
+
+        * jit/JITArithmetic32_64.cpp:
+        (JSC::JIT::emit_op_rshift):
+        (JSC::JIT::emitSlow_op_rshift):
+
+2010-04-29  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Hoist JSVALUE32_64 arithmetic implementations into a separate file.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pro:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emitSlow_op_jless):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        (JSC::JIT::emit_op_mod):
+        (JSC::JIT::compileBinaryArithOpSlowCase):
+        (JSC::JIT::emit_op_div):
+        (JSC::JIT::compileBinaryArithOp):
+        * jit/JITArithmetic32_64.cpp: Added.
+        (JSC::JIT::emit_op_negate):
+        (JSC::JIT::emitSlow_op_negate):
+        (JSC::JIT::emit_op_jnless):
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emit_op_jless):
+        (JSC::JIT::emitSlow_op_jless):
+        (JSC::JIT::emit_op_jnlesseq):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        (JSC::JIT::emit_op_lshift):
+        (JSC::JIT::emitSlow_op_lshift):
+        (JSC::JIT::emit_op_rshift):
+        (JSC::JIT::emitSlow_op_rshift):
+        (JSC::JIT::emit_op_bitand):
+        (JSC::JIT::emitSlow_op_bitand):
+        (JSC::JIT::emit_op_bitor):
+        (JSC::JIT::emitSlow_op_bitor):
+        (JSC::JIT::emit_op_bitxor):
+        (JSC::JIT::emitSlow_op_bitxor):
+        (JSC::JIT::emit_op_bitnot):
+        (JSC::JIT::emitSlow_op_bitnot):
+        (JSC::JIT::emit_op_post_inc):
+        (JSC::JIT::emitSlow_op_post_inc):
+        (JSC::JIT::emit_op_post_dec):
+        (JSC::JIT::emitSlow_op_post_dec):
+        (JSC::JIT::emit_op_pre_inc):
+        (JSC::JIT::emitSlow_op_pre_inc):
+        (JSC::JIT::emit_op_pre_dec):
+        (JSC::JIT::emitSlow_op_pre_dec):
+        (JSC::JIT::emit_op_add):
+        (JSC::JIT::emitAdd32Constant):
+        (JSC::JIT::emitSlow_op_add):
+        (JSC::JIT::emit_op_sub):
+        (JSC::JIT::emitSub32Constant):
+        (JSC::JIT::emitSlow_op_sub):
+        (JSC::JIT::emitBinaryDoubleOp):
+        (JSC::JIT::emit_op_mul):
+        (JSC::JIT::emitSlow_op_mul):
+        (JSC::JIT::emit_op_div):
+        (JSC::JIT::emitSlow_op_div):
+        (JSC::JIT::emit_op_mod):
+        (JSC::JIT::emitSlow_op_mod):
+
+2010-04-29  Zoltan Herczeg  <zherczeg@webkit.org>
+
+        Reviewed by Oliver Hunt
+
+        Add sqrt() instruction support for ARM assembler (using VFP)
+        https://bugs.webkit.org/show_bug.cgi?id=38312
+
+        * assembler/ARMAssembler.h:
+        (JSC::ARMAssembler::):
+        (JSC::ARMAssembler::fsqrtd_r):
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::supportsFloatingPointSqrt):
+        (JSC::MacroAssemblerARM::sqrtDouble):
+
+2010-04-29  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Refactor qtscriptglobal.h
+        https://bugs.webkit.org/show_bug.cgi?id=37953
+
+        Use the same pattern in qtscriptglobal.h as in 
+        qwebkitglobal.h without checking for specific OSs.
+
+        * qt/api/qtscriptglobal.h:
+
+2010-04-29  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Small cleanup.
+
+        QScriptValuePrivate constructor shouldn't take QScriptEngine pointer
+        as a parameter, because it breaks a private / public separation rule.
+        QScriptEnginePrivate::get(QScriptEngine*) should return
+        a QScriptEnginePrivate pointer instead of a QScriptEnginePtr, it simplifies
+        implementation.
+
+        [Qt] QScriptValuePrivate class needs some cleanup.
+        https://bugs.webkit.org/show_bug.cgi?id=37729
+
+        * qt/api/qscriptengine_p.h:
+        (QScriptEnginePrivate::get):
+        * qt/api/qscriptvalue.cpp:
+        (QScriptValue::QScriptValue):
+        * qt/api/qscriptvalue_p.h:
+        (QScriptValuePrivate::QScriptValuePrivate):
+
 2010-04-29  Kwang Yul Seo  <skyul@company100.net>
 
         Reviewed by Simon Hausmann.

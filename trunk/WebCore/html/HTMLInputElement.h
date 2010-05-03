@@ -121,6 +121,8 @@ public:
     void stepDown(int, ExceptionCode&);
     void stepUp(ExceptionCode& ec) { stepUp(1, ec); }
     void stepDown(ExceptionCode& ec) { stepDown(1, ec); }
+    // stepUp()/stepDown() for user-interaction.
+    void stepUpFromRenderer(int);
 
     bool isTextButton() const { return m_type == SUBMIT || m_type == RESET || m_type == BUTTON; }
     virtual bool isRadioButton() const { return m_type == RADIO; }
@@ -128,6 +130,7 @@ public:
     virtual bool isSearchField() const { return m_type == SEARCH; }
     virtual bool isInputTypeHidden() const { return m_type == HIDDEN; }
     virtual bool isPasswordField() const { return m_type == PASSWORD; }
+    virtual bool hasSpinButton() const { return m_type == NUMBER || m_type == DATE || m_type == DATETIME || m_type == DATETIMELOCAL || m_type == MONTH || m_type == TIME || m_type == WEEK; }
 
     bool checked() const { return m_checked; }
     void setChecked(bool, bool sendChangeEvent = false);
@@ -261,13 +264,6 @@ public:
 
     virtual void addSubresourceAttributeURLs(ListHashSet<KURL>&) const;
     
-    // Converts the specified string to a floating number.
-    // If the conversion fails, the return value is false. Take care that leading or trailing unnecessary characters make failures.  This returns false for an empty string input.
-    // The double* parameter may be 0.
-    static bool parseToDoubleForNumberType(const String&, double*);
-    // Converts the specified number to a string. This is an implementation of
-    // HTML5's "algorithm to convert a number to a string" for NUMBER/RANGE types.
-    static String serializeForNumberType(double);
     // Parses the specified string as the InputType, and returns true if it is successfully parsed.
     // An instance pointed by the DateComponents* parameter will have parsed values and be
     // modified even if the parsing fails.  The DateComponents* parameter may be 0.

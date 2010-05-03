@@ -1,3 +1,152 @@
+2010-05-03  Tasuku Suzuki  <tasuku.suzuki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Fix compilation with QT_NO_BEARERMANAGEMENT
+        https://bugs.webkit.org/show_bug.cgi?id=38324
+
+        * Api/qwebsettings.cpp:
+
+2010-04-29  Janne Koskinen  <janne.p.koskinen@digia.com>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] QtWebKit versioning added
+        https://bugs.webkit.org/show_bug.cgi?id=37207
+
+        QtWebkit releases separated from Qt release cycle.
+
+        * qtwebkit_version.pri: Added.
+
+2010-05-02  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] QWebPage::userAgentForUrl is terrible API
+        https://bugs.webkit.org/show_bug.cgi?id=33875
+
+        Simplify the creation of the user agent string to avoid some
+        overhead for each loaded url.
+
+        The static part of the user agent is cached so it only have
+        to be made once.
+        This creation has been made in order to simplify the code.
+
+        The two variable: application name and current language are
+        set dynamically when needed.
+        The default locale is non longer created if the widget locale
+        is used.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::userAgentForUrl):
+        * tests/qwebpage/tst_qwebpage.cpp:
+        (tst_QWebPage::userAgentApplicationName):
+        (tst_QWebPage::userAgentLocaleChange):
+
+2010-05-02  Noam Rosenthal  <noam.rosenthal@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] GraphicsLayer: animation incorrect when scrolling
+        https://bugs.webkit.org/show_bug.cgi?id=38371
+
+        This is a regression introduced with the invalidate-on-scroll code path, that uses QGraphicsWebViewPrivate::update()
+        instead of QGraphicsWebViewPrivate::scroll(). The patch makes sure that the scrolling position is correct on
+        each content update - this shouldn't have a performance impact - the only overhead is an additional value-test on each update.
+
+        Tested by http://www.the-art-of-web.com/css/css-animation/
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebViewPrivate::update):
+
+2010-05-01  Robert Hogan  <robert@webkit.org>
+
+        Reviewed by Simon Hausmann.
+
+        [Qt] Add smart paste support
+
+        https://bugs.webkit.org/show_bug.cgi?id=38136
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::QWebPagePrivate): Enable smart paste support by default.
+
+2010-04-29  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Reinstate qt_drt_ symbol exports as of QtWebKit 4.6 release
+        https://bugs.webkit.org/show_bug.cgi?id=38304
+
+        This change provides backward compatibility with some previously
+        exported private symbols. No new functionality introduced.
+
+        * WebCoreSupport/DumpRenderTreeSupportQt.cpp:
+        (qt_resumeActiveDOMObjects):
+        (qt_suspendActiveDOMObjects):
+        (qt_drt_clearFrameName):
+        (qt_drt_garbageCollector_collect):
+        (qt_drt_garbageCollector_collectOnAlternateThread):
+        (qt_drt_javaScriptObjectsCount):
+        (qt_drt_numberOfActiveAnimations):
+        (qt_drt_overwritePluginDirectories):
+        (qt_drt_pauseAnimation):
+        (qt_drt_pauseTransitionOfProperty):
+        (qt_drt_resetOriginAccessWhiteLists):
+        (qt_drt_run):
+        (qt_drt_setJavaScriptProfilingEnabled):
+        (qt_drt_whiteListAccessFromOrigin):
+        (qt_webpage_groupName):
+        (qt_webpage_setGroupName):
+
+2010-04-29  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Get rid of forceLayout() on FrameView
+        https://bugs.webkit.org/show_bug.cgi?id=38199
+
+        The function FrameView::forceLayout() is missleading
+        because it does not actually force the layout, the call is
+        equivalent to layout().
+
+        This patch replace the call to forceLayout() by layout() in Qt
+        to avoid the misunderstanding/improve readability.
+
+        * Api/qwebpage.cpp:
+        (QWebPagePrivate::dynamicPropertyChangeEvent):
+        (QWebPage::setPreferredContentsSize):
+        * WebCoreSupport/DumpRenderTreeSupportQt.cpp:
+        (DumpRenderTreeSupportQt::setMediaType):
+        * WebCoreSupport/FrameLoaderClientQt.cpp:
+        (WebCore::FrameLoaderClientQt::forceLayout):
+
+2010-04-29  Andreas Kling  <andreas.kling@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Remove unnecessary call to FrameView::forceLayout() in setViewportSize()
+        This prevents a double relayout on resize.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38179
+
+        Thanks to Nate Whetsell <nathan.whetsell@gmail.com> for spotting this.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::setViewportSize):
+
+2010-04-29  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Reviewed by Tor Arne Vestbø.
+
+        [Qt] REGRESSION(r57982): tst_qwebpage::showModalDialog() crashes
+        https://bugs.webkit.org/show_bug.cgi?id=38314
+
+        Make sure that there's always a main frame when returning from createWindow()
+        to the caller in WebCore.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::createWindow):
+
 2010-04-29  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Unreviewed, Qt build fix.

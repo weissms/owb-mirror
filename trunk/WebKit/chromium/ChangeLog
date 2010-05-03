@@ -1,3 +1,146 @@
+2010-05-03  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Dmitry Titov.
+
+        Define two new ResourceRequestBase TargetTypes for worker and shared worker
+        main resources. Use the new target types where appropiate. Add logic to marshal
+        the target type specified by requests initiated on a background worker thread.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38295
+
+        * src/SharedWorkerRepository.cpp:  use TargetIsSharedWorker
+        (WebCore::SharedWorkerScriptLoader::SharedWorkerScriptLoader):
+
+2010-05-02  Rafael Weinstein  <rafaelw@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Include WebWindowFeatures in call to WebViewClient::createView.
+        https://bugs.webkit.org/show_bug.cgi?id=38301
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createView):
+        * public/WebWindowFeatures.h:
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::createWindow):
+
+2010-05-01  Evan Stade  <estade@chromium.org>
+
+        Reviewed by David Levin
+
+        [chromium] Skia needs to fade DragImages
+        https://bugs.webkit.org/show_bug.cgi?id=38008
+
+        * tests/DragImageTest.cpp:
+        (DragImageTest.CreateDragImage): test that the drag image is a deep copy
+
+2010-04-30  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] Add WebFileSystem interface and hook up with all FileSystem methods.
+        https://bugs.webkit.org/show_bug.cgi?id=38228
+
+        * WebKit.gyp:
+        * public/WebFileSystem.h: Added.
+        * public/WebKitClient.h:
+        (WebKit::WebKitClient::fileSystem):
+        * src/ChromiumBridge.cpp:
+        (WebCore::ChromiumBridge::fileExists):
+        (WebCore::ChromiumBridge::deleteFile):
+        (WebCore::ChromiumBridge::deleteEmptyDirectory):
+        (WebCore::ChromiumBridge::getFileSize):
+        (WebCore::ChromiumBridge::getFileModificationTime):
+        (WebCore::ChromiumBridge::directoryName):
+        (WebCore::ChromiumBridge::pathByAppendingComponent):
+        (WebCore::ChromiumBridge::makeAllDirectories):
+        (WebCore::ChromiumBridge::getAbsolutePath):
+        (WebCore::ChromiumBridge::isDirectory):
+        (WebCore::ChromiumBridge::filePathToURL):
+        (WebCore::ChromiumBridge::openFile):
+        (WebCore::ChromiumBridge::closeFile):
+        (WebCore::ChromiumBridge::seekFile):
+        (WebCore::ChromiumBridge::truncateFile):
+        (WebCore::ChromiumBridge::readFromFile):
+        (WebCore::ChromiumBridge::writeToFile):
+
+2010-04-29  Jeremy Orlow  <jorlow@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Change StorageEvent.uri to StorageEvent.url to match the spec
+        https://bugs.webkit.org/show_bug.cgi?id=38331
+
+        Get rid of a stale FIXME and combine 2 lines that needn't be split.
+
+        * src/StorageEventDispatcherImpl.cpp:
+        (WebCore::StorageEventDispatcherImpl::dispatchStorageEvent):
+
+2010-04-29  Anton Muhin  <antonm@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [Chromium] Consider implementing addOriginAccessWhitelistEntry method
+        http://trac.webkit.org/changeset/57537 introduced a new method
+        to manage whitelisting of origins.
+        Expose this method in Chromium's bridge.
+        https://bugs.webkit.org/show_bug.cgi?id=37578
+
+        * public/WebSecurityPolicy.h: Start renaming (keep old function names) and add new removeOriginAccessWhitelistEntry method
+        * src/WebSecurityPolicy.cpp: Start renaming (keep old function names) and add new removeOriginAccessWhitelistEntry method
+
+2010-04-29  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r58498.
+        http://trac.webkit.org/changeset/58498
+        https://bugs.webkit.org/show_bug.cgi?id=38332
+
+        "Broke a bunch of tests on Chromium canaries" (Requested by
+        dglazkov on #webkit).
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createView):
+        * public/WebWindowFeatures.h:
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::createWindow):
+
+2010-04-29  Adam Langley  <agl@chromium.org>
+
+        Unreviewed, DEPS roll.
+
+        WebKit's r58517 needs OTS's r30 which was rolled into Chromium in
+        r45932.
+
+        * DEPS:
+          Use Chromium r45932.
+
+2010-04-29  Rafael Weinstein  <rafaelw@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Include WindowFeatures in call to WebViewClient::createView.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38301
+
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createView):
+        * public/WebWindowFeatures.h:
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::createWindow):
+
+2010-04-29  Garret Kelly  <gdk@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Expose the RuntimeFeature for touch events through the
+        WebRuntimeFeatures mechanism.
+        https://bugs.webkit.org/show_bug.cgi?id=37486
+
+        * public/WebRuntimeFeatures.h:
+        * src/WebRuntimeFeatures.cpp:
+        (WebKit::WebRuntimeFeatures::enableTouch):
+        (WebKit::WebRuntimeFeatures::isTouchEnabled):
+
 2010-04-29  Zhenyao Mo  <zmo@google.com>
 
         Reviewed by Dimitri Glazkov.

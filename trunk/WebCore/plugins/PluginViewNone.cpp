@@ -73,7 +73,7 @@ void PluginView::setNPWindowRect(const IntRect&)
     notImplemented();
 }
 
-NPError PluginView::handlePostReadFile(Vector<char>&, uint32, const char*)
+NPError PluginView::handlePostReadFile(Vector<char>&, uint32_t, const char*)
 {
     notImplemented();
     return 0;

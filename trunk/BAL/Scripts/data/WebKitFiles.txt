@@ -196,4 +196,5 @@ WebKitTools/DumpRenderTree/AccessibilityController.h
 WebKitTools/DumpRenderTree/DumpRenderTree.h
 WebKitTools/Scripts/prepare-ChangeLog
 WebKitTools/Scripts/resolve-ChangeLogs
+WebKitTools/Scripts/svn-apply
 WebKitTools/Scripts/svn-unapply

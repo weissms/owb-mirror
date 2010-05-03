@@ -65,10 +65,10 @@ WEBKIT_API WebKitDOMTestObj*
 webkit_dom_test_obj_obj_method_with_args (WebKitDOMTestObj *self, glong int_arg, gchar*  str_arg, WebKitDOMTestObj*  obj_arg);
 
 WEBKIT_API void
+webkit_dom_test_obj_serialized_value (WebKitDOMTestObj *self, WebKitDOMSerializedScriptValue*  serialized_arg);
+
+WEBKIT_API void
 webkit_dom_test_obj_method_with_exception (WebKitDOMTestObj *self, GError **error);
-
-
-/* TODO: custom function webkit_dom_test_obj_custom_args_and_exception */
 
 
 /* TODO: event function webkit_dom_test_obj_add_event_listener */

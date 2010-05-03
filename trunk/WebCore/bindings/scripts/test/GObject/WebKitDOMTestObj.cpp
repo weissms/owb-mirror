@@ -27,10 +27,10 @@
 #include "TestObj.h"
 #include "WebKitDOMBinding.h"
 #include "gobject/ConvertToUTF8String.h"
+#include "webkit/WebKitDOMSerializedScriptValue.h"
+#include "webkit/WebKitDOMSerializedScriptValuePrivate.h"
 #include "webkit/WebKitDOMTestObj.h"
 #include "webkit/WebKitDOMTestObjPrivate.h"
-#include "webkit/WebKitDOMlog.h"
-#include "webkit/WebKitDOMlogPrivate.h"
 #include "webkitmarshal.h"
 #include "webkitprivate.h"
 
@@ -124,6 +124,18 @@ webkit_dom_test_obj_obj_method_with_args (WebKitDOMTestObj *self, glong int_arg,
 }
 
 void
+webkit_dom_test_obj_serialized_value (WebKitDOMTestObj *self, WebKitDOMSerializedScriptValue*  serialized_arg)
+{
+    g_return_if_fail (self);
+    WebCore::TestObj * item = WebKit::core(self);
+    g_return_if_fail (serialized_arg);
+    WebCore::SerializedScriptValue * _g_serialized_arg = WebKit::core(serialized_arg);
+    g_return_if_fail (_g_serialized_arg);
+    item->serializedValue(_g_serialized_arg);
+
+}
+
+void
 webkit_dom_test_obj_method_with_exception (WebKitDOMTestObj *self, GError **error)
 {
     g_return_if_fail (self);
@@ -137,9 +149,6 @@ webkit_dom_test_obj_method_with_exception (WebKitDOMTestObj *self, GError **erro
     }
 
 }
-
-
-/* TODO: custom function webkit_dom_test_obj_custom_args_and_exception */
 
 
 /* TODO: event function webkit_dom_test_obj_add_event_listener */
@@ -529,10 +538,9 @@ static void webkit_dom_test_obj_finalize(GObject* object)
 
 static void webkit_dom_test_obj_set_property(GObject* object, guint prop_id, const GValue* value, GParamSpec* pspec)
 {
-    WebKitDOMTestObj *self = WEBKIT_DOM_TEST_OBJ(object);
+     WebKitDOMTestObj *self = WEBKIT_DOM_TEST_OBJ(object);
     WebCore::TestObj* coreSelf = WebKit::core(self);
-
-    switch (prop_id) {
+     switch (prop_id) {
     case PROP_INT_ATTR:
     {
          coreSelf->setIntAttr((g_value_get_long(value)) );
@@ -577,10 +585,9 @@ static void webkit_dom_test_obj_set_property(GObject* object, guint prop_id, con
 
 static void webkit_dom_test_obj_get_property(GObject* object, guint prop_id, GValue* value, GParamSpec* pspec)
 {
-    WebKitDOMTestObj* self = WEBKIT_DOM_TEST_OBJ(object);
+     WebKitDOMTestObj* self = WEBKIT_DOM_TEST_OBJ(object);
     WebCore::TestObj* coreSelf = WebKit::core(self);
-
-    switch (prop_id) {
+     switch (prop_id) {
     case PROP_READ_ONLY_INT_ATTR:
     {
          g_value_set_long(value, coreSelf->readOnlyIntAttr());

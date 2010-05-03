@@ -292,17 +292,8 @@ void ScrollView::valueChanged(Scrollbar* scrollbar)
     if (scrollbarsSuppressed())
         return;
 
+    scrollPositionChanged();
     scrollContents(scrollDelta);
-}
-
-void ScrollView::scrollRectIntoViewRecursively(const IntRect&)
-{
-    // FIXME: This function is unused. To clean up further the following can be done:
-    //
-    //   1) This function can be deleted.
-    //   2) The unused ScrollView* argument can be removed from ChromeClient::scrollRectIntoView.
-    //
-    ASSERT_NOT_REACHED();
 }
 
 void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
