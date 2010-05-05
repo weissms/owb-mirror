@@ -28,23 +28,21 @@ namespace WebCore {
 
 void setCookies(Document* document, const KURL& url, const String& value)
 {
-    const KURL& documentURL = document->url();
-    const KURL& cookieURL = documentURL.isEmpty() ? url : documentURL;
-    cookieManager().setCookies(cookieURL, value);
+    ASSERT(document && url == document->cookieURL());
+    cookieManager().setCookies(url, value);
 }
   
 String cookies(const Document* document, const KURL& url)
 {
-    const KURL& documentURL = document->url();
-    const KURL& cookieURL = documentURL.isEmpty() ? url : documentURL;
-    return cookieManager().getCookie(cookieURL, NoHttpOnlyCookie);
+    ASSERT(document && url == document->cookieURL());
+    // 'HttpOnly' cookies should no be accessible from scripts, so we filter them out here
+    return cookieManager().getCookie(url, NoHttpOnlyCookie);
 }
 
 String cookieRequestHeaderFieldValue(const Document* document, const KURL& url)
 {
-    const KURL& documentURL = document->url();
-    const KURL& cookieURL = documentURL.isEmpty() ? url : documentURL;
-    return cookieManager().getCookie(cookieURL, WithHttpOnlyCookies);
+    ASSERT(document && url == document->cookieURL());
+    return cookieManager().getCookie(url, WithHttpOnlyCookies);
 }
 
 bool cookiesEnabled(const Document* /*document*/)

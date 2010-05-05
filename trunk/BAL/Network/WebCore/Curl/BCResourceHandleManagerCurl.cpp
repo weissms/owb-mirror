@@ -331,10 +331,18 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
 
                 ResourceRequest redirectedRequest = job->request();
                 redirectedRequest.setURL(newURL);
+                
+                // Should not set Referer after a redirect from a secure resource to non-secure one.
+                if (!redirectedRequest.url().protocolIs("https") && protocolIs(redirectedRequest.httpReferrer(), "https"))
+                    redirectedRequest.clearHTTPReferrer();
+                
                 if (client)
                     client->willSendRequest(job, redirectedRequest, d->m_response);
 
                 d->m_request.setURL(newURL);
+                
+                // Set the cookies corresponding to the host we're getting redirected to
+                job->checkAndSendCookies(newURL);
 
                 return totalSize;
             }

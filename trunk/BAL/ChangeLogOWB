@@ -1,3 +1,21 @@
+2010-05-04  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Reviewed by Mario Bensi.
+
+        Fixed up a cookies issue w/ HTTP redirections which used to prevent
+        connections to GMail.
+
+        * Network/WebCore/Curl/BCCookieJarCurl.cpp:
+        (WebCore::setCookies):
+        (WebCore::cookies):
+        (WebCore::cookieRequestHeaderFieldValue):
+        Use the specified URL for cookies and assert the specified URL equals
+        the document's cookie URL.
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::headerCallback):
+        Clear the HTTP referrer after re-direction from secure to non-secure
+        URL. Reset the cookies according to the redirected URL.
+
 2010-04-23  Gilles Bertal  <gbertal@connected-labs.com>
 
         Reviewed by Guillaume.
