@@ -50,7 +50,7 @@ Widget::~Widget()
     ASSERT(!parent());
 }
 
-void Widget::setFocus()
+void Widget::setFocus(bool focused)
 {
     notImplemented();
 }

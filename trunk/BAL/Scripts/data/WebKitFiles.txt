@@ -48,7 +48,7 @@ WebCore/dom/ViewportArguments.cpp
 WebCore/editing/Editor.cpp
 WebCore/editing/TextIterator.cpp
 WebCore/editing/gtk/SelectionControllerGtk.cpp BAL/Widgets/WebCore/Gtk/BCSelectionControllerGtk.cpp
-WebCore/html/FileError.h
+WebCore/html/FileStream.cpp
 WebCore/html/FileStreamProxy.cpp
 WebCore/html/HTMLDocument.cpp
 WebCore/html/HTMLFormElement.cpp

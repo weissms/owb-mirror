@@ -242,7 +242,7 @@ WebViewImpl::WebViewImpl(WebViewClient* client)
     , m_haveMouseCapture(false)
 #if USE(ACCELERATED_COMPOSITING)
     , m_layerRenderer(0)
-    , m_isAcceleratedCompositing(false)
+    , m_isAcceleratedCompositingActive(false)
 #endif
 {
     // WebKit/win/WebView.cpp does the same thing, except they call the
@@ -329,9 +329,12 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
     // If there is a select popup open, close it as the user is clicking on
     // the page (outside of the popup).  We also save it so we can prevent a
     // click on the select element from immediately reopening the popup.
-    RefPtr<WebCore::PopupContainer> selectPopup = m_selectPopup;
-    hideSelectPopup();
-    ASSERT(!m_selectPopup);
+    RefPtr<WebCore::PopupContainer> selectPopup;
+    if (event.button == WebMouseEvent::ButtonLeft) {
+        selectPopup = m_selectPopup;
+        hideSelectPopup();
+        ASSERT(!m_selectPopup);
+    }
 
     m_lastMouseDownPoint = WebPoint(event.x, event.y);
     m_haveMouseCapture = true;
@@ -859,6 +862,14 @@ void  WebViewImpl::popupClosed(WebCore::PopupContainer* popupContainer)
     }
 }
 
+void WebViewImpl::hideSuggestionsPopup()
+{
+    if (m_suggestionsPopupShowing) {
+        m_suggestionsPopup->hidePopup();
+        m_suggestionsPopupShowing = false;
+    }
+}
+
 Frame* WebViewImpl::focusedWebCoreFrame()
 {
     return m_page.get() ? m_page->focusController()->focusedOrMainFrame() : 0;
@@ -941,7 +952,7 @@ void WebViewImpl::paint(WebCanvas* canvas, const WebRect& rect)
 {
 
 #if USE(ACCELERATED_COMPOSITING)
-    if (!isAcceleratedCompositing()) {
+    if (!isAcceleratedCompositingActive()) {
 #endif
         WebFrameImpl* webframe = mainFrameImpl();
         if (webframe)
@@ -1275,6 +1286,15 @@ void WebViewImpl::setTextDirection(WebTextDirection direction)
         notImplemented();
         break;
     }
+}
+
+bool WebViewImpl::isAcceleratedCompositingActive() const
+{
+#if USE(ACCELERATED_COMPOSITING)
+    return m_isAcceleratedCompositingActive;
+#else
+    return false;
+#endif
 }
 
 // WebView --------------------------------------------------------------------
@@ -1677,14 +1697,6 @@ WebAccessibilityObject WebViewImpl::accessibilityObject()
         document->axObjectCache()->getOrCreate(document->renderer()));
 }
 
-void WebViewImpl::applyAutofillSuggestions(
-    const WebNode& node,
-    const WebVector<WebString>& suggestions,
-    int defaultSuggestionIndex)
-{
-    applyAutocompleteSuggestions(node, suggestions, defaultSuggestionIndex);
-}
-
 void WebViewImpl::applyAutoFillSuggestions(
     const WebNode& node,
     const WebVector<WebString>& names,
@@ -1803,19 +1815,6 @@ void WebViewImpl::hidePopups()
 {
     hideSelectPopup();
     hideSuggestionsPopup();
-}
-
-void WebViewImpl::hideAutofillPopup()
-{
-    hideSuggestionsPopup();
-}
-
-void WebViewImpl::hideSuggestionsPopup()
-{
-    if (m_suggestionsPopupShowing) {
-        m_suggestionsPopup->hidePopup();
-        m_suggestionsPopupShowing = false;
-    }
 }
 
 void WebViewImpl::performCustomContextMenuAction(unsigned action)
@@ -2054,29 +2053,29 @@ bool WebViewImpl::tabsToLinks() const
 #if USE(ACCELERATED_COMPOSITING)
 void WebViewImpl::setRootGraphicsLayer(WebCore::PlatformLayer* layer)
 {
-    setAcceleratedCompositing(layer ? true : false);
+    setIsAcceleratedCompositingActive(layer ? true : false);
     if (m_layerRenderer)
         m_layerRenderer->setRootLayer(layer);
 }
 
-void WebViewImpl::setAcceleratedCompositing(bool accelerated)
+void WebViewImpl::setIsAcceleratedCompositingActive(bool active)
 {
-    if (m_isAcceleratedCompositing == accelerated)
+    if (m_isAcceleratedCompositingActive == active)
         return;
 
-    if (accelerated) {
+    if (active) {
         m_layerRenderer = LayerRendererChromium::create();
         if (m_layerRenderer)
-            m_isAcceleratedCompositing = true;
+            m_isAcceleratedCompositingActive = true;
     } else {
         m_layerRenderer = 0;
-        m_isAcceleratedCompositing = false;
+        m_isAcceleratedCompositingActive = false;
     }
 }
 
 void WebViewImpl::updateRootLayerContents(const WebRect& rect)
 {
-    if (!isAcceleratedCompositing())
+    if (!isAcceleratedCompositingActive())
         return;
 
     WebFrameImpl* webframe = mainFrameImpl();

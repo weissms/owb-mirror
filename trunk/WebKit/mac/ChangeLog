@@ -1,3 +1,123 @@
+2010-05-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Mark Rowe.
+
+        Fixed a crash when closing Top Sites after r58847.
+
+        * WebView/WebFrameView.mm:
+        (-[WebFrameView webFrame]): Null-check _private.
+
+2010-05-05  Dan Bernstein  <mitz@apple.com>
+
+        Rubber-stamped by Mark Rowe.
+
+        Fixed test crashes after r58847.
+
+        * WebView/WebHTMLView.mm:
+        (setNeedsDisplayInRect): Null-check the frame.
+
+2010-05-05  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/7932072> Iframes in composited layers don’t repaint correctly (affects Yahoo! Mail with Flash Player 10.1)
+        https://bugs.webkit.org/show_bug.cgi?id=38427
+
+        * WebView/WebClipView.m: Renamed to WebClipView.mm.
+        * WebView/WebClipView.mm:
+        (-[WebClipView visibleRect]): Added this override, which for instances used for WebFrameViews in
+        composited layers, returns the clip view’s entire bounds. This prevents drawing from being clipped to
+        AppKit’s idea of what part of the view would be visible if it was drawn as part of the view hierarchy.
+        Since it is drawn into a compositing layer, that’s irrelevant, and we should not be clipping.
+        * WebView/WebHTMLView.mm:
+        (setCursor): Style tweak.
+        (setNeedsDisplayInRect): Added. Replaces the default implementation of -[NSView setNeedsDisplayInRect:],
+        so that if the receiver is a descendant of a WebFrameView that draws into a composited layer, the invalidation
+        is routed back through the WebCore FrameView, which propagates it to the layer.
+        (+[WebHTMLViewPrivate initialize]): Swizzle the setNeedsDisplayInRect: override in.
+        (-[WebHTMLView visibleRect]): Removed whitespace.
+        * WebView/WebView.mm:
+        (layerSyncRunLoopObserverCallBack): If we bailed out on syncing, due to pending layout, do an eager layout
+        in preparation for the displaying of compositing layers.
+
+2010-05-05  John Sullivan  <sullivan@apple.com>
+
+        <rdar://problem/7942606> Output appears in Console when exiting Safari with multiple windows opened
+
+        Reviewed by Mark Rowe.
+
+        * WebView/WebView.mm:
+        (+[WebView closeAllWebViews]):
+        Make copy of allWebViewsSet to avoid mutating it while iterating through it.
+
+2010-05-04  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Improve check for drawing into the window that was added in r58623
+        https://bugs.webkit.org/show_bug.cgi?id=38562
+        
+        Rather than assuming that any non-bitmap context is the window's context,
+        compare the current graphics context with -[NSWindow graphicsContext] to
+        determine that we're drawing into the window.
+
+        * WebView/WebHTMLView.mm:
+        (-[WebHTMLView drawRect:]):
+
+2010-05-04  Ada Chan  <adachan@apple.com>
+
+        Reviewed by David Kilzer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38555
+        
+        Small code refactoring: move the logic to figure out the path to the 
+        databases directory to another method.
+
+        * Storage/WebDatabaseManager.mm:
+        (databasesDirectoryPath):
+        (WebKitInitializeDatabasesIfNecessary):
+
+2010-05-04  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Mike Thole.
+
+        Fix for <rdar://problem/7818509> Crash occurs when exiting Safari
+
+        We can avoid this crash if we call [self _removeFromAllWebViewsSet] 
+        even in the case when we are doing a fastDocumentTeardown. This is 
+        a much safer approach.
+        * WebView/WebView.mm:
+        (-[WebView _close]):
+
+2010-05-03  Abhishek Arya  <inferno@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for controlling clipboard access from javascript.
+        Clipboard access from javascript is disabled by default.
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        * WebView/WebPreferenceKeysPrivate.h:
+        * WebView/WebPreferences.mm:
+        (+[WebPreferences initialize]):
+        (-[WebPreferences javaScriptCanAccessClipboard]):
+        (-[WebPreferences setJavaScriptCanAccessClipboard:]):
+        * WebView/WebPreferencesPrivate.h:
+        * WebView/WebView.mm:
+        (-[WebView _preferencesChangedNotification:]):
+
+2010-05-03  Jens Alfke  <snej@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] Add "willSendSubmitEvent" hook to WebFrameClient and FrameLoaderClient
+        https://bugs.webkit.org/show_bug.cgi?id=38397
+
+        No tests (functionality is exposed only through native WebKit API.)
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        (WebFrameLoaderClient::dispatchWillSendSubmitEvent):
+
 2010-05-03  Simon Fraser  <simon.fraser@apple.com>
 
         Reviewed by Dan Bernstein.

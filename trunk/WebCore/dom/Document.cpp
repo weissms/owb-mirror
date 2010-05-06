@@ -2882,6 +2882,14 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             
         if (oldFocusedNode == oldFocusedNode->rootEditableElement())
             frame()->editor()->didEndEditing();
+
+        if (view()) {
+            Widget* oldWidget = widgetForNode(oldFocusedNode.get());
+            if (oldWidget)
+                oldWidget->setFocus(false);
+            else
+                view()->setFocus(false);
+        }
     }
 
     if (newFocusedNode) {
@@ -2909,7 +2917,7 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
             focusChangeBlocked = true;
             goto SetFocusedNodeDone;
         }
-        m_focusedNode->setFocus();
+        m_focusedNode->setFocus(true);
 
         if (m_focusedNode == m_focusedNode->rootEditableElement())
             frame()->editor()->didBeginEditing();
@@ -2927,9 +2935,9 @@ bool Document::setFocusedNode(PassRefPtr<Node> newFocusedNode)
                 focusWidget = widgetForNode(m_focusedNode.get());
             }
             if (focusWidget)
-                focusWidget->setFocus();
+                focusWidget->setFocus(true);
             else
-                view()->setFocus();
+                view()->setFocus(true);
         }
     }
 
@@ -4873,10 +4881,9 @@ void Document::enqueuePageshowEvent(PageshowEventPersistence persisted)
 
 void Document::enqueueHashchangeEvent(const String& /*oldURL*/, const String& /*newURL*/)
 {
-    // FIXME: https://bugs.webkit.org/show_bug.cgi?id=36201 Hashchange event needs to fire asynchronously.
     // FIXME: https://bugs.webkit.org/show_bug.cgi?id=36335 Hashchange event is now its own interface and takes two
     //   URL arguments which we need to pass in here.
-    dispatchWindowEvent(Event::create(eventNames().hashchangeEvent, false, false));
+    enqueueEvent(Event::create(eventNames().hashchangeEvent, false, false));
 }
 
 void Document::enqueuePopstateEvent(PassRefPtr<SerializedScriptValue> stateObject)

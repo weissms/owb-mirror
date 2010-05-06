@@ -2882,12 +2882,8 @@ void WebView::notifyPreferencesChanged(WebPreferences* preferences)
     enabled = preferences->allowFileAccessFromFileURLs();
     settings->setAllowFileAccessFromFileURLs(!!enabled);
 
-    // gbe: Unreviewed change @58069 was rolled-back @58072 from WebKit's trunk,
-    // likely to come back later... so just commenting out for now.
-    /*
     enabled = preferences->javaScriptCanAccessClipboard();
     settings->setJavaScriptCanAccessClipboard(!!enabled);
-    */
 
     enabled = preferences->isXSSAuditorEnabled();
     settings->setXSSAuditorEnabled(!!enabled);

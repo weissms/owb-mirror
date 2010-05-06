@@ -1,3 +1,120 @@
+2010-05-06  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] clear out deprecated methods that are no longer used
+        https://bugs.webkit.org/show_bug.cgi?id=38610
+
+        * public/WebFormElement.h:
+        * public/WebInputElement.h:
+        * public/WebKitClient.h:
+        * public/WebView.h:
+        * public/WebViewClient.h:
+        (WebKit::WebViewClient::createPopupMenu):
+        * src/ChromeClientImpl.cpp:
+        (WebKit::ChromeClientImpl::popupOpened):
+        * src/WebFormElement.cpp:
+        * src/WebInputElement.cpp:
+        (WebKit::WebInputElement::setSelectionRange):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::hideSuggestionsPopup):
+        * src/WebViewImpl.h:
+
+2010-05-05  Hans Wennborg  <hans@chromium.org>
+
+        Reviewed by Jeremy Orlow.
+
+        [chromium] Add quota parameter to  WebStorageNamespace::createSessionStorageNamespace
+        https://bugs.webkit.org/show_bug.cgi?id=38589
+
+        * public/WebStorageNamespace.h:
+        (WebKit::WebStorageNamespace::createSessionStorageNamespace):
+        * src/WebStorageNamespaceImpl.cpp:
+        (WebKit::WebStorageNamespace::createSessionStorageNamespace):
+
+2010-05-05  Stuart Morgan  <stuartmorgan@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Update the plugin container's setFocus implementation to pass the new
+        boolean argument to the next layer.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37961
+
+        * src/WebPluginContainerImpl.cpp:
+        (WebKit::WebPluginContainerImpl::setFocus):
+        * src/WebPluginContainerImpl.h:
+
+2010-05-04  Vangelis Kokkevis  <vangelis@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Provide an API for querying whether a WebWidget is using gpu accelerated compositing.
+        Also changed: isAcceleratedCompositing to: isAcceleratedCompositingActive.
+        https://bugs.webkit.org/show_bug.cgi?id=38220
+
+        * public/WebWidget.h:
+        * src/WebPopupMenuImpl.h:
+        (WebKit::WebPopupMenuImpl::isAcceleratedCompositingActive):
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::WebViewImpl):
+        (WebKit::WebViewImpl::paint):
+        (WebKit::WebViewImpl::isAcceleratedCompositingActive):
+        (WebKit::WebViewImpl::setRootGraphicsLayer):
+        (WebKit::WebViewImpl::setIsAcceleratedCompositingActive):
+        (WebKit::WebViewImpl::updateRootLayerContents):
+        * src/WebViewImpl.h:
+
+2010-04-29  John Gregg  <johnnyg@google.com>
+
+        Reviewed by Dmitry Titov.
+
+        notifications should have dir and replaceId attributes
+        https://bugs.webkit.org/show_bug.cgi?id=38336
+
+        * public/WebNotification.h:
+        * src/WebNotification.cpp:
+        (WebKit::WebNotification::dir):
+        (WebKit::WebNotification::replaceId):
+
+2010-05-04  Jay Civelli  <jcivelli@chromium.org>
+
+        Reviewed by David Levin.
+
+        [chromium] Make the select popup not close on right/middle clicks.
+        https://bugs.webkit.org/show_bug.cgi?id=38473
+
+        * src/WebViewImpl.cpp:
+        (WebKit::WebViewImpl::mouseDown):
+
+2010-05-03  Abhishek Arya  <inferno@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for controlling clipboard access from javascript.
+        Clipboard access from javascript is disabled by default.
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        * public/WebSettings.h:
+        * src/WebSettingsImpl.cpp:
+        (WebKit::WebSettingsImpl::setJavaScriptCanAccessClipboard):
+        * src/WebSettingsImpl.h:
+
+2010-05-03  Jens Alfke  <snej@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] Add "willSendSubmitEvent" hook to WebFrameClient and FrameLoaderClient
+        https://bugs.webkit.org/show_bug.cgi?id=38397
+
+        No tests (functionality is exposed only through native WebKit API.)
+
+        * public/WebFrameClient.h:
+        (WebKit::WebFrameClient::willSendSubmitEvent): New empty method
+        * src/FrameLoaderClientImpl.cpp:
+        (WebKit::FrameLoaderClientImpl::dispatchWillSendSubmitEvent): Delegate to client
+        * src/FrameLoaderClientImpl.h:
+
 2010-05-03  Michael Nordman  <michaeln@google.com>
 
         Reviewed by Dmitry Titov.

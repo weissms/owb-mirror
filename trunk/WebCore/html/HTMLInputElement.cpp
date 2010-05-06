@@ -168,6 +168,15 @@ static inline CheckedRadioButtons& checkedRadioButtons(const HTMLInputElement* e
     return element->document()->checkedRadioButtons();
 }
 
+void HTMLInputElement::updateCheckedRadioButtons()
+{
+    if (attached() && checked())
+        checkedRadioButtons(this).addButton(this);
+   
+    if (renderer() && renderer()->style()->hasAppearance())
+        renderer()->theme()->stateChanged(renderer(), CheckedState);
+}
+
 bool HTMLInputElement::valueMissing() const
 {
     if (!isRequiredFormControl() || readOnly() || disabled())
@@ -1230,6 +1239,9 @@ void HTMLInputElement::attach()
         }
     }
 
+    if (inputType() == RADIO)
+        updateCheckedRadioButtons();
+
     if (document()->focusedNode() == this)
         document()->updateFocusAppearanceSoon(true /* restore selection */);
 }
@@ -1418,10 +1430,7 @@ void HTMLInputElement::setChecked(bool nowChecked, bool sendChangeEvent)
     m_checked = nowChecked;
     setNeedsStyleRecalc();
 
-    checkedRadioButtons(this).addButton(this);
-
-    if (renderer() && renderer()->style()->hasAppearance())
-        renderer()->theme()->stateChanged(renderer(), CheckedState);
+    updateCheckedRadioButtons();
 
     // Ideally we'd do this from the render tree (matching
     // RenderTextView), but it's not possible to do it at the moment
@@ -2753,5 +2762,16 @@ void HTMLInputElement::stepUpFromRenderer(int n)
     ExceptionCode ec;
     stepUp(n, ec);
 }
+
+#if ENABLE(WCSS)
+void HTMLInputElement::setWapInputFormat(String& mask)
+{
+    String validateMask = validateInputMask(m_data, mask);
+    if (!validateMask.isEmpty())
+        m_data.setInputFormatMask(validateMask);
+}
+#endif
+
+
 
 } // namespace

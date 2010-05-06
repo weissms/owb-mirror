@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008 Apple Inc. All rights reserved.
+ * Copyright (C) 2010 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,62 +27,31 @@
  */
 
 #include "config.h"
-#include "JSCustomSQLTransactionCallback.h"
+#include "InspectorCSSStore.h"
 
-#if ENABLE(DATABASE)
-
-#include "Frame.h"
-#include "JSCallbackData.h"
-#include "JSSQLTransaction.h"
-#include "ScriptExecutionContext.h"
-#include <runtime/JSLock.h>
-#include <wtf/MainThread.h>
-#include <wtf/RefCountedLeakCounter.h>
+#include "CSSStyleDeclaration.h"
+#include "CSSStyleRule.h"
+#include "CSSStyleSheet.h"
+#include "PlatformString.h"
 
 namespace WebCore {
 
-using namespace JSC;
-
-#ifndef NDEBUG
-static WTF::RefCountedLeakCounter counter("JSCustomSQLTransactionCallback");
-#endif
-
-JSCustomSQLTransactionCallback::JSCustomSQLTransactionCallback(JSObject* callback, JSDOMGlobalObject* globalObject)
-    : m_data(new JSCallbackData(callback, globalObject))
-    , m_isolatedWorld(globalObject->world())
+InspectorCSSStore::InspectorCSSStore()
 {
-#ifndef NDEBUG
-    counter.increment();
-#endif
 }
 
-JSCustomSQLTransactionCallback::~JSCustomSQLTransactionCallback()
+InspectorCSSStore::~InspectorCSSStore()
 {
-    callOnMainThread(JSCallbackData::deleteData, m_data);
-#ifndef NDEBUG
-    m_data = 0;
-    counter.decrement();
-#endif
 }
 
-void JSCustomSQLTransactionCallback::handleEvent(ScriptExecutionContext* context, SQLTransaction* transaction, bool& raisedException)
+void InspectorCSSStore::reset()
 {
-    ASSERT(m_data);
-    ASSERT(context);
-
-    RefPtr<JSCustomSQLTransactionCallback> protect(this);
-
-    JSC::JSLock lock(SilenceAssertionsOnly);
-    JSDOMGlobalObject* globalObject = toJSDOMGlobalObject(context, m_isolatedWorld.get());
-    if (!globalObject)
-        return;
-
-    ExecState* exec = globalObject->globalExec();
-    MarkedArgumentBuffer args;
-    args.append(toJS(exec, deprecatedGlobalObjectForPrototype(exec), transaction));
-    m_data->invokeCallback(args, &raisedException);
+    styleToId.clear();
+    idToStyle.clear();
+    ruleToId.clear();
+    idToRule.clear();
+    idToDisabledStyle.clear();
+    inspectorStyleSheet = 0;
 }
 
-}
-
-#endif // ENABLE(DATABASE)
+} // namespace WebCore

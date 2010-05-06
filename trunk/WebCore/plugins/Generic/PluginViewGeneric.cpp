@@ -86,7 +86,7 @@ void PluginView::updatePluginWidget()
     return;
 }
 
-void PluginView::setFocus()
+void PluginView::setFocus(bool focused)
 {
     // no visual to focus
 }

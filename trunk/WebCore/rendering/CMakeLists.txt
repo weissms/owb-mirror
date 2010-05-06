@@ -106,6 +106,7 @@ if(ENABLE_SVG)
         rendering/RenderSVGTextPath.cpp
         rendering/RenderSVGTransformableContainer.cpp
         rendering/RenderSVGViewportContainer.cpp
+        rendering/SVGCharacterData.cpp
         rendering/SVGCharacterLayoutInfo.cpp
         rendering/SVGInlineFlowBox.cpp
         rendering/SVGInlineTextBox.cpp

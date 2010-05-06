@@ -140,7 +140,7 @@ QString LayoutTestController::counterValueForElementById(const QString& id)
 
 void LayoutTestController::setViewModeMediaFeature(const QString& mode)
 {
-    m_drt->webPage()->setProperty("wrt_viewMode", mode);
+    m_drt->webPage()->setProperty("_q_viewMode", mode);
 }
 
 int LayoutTestController::webHistoryItemCount()
@@ -407,6 +407,11 @@ void LayoutTestController::setWindowIsKey(bool isKey)
 void LayoutTestController::setMainFrameIsFirstResponder(bool isFirst)
 {
     //FIXME: only need this for the moment: https://bugs.webkit.org/show_bug.cgi?id=32990
+}
+
+void LayoutTestController::setJavaScriptCanAccessClipboard(bool enable)
+{
+    m_drt->webPage()->settings()->setAttribute(QWebSettings::JavaScriptCanAccessClipboard, enable);
 }
 
 void LayoutTestController::setXSSAuditorEnabled(bool enable)

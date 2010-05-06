@@ -43,11 +43,10 @@ typedef const struct __CFString * CFStringRef;
 
 // FIXME: This is a temporary layering violation while we move string code to WTF.
 // Landing the file moves in one patch, will follow on with patches to change the namespaces.
-namespace WTF {
+namespace JSC {
 
-struct CStringTranslator;
-struct UCharBufferTranslator;
-struct HashAndCharactersTranslator;
+struct IdentifierCStringTranslator;
+struct IdentifierUCharBufferTranslator;
 
 }
 
@@ -57,7 +56,10 @@ namespace WebCore {
 
 class StringBuffer;
 
+struct CStringTranslator;
+struct HashAndCharactersTranslator;
 struct StringHash;
+struct UCharBufferTranslator;
 
 enum TextCaseSensitivity { TextCaseSensitive, TextCaseInsensitive };
 
@@ -66,9 +68,11 @@ typedef CrossThreadRefCounted<SharableUChar> SharedUChar;
 typedef bool (*CharacterMatchFunctionPtr)(UChar);
 
 class StringImpl : public StringImplBase {
-    friend struct WTF::CStringTranslator;
-    friend struct WTF::UCharBufferTranslator;
-    friend struct WTF::HashAndCharactersTranslator;
+    friend struct JSC::IdentifierCStringTranslator;
+    friend struct JSC::IdentifierUCharBufferTranslator;
+    friend struct CStringTranslator;
+    friend struct HashAndCharactersTranslator;
+    friend struct UCharBufferTranslator;
     friend class AtomicStringImpl;
 private:
     // Used to construct static strings, which have an special refCount that can never hit zero.
@@ -220,13 +224,13 @@ public:
     bool hasTerminatingNullCharacter() const { return m_refCountAndFlags & s_refCountFlagHasTerminatingNullCharacter; }
 
     bool isAtomic() const { return m_refCountAndFlags & s_refCountFlagIsAtomic; }
-    void setIsAtomic(bool inTable)
+    void setIsAtomic(bool isIdentifier)
     {
         ASSERT(!isStatic());
-        if (inTable)
+        if (isIdentifier)
             m_refCountAndFlags |= s_refCountFlagIsAtomic;
         else
-            m_refCountAndFlags &= s_refCountFlagIsAtomic;
+            m_refCountAndFlags &= ~s_refCountFlagIsAtomic;
     }
 
     unsigned hash() const { if (!m_hash) m_hash = computeHash(m_data, m_length); return m_hash; }
@@ -335,38 +339,6 @@ private:
 bool equal(const StringImpl*, const StringImpl*);
 bool equal(const StringImpl*, const char*);
 inline bool equal(const char* a, StringImpl* b) { return equal(b, a); }
-inline bool equal(StringImpl* string, const UChar* characters, unsigned length)
-{
-    if (string->length() != length)
-        return false;
-
-    // FIXME: perhaps we should have a more abstract macro that indicates when
-    // going 4 bytes at a time is unsafe
-#if CPU(ARM) || CPU(SH4)
-    const UChar* stringCharacters = string->characters();
-    for (unsigned i = 0; i != length; ++i) {
-        if (*stringCharacters++ != *characters++)
-            return false;
-    }
-    return true;
-#else
-    /* Do it 4-bytes-at-a-time on architectures where it's safe */
-
-    const uint32_t* stringCharacters = reinterpret_cast<const uint32_t*>(string->characters());
-    const uint32_t* bufferCharacters = reinterpret_cast<const uint32_t*>(characters);
-
-    unsigned halfLength = length >> 1;
-    for (unsigned i = 0; i != halfLength; ++i) {
-        if (*stringCharacters++ != *bufferCharacters++)
-            return false;
-    }
-
-    if (length & 1 &&  *reinterpret_cast<const uint16_t*>(stringCharacters) != *reinterpret_cast<const uint16_t*>(bufferCharacters))
-        return false;
-
-    return true;
-#endif
-}
 
 bool equalIgnoringCase(StringImpl*, StringImpl*);
 bool equalIgnoringCase(StringImpl*, const char*);
@@ -409,7 +381,6 @@ inline PassRefPtr<StringImpl> StringImpl::createStrippingNullCharacters(const UC
 }
 
 using WebCore::equal;
-using WebCore::StringImpl;
 
 namespace WTF {
 

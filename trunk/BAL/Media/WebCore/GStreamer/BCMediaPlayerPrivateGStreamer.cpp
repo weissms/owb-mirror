@@ -1178,6 +1178,7 @@ void MediaPlayerPrivateGStreamer::didEnd()
     float now = currentTime();
     if (now > 0) {
         m_mediaDuration = now;
+        m_mediaDurationKnown = true;
         m_player->durationChanged();
     }
 

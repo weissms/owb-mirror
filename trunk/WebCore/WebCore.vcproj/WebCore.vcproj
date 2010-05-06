@@ -28289,6 +28289,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\rendering\SVGCharacterData.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\SVGCharacterData.h"
+				>
+			</File>
+			<File
 				RelativePath="..\rendering\SVGCharacterLayoutInfo.cpp"
 				>
 			</File>
@@ -28354,6 +28362,10 @@
 			</File>
 			<File
 				RelativePath="..\rendering\SVGShadowTreeElements.h"
+				>
+			</File>
+			<File
+				RelativePath="..\rendering\SVGTextChunkLayoutInfo.h"
 				>
 			</File>
 			<File
@@ -30372,6 +30384,14 @@
 			</File>
 			<File
 				RelativePath="..\html\FileList.h"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\html\FileReader.h"
 				>
 			</File>
 			<File
@@ -35463,62 +35483,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\bindings\js\JSCustomSQLStatementCallback.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Internal|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_All|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSCustomSQLStatementCallback.h"
-					>
-				</File>
-				<File
 					RelativePath="..\bindings\js\JSCustomSQLStatementErrorCallback.cpp"
 					>
 					<FileConfiguration
@@ -35569,122 +35533,6 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSCustomSQLStatementErrorCallback.h"
-					>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSCustomSQLTransactionCallback.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Internal|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_All|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSCustomSQLTransactionCallback.h"
-					>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSCustomSQLTransactionErrorCallback.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Internal|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_Cairo|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_All|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSCustomSQLTransactionErrorCallback.h"
-					>
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCustomVoidCallback.cpp"
@@ -35796,14 +35644,6 @@
 				</File>
 				<File
 					RelativePath="..\bindings\js\JSCustomXPathNSResolver.h"
-					>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSDatabaseCallback.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\bindings\js\JSDatabaseCallback.h"
 					>
 				</File>
 				<File
@@ -43076,6 +42916,14 @@
 			</File>
 			<File
 				RelativePath="..\inspector\InspectorBackend.h"
+				>
+			</File>
+			<File
+				RelativePath="..\inspector\InspectorCSSStore.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\inspector\InspectorCSSStore.h"
 				>
 			</File>
 			<File

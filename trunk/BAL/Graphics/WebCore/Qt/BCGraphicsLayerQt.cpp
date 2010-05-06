@@ -134,7 +134,7 @@ public:
     };
 
     // the compositor lets us special-case images and colors, so we try to do so
-    enum StaticContentType { HTMLContentType, PixmapContentType, ColorContentType, MediaContentType};
+    enum StaticContentType { HTMLContentType, PixmapContentType, ColorContentType, MediaContentType, Canvas3DContentType};
 
     const GraphicsLayerQtImpl* rootLayer() const;
 
@@ -243,6 +243,10 @@ public:
         }
     } m_state;
 
+#if ENABLE(3D_CANVAS)
+    const GraphicsContext3D* m_gc3D;
+#endif
+
 #ifndef QT_NO_ANIMATION
     friend class AnimationQtBase;
 #endif
@@ -254,6 +258,9 @@ GraphicsLayerQtImpl::GraphicsLayerQtImpl(GraphicsLayerQt* newLayer)
     , m_transformAnimationRunning(false)
     , m_opacityAnimationRunning(false)
     , m_changeMask(NoChanges)
+#if ENABLE(3D_CANVAS)
+    , m_gc3D(0)
+#endif
 {
     // we use graphics-view for compositing, not for interactivity
     setAcceptedMouseButtons(Qt::NoButton);
@@ -463,6 +470,11 @@ void GraphicsLayerQtImpl::paint(QPainter* painter, const QStyleOptionGraphicsIte
     case MediaContentType:
         // we don't need to paint anything: we have a QGraphicsItem from the media element
         break;
+#if ENABLE(3D_CANVAS)
+    case Canvas3DContentType:
+        m_gc3D->paint(painter, option->rect);
+        break;
+#endif
     }
 }
 
@@ -584,6 +596,16 @@ void GraphicsLayerQtImpl::flushChanges(bool recursive, bool forceUpdateTransform
 
             setFlag(ItemHasNoContents, !m_layer->drawsContent());
             break;
+
+#if ENABLE(3D_CANVAS)
+        case Canvas3DContentType:
+            if (m_pendingContent.contentType != m_currentContent.contentType)
+                update();
+
+            setCacheMode(NoCache);
+            setFlag(ItemHasNoContents, false);
+            break;
+#endif
         }
     }
 
@@ -936,6 +958,23 @@ void GraphicsLayerQt::setContentsBackgroundColor(const Color& color)
     m_impl->m_pendingContent.contentsBackgroundColor = QColor(color);
     GraphicsLayer::setContentsBackgroundColor(color);
 }
+
+#if ENABLE(3D_CANVAS)
+void GraphicsLayerQt::setContentsToGraphicsContext3D(const GraphicsContext3D* ctx)
+{
+    if (ctx == m_impl->m_gc3D)
+        return;
+
+    m_impl->m_pendingContent.contentType = GraphicsLayerQtImpl::Canvas3DContentType;
+    m_impl->m_gc3D = ctx;
+    m_impl->notifyChange(GraphicsLayerQtImpl::ContentChange);
+}
+
+void GraphicsLayerQt::setGraphicsContext3DNeedsDisplay()
+{
+    setNeedsDisplay();
+}
+#endif
 
 void GraphicsLayerQt::setContentsToMedia(PlatformLayer* media)
 {

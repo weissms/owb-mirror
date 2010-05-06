@@ -1,3 +1,30 @@
+2010-05-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/7932072> Iframes in composited layers don’t repaint correctly (affects Yahoo! Mail with Flash Player 10.1)
+        https://bugs.webkit.org/show_bug.cgi?id=38427
+
+        * WebKit.xcodeproj/project.pbxproj: Renamed WebClipView.m to WebClipView.mm and changed it to
+        Objective-C++.
+
+2010-05-03  Darin Adler  <darin@apple.com>
+
+        * English.lproj/Localizable.strings: Regenerated.
+        * StringsNotToBeLocalized.txt: Updated for recent changes.
+
+2010-05-03  Jens Alfke  <snej@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] Add "willSendSubmitEvent" hook to WebFrameClient and FrameLoaderClient
+        https://bugs.webkit.org/show_bug.cgi?id=38397
+
+        No tests (functionality is exposed only through native WebKit API.)
+
+        * efl/WebCoreSupport/FrameLoaderClientEfl.h:
+        (WebCore::FrameLoaderClientEfl::dispatchWillSendSubmitEvent):
+
 2010-04-26  Leandro Pereira  <leandro@profusion.mobi>
 
         Reviewed by Gustavo Noronha Silva.

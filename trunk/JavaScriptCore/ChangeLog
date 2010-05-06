@@ -1,3 +1,268 @@
+2010-05-06  Tony Gentilcore  <tonyg@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Adding comment with link to RefPtr documentation.
+        https://bugs.webkit.org/show_bug.cgi?id=38601
+
+        * wtf/RefPtr.h:
+
+2010-05-05  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Bug 38604 - workers-gc2 crashing on Qt
+
+        This appears to be due to a couple of issues.
+        (1) When the atomic string table is deleted it does not clear the 'inTable' bit
+        on AtomicStrings - it implicitly assumes that all AtomicStrings have already
+        been deleted at this point (otherwise they will crash in their destructor when
+        they try to remove themselves from the atomic string table).
+        (2) We don't fix the ordering in which WTF::WTFThreadData and
+        WebCore::ThreadGlobalData are destructed.
+
+        We should make sure that ThreadGlobalData is cleaned up before worker threads
+        terminate and WTF::WTFThreadData is destroyed, and we should clear the inTable
+        bit of members on atomic string table destruction.
+
+        WTF changes (fix issue 1, above) - ensure inTable property is cleared when the
+        atomic string table is destroyed (also, rename InTable to IsAtomic, to make it
+        clear which table we are refering to!)
+
+        * wtf/text/AtomicString.cpp:
+        (WebCore::AtomicStringTable::destroy):
+        (WebCore::CStringTranslator::translate):
+        (WebCore::UCharBufferTranslator::translate):
+        (WebCore::HashAndCharactersTranslator::translate):
+        (WebCore::AtomicString::add):
+        * wtf/text/StringImpl.cpp:
+        (WebCore::StringImpl::~StringImpl):
+        * wtf/text/StringImpl.h:
+        (WebCore::StringImpl::isAtomic):
+        (WebCore::StringImpl::setIsAtomic):
+        * wtf/text/StringImplBase.h:
+
+2010-05-05  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Make Array.join specialised for actual arrays
+        https://bugs.webkit.org/show_bug.cgi?id=38592
+
+        Bring Array.join in line with the other array methods by specialising for
+        this === an array.
+
+        * runtime/ArrayPrototype.cpp:
+        (JSC::arrayProtoFuncJoin):
+
+2010-05-04  Yongjun Zhang  <yongjun_zhang@apple.com>
+
+        Reviewed by Darin Adler.
+
+        WebKit crashes at DebuggerCallFrame::functionName() if m_callFrame is the top global callframe.
+        https://bugs.webkit.org/show_bug.cgi?id=38535
+
+        Don't call asFunction if callee is not a FunctionType to prevent assertion failure
+        in JSCell::isObject().
+
+        * debugger/DebuggerCallFrame.cpp:
+        (JSC::DebuggerCallFrame::functionName):
+        (JSC::DebuggerCallFrame::calculatedFunctionName):
+
+2010-05-04  Steve Falkenburg  <sfalken@apple.com>
+
+        Remove redundant exports to fix Windows build warnings.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-05-04  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Holger Freyther.
+
+        Fix a memory leak inside the QScriptValue.
+
+        QSciptValuePrivate::toString should release all temporary variables.
+
+        [Qt] QScriptValue::toString have a memory leak.
+        https://bugs.webkit.org/show_bug.cgi?id=38112
+
+        * qt/api/qscriptvalue_p.h:
+        (QScriptValuePrivate::toString):
+
+2010-05-04  Gustavo Noronha Silva  <gustavo.noronha@collabora.co.uk>
+
+        Reviewed by Darin Adler.
+
+        Does not work on SPARC because of alignment issues
+        https://bugs.webkit.org/show_bug.cgi?id=38455
+
+        Use AllocAlignmentInteger instead of void* on pageheap_memory to
+        avoid crashing at runtime in some architectures. Investigated by
+        Mike Hommey <mh@glandium.org>, change suggested by Darin Adler.
+
+        * wtf/FastMalloc.cpp:
+
+2010-05-04  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        Add first WTFURL file
+        https://bugs.webkit.org/show_bug.cgi?id=38470
+
+        This class represents a component of a URL, such as the scheme or path.
+        Essentially, the class is an index into a string buffer.
+
+        * wtf/url: Added.
+            - There was some discussion about where to put the URL library.
+              There are a number of reasonable options, but putting the library
+              in the WTF directory seems like a reasonable alternative.  This
+              location will make more sense once WTF is moved out of
+              JavaScriptCore and into a top-level directory.
+        * wtf/url/src: Added.
+            - I've added this extra directory to the usual structure because we
+              eventually want a "public" folder that defines the public
+              interface to this library that clients outside of svn.webkit.org
+              can rely upon, much like the various subfolders of the WebKit
+              directory often define a public API.
+        * wtf/url/src/URLComponent.h: Added.
+            - I've added this somewhat trivial class to get the ball rolling.
+        (WTF::URLComponent::URLComponent):
+        (WTF::URLComponent::isValid):
+        (WTF::URLComponent::isNonempty):
+        (WTF::URLComponent::reset):
+        (WTF::URLComponent::operator==):
+        (WTF::URLComponent::begin):
+        (WTF::URLComponent::setBegin):
+        (WTF::URLComponent::length):
+        (WTF::URLComponent::setLength):
+        (WTF::URLComponent::end):
+        * wtf/url/wtfurl.gyp: Added.
+            - WTFURL will be an independently buildable library, hence the
+              beginnings of a wtfurl.gyp file.
+
+2010-05-03  Stephanie Lewis  <slewis@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38368
+        <rdar://problem/7834433> REGRESSSION: 1.5% PLT regression due to 56028 
+        (return memory quicker).
+        Instead of returning everything but the smallest spans spread out 
+        the spans kept over several size lists.
+
+        * wtf/FastMalloc.cpp:
+        (WTF::TCMalloc_PageHeap::scavenge):
+
+2010-05-03  James Robinson  <jamesr@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Clean up a few compiler warnings
+        https://bugs.webkit.org/show_bug.cgi?id=38073
+
+        * wtf/text/StringImpl.cpp:
+        (WebCore::StringImpl::ascii):
+
+2010-05-03  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (reverting previous commit).
+
+        Rolling out r58114 - this introduced memory leaks of
+        AtomicStrings then workers terminated.
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.vcproj/WTF/WTF.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * jit/ThunkGenerators.cpp:
+        (JSC::ThunkHelpers::stringImplDataOffset):
+        * runtime/Identifier.cpp:
+        (JSC::IdentifierTable::~IdentifierTable):
+        (JSC::IdentifierTable::add):
+        (JSC::IdentifierCStringTranslator::hash):
+        (JSC::IdentifierCStringTranslator::equal):
+        (JSC::IdentifierCStringTranslator::translate):
+        (JSC::Identifier::add):
+        (JSC::IdentifierUCharBufferTranslator::hash):
+        (JSC::IdentifierUCharBufferTranslator::equal):
+        (JSC::IdentifierUCharBufferTranslator::translate):
+        (JSC::Identifier::addSlowCase):
+        * runtime/Identifier.h:
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::JSGlobalData):
+        (JSC::JSGlobalData::~JSGlobalData):
+        * runtime/JSGlobalData.h:
+        * wtf/WTFThreadData.cpp:
+        (WTF::WTFThreadData::WTFThreadData):
+        (WTF::WTFThreadData::~WTFThreadData):
+        * wtf/WTFThreadData.h:
+        (JSC::IdentifierTable::remove):
+        (JSC::IdentifierTable::literalTable):
+        (WTF::WTFThreadData::atomicStringTable):
+        * wtf/text/AtomicString.cpp:
+        (WebCore::AtomicStringTable::create):
+        (WebCore::AtomicStringTable::table):
+        (WebCore::AtomicStringTable::destroy):
+        (WebCore::stringTable):
+        (WebCore::CStringTranslator::hash):
+        (WebCore::CStringTranslator::equal):
+        (WebCore::CStringTranslator::translate):
+        (WebCore::operator==):
+        (WebCore::AtomicString::add):
+        (WebCore::equal):
+        (WebCore::UCharBufferTranslator::hash):
+        (WebCore::UCharBufferTranslator::equal):
+        (WebCore::UCharBufferTranslator::translate):
+        (WebCore::HashAndCharactersTranslator::hash):
+        (WebCore::HashAndCharactersTranslator::equal):
+        (WebCore::HashAndCharactersTranslator::translate):
+        (WebCore::AtomicString::find):
+        (WebCore::AtomicString::remove):
+        * wtf/text/AtomicStringTable.h: Removed.
+        * wtf/text/StringImpl.cpp:
+        (WebCore::StringImpl::~StringImpl):
+        * wtf/text/StringImpl.h:
+        (WebCore::StringImpl::inTable):
+        (WebCore::StringImpl::setInTable):
+        (WebCore::equal):
+        * wtf/text/StringImplBase.h:
+        (WTF::StringImplBase::StringImplBase):
+
+2010-05-03  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Implement scheduleDispatchFunctionsOnMainThread for wx port.
+        https://bugs.webkit.org/show_bug.cgi?id=38480
+
+        * wtf/wx/MainThreadWx.cpp:
+        (wxCallAfter::wxCallAfter):
+        (wxCallAfter::OnCallback):
+        (WTF::scheduleDispatchFunctionsOnMainThread):
+
+2010-05-03  Kevin Watters  <kevinwatters@gmail.com>
+
+        Reviewed by Kevin Ollivier.
+
+        [wx] Build and use Mac's ComplexTextController to support complex text in wx.
+        https://bugs.webkit.org/show_bug.cgi?id=38482
+
+        * wtf/Platform.h:
+
+2010-05-03  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Interpreter crashes due to incorrect refcounting of cached structures.
+        https://bugs.webkit.org/show_bug.cgi?id=38491
+        rdar://problem/7926160
+
+        Make sure we ref/deref structures used for cached custom property getters
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::derefStructures):
+        (JSC::CodeBlock::refStructures):
+
 2010-05-03  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
 
         Reviewed by Eric Seidel.

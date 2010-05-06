@@ -938,10 +938,6 @@ void QWebPagePrivate::keyPressEvent(QKeyEvent *ev)
         handled = frame->eventHandler()->keyEvent(ev);
     if (!handled) {
         handled = true;
-        QFont defaultFont;
-        if (client)
-            defaultFont = client->ownerWidget()->font();
-        QFontMetrics fm(defaultFont);
         if (!handleScrolling(ev, frame)) {
             switch (ev->key()) {
             case Qt::Key_Back:
@@ -1209,8 +1205,8 @@ void QWebPagePrivate::inputMethodEvent(QInputMethodEvent *ev)
 
 void QWebPagePrivate::dynamicPropertyChangeEvent(QDynamicPropertyChangeEvent* event)
 {
-    if (event->propertyName() == "wrt_viewMode") {
-        QString mode = q->property("wrt_viewMode").toString();
+    if (event->propertyName() == "_q_viewMode") {
+        QString mode = q->property("_q_viewMode").toString();
         if (mode != viewMode) {
             viewMode = mode;
             WebCore::Frame* frame = QWebFramePrivate::core(q->mainFrame());
@@ -1218,6 +1214,12 @@ void QWebPagePrivate::dynamicPropertyChangeEvent(QDynamicPropertyChangeEvent* ev
             frame->document()->updateStyleSelector();
             view->layout();
         }
+    } else if (event->propertyName() == "_q_HTMLTokenizerChunkSize") {
+        int chunkSize = q->property("_q_HTMLTokenizerChunkSize").toInt();
+        q->handle()->page->setCustomHTMLTokenizerChunkSize(chunkSize);
+    } else if (event->propertyName() == "_q_HTMLTokenizerTimeDelay") {
+        double timeDelay = q->property("_q_HTMLTokenizerTimeDelay").toDouble();
+        q->handle()->page->setCustomHTMLTokenizerTimeDelay(timeDelay);
     }
 }
 

@@ -4,6 +4,7 @@ if(ENABLE_INSPECTOR)
         inspector/InjectedScript.cpp
         inspector/InjectedScriptHost.cpp
         inspector/InspectorBackend.cpp
+        inspector/InspectorCSSStore.cpp
         inspector/InspectorController.cpp
         inspector/InspectorDatabaseResource.cpp
         inspector/InspectorDOMAgent.cpp

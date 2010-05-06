@@ -72,7 +72,7 @@ CONFIG(QTDIR_build) {
 } else {
     DESTDIR = $$OUTPUT_DIR/lib
     !static: DEFINES += QT_MAKEDLL
-    symbian: TARGET += $${QT_LIBINFIX}
+    symbian: TARGET =$$TARGET$${QT_LIBINFIX}
 }
 include($$PWD/../WebKit/qt/qtwebkit_version.pri)
 VERSION = $${QT_WEBKIT_MAJOR_VERSION}.$${QT_WEBKIT_MINOR_VERSION}.$${QT_WEBKIT_PATCH_VERSION}
@@ -123,6 +123,10 @@ maemo5|symbian|embedded {
 }
 
 maemo5 {
+    DEFINES += WTF_USE_QT_MOBILE_THEME=1
+}
+
+contains(DEFINES, WTF_USE_QT_MOBILE_THEME=1) {
     DEFINES += ENABLE_NO_LISTBOX_RENDERING=1
 }
 
@@ -131,17 +135,12 @@ addJavaScriptCoreLib(../JavaScriptCore)
 
 
 # HTML5 Media Support
-# We require phonon for versions of Qt < 4.7
-# We require QtMultimedia for versions of Qt >= 4.7
+# We require phonon. QtMultimedia support is disabled currently.
 !contains(DEFINES, ENABLE_VIDEO=.) {
     DEFINES -= ENABLE_VIDEO=1
     DEFINES += ENABLE_VIDEO=0
 
-    lessThan(QT_MINOR_VERSION, 7):contains(QT_CONFIG, phonon) {
-        DEFINES -= ENABLE_VIDEO=0
-        DEFINES += ENABLE_VIDEO=1
-    }
-    !lessThan(QT_MINOR_VERSION, 7):contains(QT_CONFIG, mediaservices) {
+    contains(QT_CONFIG, phonon) {
         DEFINES -= ENABLE_VIDEO=0
         DEFINES += ENABLE_VIDEO=1
     }
@@ -600,6 +599,7 @@ SOURCES += \
     html/DOMFormData.cpp \
     html/File.cpp \
     html/FileList.cpp \
+    html/FileReader.cpp \
     html/FileStream.cpp \
     html/FileStreamProxy.cpp \
     html/FileThread.cpp \
@@ -694,6 +694,7 @@ SOURCES += \
     inspector/InjectedScript.cpp \
     inspector/InjectedScriptHost.cpp \
     inspector/InspectorBackend.cpp \
+    inspector/InspectorCSSStore.cpp \
     inspector/InspectorController.cpp \
     inspector/InspectorDatabaseResource.cpp \
     inspector/InspectorDOMAgent.cpp \
@@ -1024,13 +1025,8 @@ HEADERS += \
     bindings/js/JSCSSStyleDeclarationCustom.h \
     bindings/js/JSCustomPositionCallback.h \
     bindings/js/JSCustomPositionErrorCallback.h \
-    bindings/js/JSCustomSQLStatementCallback.h \
-    bindings/js/JSCustomSQLStatementErrorCallback.h \
-    bindings/js/JSCustomSQLTransactionCallback.h \
-    bindings/js/JSCustomSQLTransactionErrorCallback.h \
     bindings/js/JSCustomVoidCallback.h \
     bindings/js/JSCustomXPathNSResolver.h \
-    bindings/js/JSDatabaseCallback.h \
     bindings/js/JSDataGridDataSource.h \
     bindings/js/JSDebugWrapperSet.h \
     bindings/js/JSDOMBinding.h \
@@ -1321,6 +1317,7 @@ HEADERS += \
     html/File.h \
     html/FileError.h \
     html/FileList.h \
+    html/FileReader.h \
     html/FileStream.h \
     html/FileStreamClient.h \
     html/FileStreamProxy.h \
@@ -1801,6 +1798,7 @@ HEADERS += \
     rendering/style/StyleVisualData.h \
     rendering/style/SVGRenderStyleDefs.h \
     rendering/style/SVGRenderStyle.h \
+    rendering/SVGCharacterData.h \
     rendering/SVGCharacterLayoutInfo.h \
     rendering/SVGInlineFlowBox.h \
     rendering/SVGInlineTextBox.h \
@@ -1810,6 +1808,7 @@ HEADERS += \
     rendering/SVGRenderTreeAsText.h \
     rendering/SVGRootInlineBox.h \
     rendering/SVGShadowTreeElements.h \
+    rendering/SVGTextChunkLayoutInfo.h \
     rendering/TextControlInnerElements.h \
     rendering/TransformState.h \
     svg/animation/SMILTimeContainer.h \
@@ -2146,13 +2145,15 @@ SOURCES += \
     ../WebKit/qt/Api/qwebinspector.cpp \
     ../WebKit/qt/Api/qwebkitversion.cpp
 
+
+contains(DEFINES, WTF_USE_QT_MOBILE_THEME=1) {
+    HEADERS += platform/qt/Maemo5Webstyle.h
+    SOURCES += platform/qt/Maemo5Webstyle.cpp
+}
+
 maemo5 {
-    HEADERS += \
-        ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.h \
-        platform/qt/Maemo5Webstyle.h
-    SOURCES += \
-        ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.cpp \
-        platform/qt/Maemo5Webstyle.cpp
+    HEADERS += ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.h
+    SOURCES += ../WebKit/qt/WebCoreSupport/QtMaemoWebPopup.cpp
 }
 
 
@@ -2163,8 +2164,7 @@ maemo5 {
         SOURCES += \
             platform/text/cf/StringCF.cpp \
             platform/text/cf/StringImplCF.cpp \
-            platform/cf/SharedBufferCF.cpp \
-            editing/SmartReplaceCF.cpp
+            platform/cf/SharedBufferCF.cpp
         LIBS_PRIVATE += -framework Carbon -framework AppKit
     }
 
@@ -2173,7 +2173,10 @@ maemo5 {
         LIBS += -lOle32
         LIBS += -luser32
     }
-    wince*: LIBS += -lmmtimer
+    wince* {
+        LIBS += -lmmtimer
+        LIBS += -lOle32
+    }
 
 contains(DEFINES, ENABLE_NETSCAPE_PLUGIN_API=1) {
 
@@ -2295,11 +2298,7 @@ contains(DEFINES, ENABLE_DATABASE=1) {
         storage/SQLTransactionClient.cpp \
         storage/SQLTransactionCoordinator.cpp \
         storage/SQLTransactionSync.cpp \
-        bindings/js/JSCustomSQLStatementCallback.cpp \
         bindings/js/JSCustomSQLStatementErrorCallback.cpp \
-        bindings/js/JSCustomSQLTransactionCallback.cpp \
-        bindings/js/JSCustomSQLTransactionErrorCallback.cpp \
-        bindings/js/JSDatabaseCallback.cpp \
         bindings/js/JSDatabaseCustom.cpp \
         bindings/js/JSSQLResultSetRowListCustom.cpp \
         bindings/js/JSSQLTransactionCustom.cpp
@@ -2407,8 +2406,8 @@ contains(DEFINES, ENABLE_VIDEO=1) {
         rendering/RenderMedia.cpp \
         bindings/js/JSAudioConstructor.cpp
 
-        # QtMultimedia since 4.7
-        greaterThan(QT_MINOR_VERSION, 6) {
+        # QtMultimedia disabled currently
+        false:greaterThan(QT_MINOR_VERSION, 6) {
             HEADERS += platform/graphics/qt/MediaPlayerPrivateQt.h
             SOURCES += platform/graphics/qt/MediaPlayerPrivateQt.cpp
 
@@ -2743,6 +2742,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         rendering/RenderSVGTransformableContainer.cpp \
         rendering/RenderSVGTSpan.cpp \
         rendering/RenderSVGViewportContainer.cpp \
+        rendering/SVGCharacterData.cpp \
         rendering/SVGCharacterLayoutInfo.cpp \
         rendering/SVGInlineFlowBox.cpp \
         rendering/SVGInlineTextBox.cpp \

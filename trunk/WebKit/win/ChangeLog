@@ -1,3 +1,44 @@
+2010-05-06  Stuart Morgan  <stuartmorgan@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        Update setFocus for the new boolean argument; no behavioral change.
+
+        https://bugs.webkit.org/show_bug.cgi?id=37961
+
+        * WebCoreSupport/EmbeddedWidget.cpp:
+        (EmbeddedWidget::setFocus):
+        * WebCoreSupport/EmbeddedWidget.h:
+
+2010-05-03  Abhishek Arya  <inferno@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        Add support for controlling clipboard access from javascript.
+        Clipboard access from javascript is disabled by default.
+        https://bugs.webkit.org/show_bug.cgi?id=27751
+
+        * Interfaces/IWebPreferencesPrivate.idl:
+        * WebPreferenceKeysPrivate.h:
+        * WebPreferences.cpp:
+        (WebPreferences::initializeDefaultSettings):
+        (WebPreferences::javaScriptCanAccessClipboard):
+        (WebPreferences::setJavaScriptCanAccessClipboard):
+        * WebPreferences.h:
+        * WebView.cpp:
+        (WebView::notifyPreferencesChanged):
+
+2010-05-03  Jens Alfke  <snej@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] Add "willSendSubmitEvent" hook to WebFrameClient and FrameLoaderClient
+        https://bugs.webkit.org/show_bug.cgi?id=38397
+
+        No tests (functionality is exposed only through native WebKit API.)
+
+        * WebFrame.h:
+
 2010-05-03  Jon Honeycutt  <jhoneycutt@apple.com>
 
         Caret may fail to blink if a focus handler brings up a modal dialog 

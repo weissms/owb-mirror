@@ -173,6 +173,8 @@ namespace WebCore {
     \
     macro(success) \
     \
+    macro(loadend) \
+    \
     ADDONS_EVENT_NAMES(macro) \
     CEHTML_EVENT_NAMES(macro) \
     DAE_EVENT_NAMES(macro) 

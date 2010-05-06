@@ -60,7 +60,7 @@ protected:
 
     enum StaticStringConstructType { ConstructStaticString };
     StringImplBase(unsigned length, StaticStringConstructType)
-        : m_refCountAndFlags(s_refCountFlagStatic | s_refCountFlagIsAtomic | s_refCountFlagIsIdentifier | BufferOwned)
+        : m_refCountAndFlags(s_refCountFlagStatic | s_refCountFlagIsIdentifier | BufferOwned)
         , m_length(length)
     {
         ASSERT(isStringImpl());

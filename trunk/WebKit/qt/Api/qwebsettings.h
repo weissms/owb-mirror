@@ -55,7 +55,7 @@ public:
         PluginsEnabled,
         PrivateBrowsingEnabled,
         JavascriptCanOpenWindows,
-        JavascriptCanAccessClipboard,
+        DOMPasteAllowed,
         DeveloperExtrasEnabled,
         LinksIncludedInFocusChain,
         ZoomTextOnly,
@@ -68,13 +68,14 @@ public:
 #endif
         LocalContentCanAccessRemoteUrls,
         DnsPrefetchEnabled,
+        JavaScriptCanAccessClipboard,
         XSSAuditingEnabled,
         AcceleratedCompositingEnabled,
-        WebGLEnabled,
         SpatialNavigationEnabled,
         LocalContentCanAccessFileUrls,
         TiledBackingStoreEnabled,
-        FrameFlatteningEnabled
+        FrameFlatteningEnabled,
+        WebGLEnabled
     };
     enum WebGraphic {
         MissingImageGraphic,

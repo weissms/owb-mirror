@@ -19,10 +19,15 @@ if(ENABLE_DATABASE)
     )
     list(APPEND IDL_SRC
         storage/Database.idl
+        storage/DatabaseCallback.idl
         storage/SQLError.idl
         storage/SQLResultSet.idl
         storage/SQLResultSetRowList.idl
+        storage/SQLStatementCallback.idl
+        storage/SQLStatementErrorCallback.idl
         storage/SQLTransaction.idl
+        storage/SQLTransactionCallback.idl
+        storage/SQLTransactionErrorCallback.idl
     )
 endif(ENABLE_DATABASE)
 

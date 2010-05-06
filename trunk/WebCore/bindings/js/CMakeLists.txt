@@ -137,11 +137,7 @@ endif(ENABLE_3D_CANVAS)
 
 if(ENABLE_DATABASE)
     list(APPEND WEBCORE_SRC
-        bindings/js/JSCustomSQLStatementCallback.cpp
         bindings/js/JSCustomSQLStatementErrorCallback.cpp
-        bindings/js/JSCustomSQLTransactionCallback.cpp
-        bindings/js/JSCustomSQLTransactionErrorCallback.cpp
-        bindings/js/JSDatabaseCallback.cpp
         bindings/js/JSDatabaseCustom.cpp
         bindings/js/JSSQLResultSetRowListCustom.cpp
         bindings/js/JSSQLTransactionCustom.cpp

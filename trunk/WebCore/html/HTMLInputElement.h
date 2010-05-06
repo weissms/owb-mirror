@@ -202,7 +202,6 @@ public:
 
     virtual void* preDispatchEventHandler(Event*);
     virtual void postDispatchEventHandler(Event*, void* dataFromPreDispatch);
-    virtual void defaultEventHandler(Event*);
 
     String altText() const;
     
@@ -268,10 +267,16 @@ public:
     // An instance pointed by the DateComponents* parameter will have parsed values and be
     // modified even if the parsing fails.  The DateComponents* parameter may be 0.
     static bool parseToDateComponents(InputType, const String&, DateComponents*);
+
+#if ENABLE(WCSS)
+    void setWapInputFormat(String& mask);
+    virtual InputElementData data() const { return m_data; }
+#endif
     
 protected:
     virtual void willMoveToNewOwnerDocument();
     virtual void didMoveToNewOwnerDocument();
+    virtual void defaultEventHandler(Event*);
 
 private:
     bool storesValueSeparateFromAttribute() const;
@@ -291,6 +296,8 @@ private:
     virtual bool isRequiredFormControl() const;
     virtual bool recalcWillValidate() const;
 
+    void updateCheckedRadioButtons();
+    
     PassRefPtr<HTMLFormElement> createTemporaryFormForIsIndex();
     // Helper for getAllowedValueStep();
     bool getStepParameters(double* defaultStep, double* stepScaleFactor) const;

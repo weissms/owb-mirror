@@ -261,24 +261,7 @@ sub GetGlibTypeName {
 sub IsGDOMClassType {
     my $type = shift;
 
-    return 0 if $type eq "DOMString";
-    return 0 if $type eq "CompareHow";
-    return 0 if $type eq "float";
-    return 0 if $type eq "double";
-    return 0 if $type eq "boolean";
-    return 0 if $type eq "char";
-    return 0 if $type eq "long";
-    return 0 if $type eq "long long";
-    return 0 if $type eq "short";
-    return 0 if $type eq "uchar";
-    return 0 if $type eq "unsigned";
-    return 0 if $type eq "int";
-    return 0 if $type eq "unsigned int";
-    return 0 if $type eq "unsigned long";
-    return 0 if $type eq "unsigned long long";
-    return 0 if $type eq "unsigned short";
-    return 0 if $type eq "void";
-
+    return 0 if $codeGenerator->IsNonPointerType($type) || $codeGenerator->IsStringType($type);
     return 1;
 }
 
@@ -495,8 +478,8 @@ EOF
 
 my %param_spec_options = ("int", "G_MININT, /* min */\nG_MAXINT, /* max */\n0, /* default */",
                           "boolean", "FALSE, /* default */",
-                          "float", "G_MINFLOAT, /* min */\nG_MAXFLOAT, /* max */\n0.0, /* default */",
-                          "double", "G_MINDOUBLE, /* min */\nG_MAXDOUBLE, /* max */\n0.0, /* default */",
+                          "float", "-G_MAXFLOAT, /* min */\nG_MAXFLOAT, /* max */\n0.0, /* default */",
+                          "double", "-G_MAXDOUBLE, /* min */\nG_MAXDOUBLE, /* max */\n0.0, /* default */",
                           "uint64", "0, /* min */\nG_MAXUINT64, /* min */\n0, /* default */",
                           "long", "G_MINLONG, /* min */\nG_MAXLONG, /* max */\n0, /* default */",
                           "int64", "G_MININT64, /* min */\nG_MAXINT64, /* max */\n0, /* default */",

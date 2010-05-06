@@ -935,7 +935,9 @@ static bool shouldEnableLoadDeferring()
     DOMWindow::dispatchAllPendingUnloadEvents();
 
     // This will close the WebViews in a random order. Change this if close order is important.
-    NSEnumerator *enumerator = [(NSMutableSet *)allWebViewsSet objectEnumerator];
+    // Make a new set to avoid mutating the set we are enumerating.
+    NSSet *webViewsToClose = [NSSet setWithSet:(NSSet *)allWebViewsSet]; 
+    NSEnumerator *enumerator = [webViewsToClose objectEnumerator];
     while (WebView *webView = [enumerator nextObject])
         [webView close];
 }
@@ -1013,6 +1015,7 @@ static bool fastDocumentTeardownEnabled()
         return;
 
     _private->closed = YES;
+    [self _removeFromAllWebViewsSet];
 
     [self _closingEventHandling];
 
@@ -1034,7 +1037,6 @@ static bool fastDocumentTeardownEnabled()
     if (Frame* mainFrame = [self _mainCoreFrame])
         mainFrame->loader()->detachFromParent();
 
-    [self _removeFromAllWebViewsSet];
     [self setHostWindow:nil];
 
     [self setDownloadDelegate:nil];
@@ -1345,6 +1347,7 @@ static bool fastDocumentTeardownEnabled()
     settings->setLocalFileContentSniffingEnabled([preferences localFileContentSniffingEnabled]);
     settings->setOfflineWebApplicationCacheEnabled([preferences offlineWebApplicationCacheEnabled]);
     settings->setZoomMode([preferences zoomsTextOnly] ? ZoomTextOnly : ZoomPage);
+    settings->setJavaScriptCanAccessClipboard([preferences javaScriptCanAccessClipboard]);
     settings->setXSSAuditorEnabled([preferences isXSSAuditorEnabled]);
     settings->setEnforceCSSMIMETypeInStrictMode(!WKAppVersionCheckLessThan(@"com.apple.iWeb", -1, 2.1));
     
@@ -5619,6 +5622,11 @@ static void layerSyncRunLoopObserverCallBack(CFRunLoopObserverRef, CFRunLoopActi
 
     if ([webView _syncCompositingChanges])
         [webView _clearLayerSyncLoopObserver];
+    else {
+        // Since the WebView does not need display, -viewWillDraw will not be called. Perform pending layout now,
+        // so that the layers draw with up-to-date layout. 
+        [webView _viewWillDrawInternal];
+    }
 }
 
 - (void)_scheduleCompositingLayerSync

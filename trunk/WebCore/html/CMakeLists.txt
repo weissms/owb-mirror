@@ -8,6 +8,7 @@ list(APPEND WEBCORE_SRC
     html/DOMFormData.cpp
     html/File.cpp
     html/FileList.cpp
+    html/FileReader.cpp
     html/FileStream.cpp
     html/FileStreamProxy.cpp
     html/FileThread.cpp

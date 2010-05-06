@@ -240,6 +240,9 @@ void EventHandler::clear()
     m_capturingMouseEventsNode = 0;
     m_latchedWheelEventNode = 0;
     m_previousWheelScrolledNode = 0;
+#if ENABLE(TOUCH_EVENTS)
+    m_originatingTouchPointTargets.clear();
+#endif
 }
 
 void EventHandler::selectClosestWordFromMouseEvent(const MouseEventWithHitTestResults& result)
@@ -2224,7 +2227,9 @@ bool EventHandler::keyEvent(const PlatformKeyboardEvent& initialKeyEvent, bool* 
         if (eventFlowAltered)
             *eventFlowAltered = keydown->propagationStopped() || keydown->cancelBubble();
 #endif
-        return keydown->defaultHandled() || keydown->defaultPrevented();
+        // If frame changed as a result of keydown dispatch, then return true to avoid sending a subsequent keypress message to the new frame.
+        bool changedFocusedFrame = m_frame->page() && m_frame != m_frame->page()->focusController()->focusedOrMainFrame();
+        return keydown->defaultHandled() || keydown->defaultPrevented() || changedFocusedFrame;
     }
 
     // Run input method in advance of DOM event handling.  This may result in the IM
@@ -2245,10 +2250,12 @@ bool EventHandler::keyEvent(const PlatformKeyboardEvent& initialKeyEvent, bool* 
 
     node->dispatchEvent(keydown, ec);
 #if ENABLE(DAE)
-        if (eventFlowAltered)
-            *eventFlowAltered = keydown->propagationStopped() || keydown->cancelBubble();
+    if (eventFlowAltered)
+        *eventFlowAltered = keydown->propagationStopped() || keydown->cancelBubble();
 #endif
-    bool keydownResult = keydown->defaultHandled() || keydown->defaultPrevented();
+    // If frame changed as a result of keydown dispatch, then return early to avoid sending a subsequent keypress message to the new frame.
+    bool changedFocusedFrame = m_frame->page() && m_frame != m_frame->page()->focusController()->focusedOrMainFrame();
+    bool keydownResult = keydown->defaultHandled() || keydown->defaultPrevented() || changedFocusedFrame;
     if (handledByInputMethod || (keydownResult && !backwardCompatibilityMode))
         return keydownResult;
     

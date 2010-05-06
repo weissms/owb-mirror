@@ -2499,6 +2499,10 @@ def check_identifier_name_in_declaration(filename, line_number, line, error):
                 and not modified_identifier == "const_iterator"):
                 error(line_number, 'readability/naming', 4, identifier + " is incorrectly named. Don't use underscores in your identifier names.")
 
+        # Check for variables named 'l', these are too easy to confuse with '1' in some fonts
+        if modified_identifier == 'l':
+            error(line_number, 'readability/naming', 4, identifier + " is incorrectly named. Don't use the single letter 'l' as an identifier name.")
+
         # There can be only one declaration in non-for-control statements.
         if control_statement:
             return
@@ -2510,7 +2514,6 @@ def check_identifier_name_in_declaration(filename, line_number, line, error):
 
         number_of_identifiers += 1
         line = line[matched.end():]
-
 
 def check_c_style_cast(line_number, line, raw_line, cast_type, pattern,
                        error):
@@ -2877,7 +2880,7 @@ def _process_lines(filename, file_extension, lines, error, min_confidence):
     check_for_new_line_at_eof(lines, error)
 
 
-class CppProcessor(object):
+class CppChecker(object):
 
     """Processes C++ lines for checking style."""
 
@@ -2952,7 +2955,7 @@ class CppProcessor(object):
 
     def __init__(self, file_path, file_extension, handle_style_error,
                  min_confidence):
-        """Create a CppProcessor instance.
+        """Create a CppChecker instance.
 
         Args:
           file_extension: A string that is the file extension, without
@@ -2966,7 +2969,7 @@ class CppProcessor(object):
 
     # Useful for unit testing.
     def __eq__(self, other):
-        """Return whether this CppProcessor instance is equal to another."""
+        """Return whether this CppChecker instance is equal to another."""
         if self.file_extension != other.file_extension:
             return False
         if self.file_path != other.file_path:
@@ -2983,12 +2986,12 @@ class CppProcessor(object):
         # Python does not automatically deduce __ne__() from __eq__().
         return not self.__eq__(other)
 
-    def process(self, lines):
+    def check(self, lines):
         _process_lines(self.file_path, self.file_extension, lines,
                        self.handle_style_error, self.min_confidence)
 
 
 # FIXME: Remove this function (requires refactoring unit tests).
 def process_file_data(filename, file_extension, lines, error, min_confidence):
-    processor = CppProcessor(filename, file_extension, error, min_confidence)
-    processor.process(lines)
+    checker = CppChecker(filename, file_extension, error, min_confidence)
+    checker.check(lines)
