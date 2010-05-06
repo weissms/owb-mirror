@@ -1,3 +1,16 @@
+2010-05-06  Gilles Bertal  <gbertal@connected-labs.com>
+
+        Reviewed by Mario Bensi.
+
+        Fixed up an issue preventing connections to secure web sites when using a
+        HTTP proxy.
+
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::headerCallback):
+        When the HTTP response header callback is invoked, make sure we handle
+        a CRLF sequence as the final HTTP response line only after the HTTP
+        status code is set.
+
 2010-05-06  Mario Bensi  <mbensi@connected-labs.com>
 
         Reviewed by Gilles Bertal.

@@ -302,10 +302,17 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
      *
      * The HTTP standard requires to use \r\n but for compatibility it recommends to
      * accept also \n.
-     */
-    if (header == String("\r\n") || header == String("\n")) {
+     */        
+    if (header == String("\r\n") || header == String("\n")) {        
         CURL* h = d->m_handle;
         CURLcode err;
+        
+        long httpCode = 0;
+        curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE, &httpCode);
+        
+        // Opt out if we're dealing w/ a CRLF sequence other than the expected one from the HTTP response final line
+        if (!httpCode)
+            return totalSize;
 
         double contentLength = 0;
         err = curl_easy_getinfo(h, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &contentLength);
@@ -315,8 +322,6 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
         err = curl_easy_getinfo(h, CURLINFO_EFFECTIVE_URL, &hdr);
         d->m_response.setURL(KURL(ParsedURLString, hdr));
 
-        long httpCode = 0;
-        err = curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE, &httpCode);
         d->m_response.setHTTPStatusCode(httpCode);
 
         d->m_response.setMimeType(extractMIMETypeFromMediaType(d->m_response.httpHeaderField("Content-Type")));
