@@ -1,3 +1,26 @@
+2010-05-06  Mario Bensi  <mbensi@connected-labs.com>
+
+        Reviewed by Gilles Bertal.
+
+        set cookie policy in cookieManager
+        check cookie policy
+        add "; " after each cookie except on the last
+        handle quoted string for the cookie value
+
+        * Network/WebCore/Curl/BCCookieManagerCurl.cpp:
+        (WebCore::CookieManager::CookieManager):
+        (WebCore::CookieManager::getCookie):
+        * Network/WebCore/Curl/BCCookieManagerCurl.h:
+        (WebCore::):
+        (WebCore::CookieManager::setCookiePolicy):
+        (WebCore::CookieManager::cookiePolicy):
+        * Network/WebCore/Curl/BCCookieParserCurl.cpp:
+        (WebCore::CookieParser::parseOneCookie):
+        * Network/WebCore/Curl/BCParsedCookieCurl.cpp:
+        (WebCore::ParsedCookie::toNameValuePair):
+        * Network/WebCore/Curl/BCResourceHandleCurl.cpp:
+        (WebCore::ResourceHandle::setCookies):
+
 2010-05-04  Gilles Bertal  <gbertal@connected-labs.com>
 
         Reviewed by Mario Bensi.

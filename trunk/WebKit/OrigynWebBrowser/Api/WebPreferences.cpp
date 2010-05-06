@@ -31,6 +31,7 @@
 #include "WebPreferences.h"
 #include "WebPreferenceKeysPrivate.h"
 
+#include <CookieManager.h>
 #include <CString.h>
 #include <FileSystem.h>
 #include <Font.h>
@@ -823,6 +824,7 @@ WebKitCookieStorageAcceptPolicy WebPreferences::cookieStorageAcceptPolicy()
 void WebPreferences::setCookieStorageAcceptPolicy(WebKitCookieStorageAcceptPolicy acceptPolicy)
 {
     setIntegerValue(WebKitCookieStorageAcceptPolicyPreferenceKey, acceptPolicy);
+    cookieManager().setCookiePolicy((WebCore::CookieStorageAcceptPolicy)acceptPolicy);
 }
 
 

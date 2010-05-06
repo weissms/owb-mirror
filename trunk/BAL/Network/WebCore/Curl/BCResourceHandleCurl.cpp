@@ -189,6 +189,10 @@ bool ResourceHandle::willLoadFromCache(ResourceRequest&, Frame*)
 void ResourceHandle::setCookies()
 {
     KURL url = getInternal()->m_request.url();
+    if ((cookieManager().cookiePolicy() == CookieStorageAcceptPolicyOnlyFromMainDocumentDomain) 
+      && (getInternal()->m_request.firstPartyForCookies() != url)
+      && cookieManager().getCookie(url, WithHttpOnlyCookies).isEmpty())
+        return;
     cookieManager().setCookies(url, getInternal()->m_response.httpHeaderField("Set-Cookie"));
     checkAndSendCookies(url);
 }

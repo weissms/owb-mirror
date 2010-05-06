@@ -1,3 +1,12 @@
+2010-05-06  Mario Bensi  <mbensi@connected-labs.com>
+
+        Reviewed by Gilles Bertal.
+
+        set cookie policy in cookieManager
+
+        * OrigynWebBrowser/Api/WebPreferences.cpp:
+        (WebPreferences::setCookieStorageAcceptPolicy):
+
 2010-04-14  Olivier DOLE  <odole@sand-labs.org>
 
         Build fix

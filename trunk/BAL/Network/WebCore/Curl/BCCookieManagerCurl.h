@@ -46,6 +46,13 @@ namespace WebCore {
         WithHttpOnlyCookies
     };
 
+    enum CookieStorageAcceptPolicy {
+        CookieStorageAcceptPolicyAlways = 0,
+        CookieStorageAcceptPolicyNever,
+        CookieStorageAcceptPolicyOnlyFromMainDocumentDomain
+    };
+
+
     class CookieManager {
     public:
 
@@ -66,6 +73,9 @@ namespace WebCore {
 
         // Constants getter.
         static unsigned int maxCookieLength() { return s_maxCookieLength; }
+
+        void setCookiePolicy(CookieStorageAcceptPolicy policy) { m_policy = policy; }
+        CookieStorageAcceptPolicy cookiePolicy() { return m_policy; }
 
     private:
         friend CookieManager& cookieManager();
@@ -95,6 +105,8 @@ namespace WebCore {
         static const unsigned int s_maxCookieCountPerHost = 20;
         // Cookie size limit of 4kB as advised per RFC2109
         static const unsigned int s_maxCookieLength = 4096;
+
+        CookieStorageAcceptPolicy m_policy;
     };
 
     // Get the global instance.

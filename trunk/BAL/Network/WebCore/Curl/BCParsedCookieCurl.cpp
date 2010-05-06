@@ -130,7 +130,6 @@ String ParsedCookie::toString() const
 String ParsedCookie::toNameValuePair() const
 {
     static const String equal("=");
-    static const String semiColon(";");
 
     size_t cookieLength = m_name.length() + m_value.length() + 2;
     ASSERT(cookieLength < CookieManager::maxCookieLength());
@@ -139,7 +138,7 @@ String ParsedCookie::toNameValuePair() const
     append(result, m_name);
     append(result, equal);
     append(result, m_value);
-    append(result, semiColon);
+
     return String::adopt(result);
 }
 

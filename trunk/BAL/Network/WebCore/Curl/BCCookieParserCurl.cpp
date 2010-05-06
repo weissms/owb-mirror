@@ -95,10 +95,12 @@ ParsedCookie* CookieParser::parseOneCookie(const String& cookie, unsigned start,
     unsigned pairEnd = start; // Pair end contains always the position of the ';'
 
     // find the *first* ';' and the '=' (if they exist)
-    // FIXME : should handle quoted string
-    while (pairEnd < end && cookie[pairEnd] != ';') {
+    bool quoteFound = false;
+    while (pairEnd < end && (cookie[pairEnd] != ';' || quoteFound)) {
         if (tokenEnd == start && cookie[pairEnd] == '=')
             tokenEnd = pairEnd;
+        if (cookie[pairEnd] == '"')
+            quoteFound = !quoteFound;
         pairEnd++;
     }
 

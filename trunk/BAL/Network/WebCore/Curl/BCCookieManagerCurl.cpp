@@ -53,6 +53,7 @@ CookieManager& cookieManager()
 CookieManager::CookieManager()
     : m_count(0)
     , m_cookieJarFileName(pathByAppendingComponent(OWB_DATA, "cookieCollection.db"))
+    , m_policy(CookieStorageAcceptPolicyAlways)
 {
 }
 
@@ -130,12 +131,16 @@ String CookieManager::getCookie(const KURL& url, HttpOnlyCookieFiltering filter)
             // Get CookieMap to check for expired cookies.
             Vector<ParsedCookie*> cookies = it->second->getCookies();
 
+            if (cookiePairs.size() > 0 && !cookies.isEmpty())
+                append(cookiePairs, "; ");
             for (size_t i = 0; i < cookies.size(); ++i) {
                 ParsedCookie* cookie = cookies[i];
                 // Get the cookies filtering out the secure cookies on an unsecure connection and HttpOnly cookies if requested.
                 if (url.path().startsWith(cookie->path(), false) && (isConnectionSecure || !cookie->isSecure()) && (filter == WithHttpOnlyCookies || !cookie->isHttpOnly())) {
                     String nameValuePair = cookie->toNameValuePair();
                     append(cookiePairs, nameValuePair);
+                    if (i != cookies.size() - 1)
+                        append(cookiePairs, "; ");
                 }
             }
         }
