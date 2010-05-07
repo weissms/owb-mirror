@@ -1,3 +1,11 @@
+2010-05-06  Steven Chiang  <steven.chiang@mstarsemi.com>
+
+        Reviewed by Gilles Bertal.
+
+        Added Cairo-DirectFB platform definition.
+
+        * CMakeLists.txt:
+
 2010-04-15  Gilles Bertal  <gbertal@connected-labs.com>
 
         JIT-specific flags cleanup: removed flags definitions which are

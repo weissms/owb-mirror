@@ -1,3 +1,13 @@
+2010-05-06  Steven Chiang  <steven.chiang@mstarsemi.com>
+
+        Reviewed by Gilles Bertal.
+
+        Use a native Cairo-DirectFB backend surface in order to leverage the
+        hardware accelerations from the backend.
+
+        * ImageDecoder/WebCore/Cairo/BCImageDecoderCairo.cpp:
+        (WebCore::RGBA32Buffer::asNewNativeImage):
+
 2010-05-06  Gilles Bertal  <gbertal@connected-labs.com>
 
         Reviewed by Mario Bensi.
