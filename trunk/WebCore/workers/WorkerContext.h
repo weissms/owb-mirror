@@ -44,6 +44,7 @@
 #if ENABLE(DATABASE)
 #include "Database.h"
 #include "DatabaseCallback.h"
+#include "DatabaseSync.h"
 #endif
 
 namespace WebCore {
@@ -110,6 +111,8 @@ namespace WebCore {
 #if ENABLE(DATABASE)
         // HTML 5 client-side database
         PassRefPtr<Database> openDatabase(const String& name, const String& version, const String& displayName, unsigned long estimatedSize, PassRefPtr<DatabaseCallback> creationCallback, ExceptionCode&);
+        PassRefPtr<DatabaseSync> openDatabaseSync(const String& name, const String& version, const String& displayName, unsigned long estimatedSize, PassRefPtr<DatabaseCallback> creationCallback, ExceptionCode&);
+
         // Not implemented yet.
         virtual bool isDatabaseReadOnly() const { return false; }
         // Not implemented yet.

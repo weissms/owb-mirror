@@ -1271,17 +1271,6 @@ void RenderLayer::scrollToOffset(int x, int y, bool updateScrollbars, bool repai
     for (RenderLayer* child = firstChild(); child; child = child->nextSibling())
         child->updateLayerPositions(0);
 
-#if USE(ACCELERATED_COMPOSITING)
-    if (compositor()->inCompositingMode()) {
-        // Our stacking context is guaranteed to contain all of our descendants that may need
-        // repositioning, so update compositing layers from there.
-        if (RenderLayer* compositingAncestor = stackingContext()->enclosingCompositingLayer()) {
-            bool isUpdateRoot = true;
-            compositingAncestor->backing()->updateAfterLayout(RenderLayerBacking::AllDescendants, isUpdateRoot);
-        }
-    }
-#endif
-    
     RenderView* view = renderer()->view();
     
     // We should have a RenderView if we're trying to scroll.
@@ -1295,6 +1284,21 @@ void RenderLayer::scrollToOffset(int x, int y, bool updateScrollbars, bool repai
 
         view->updateWidgetPositions();
     }
+
+#if USE(ACCELERATED_COMPOSITING)
+    if (compositor()->inCompositingMode()) {
+        // Our stacking context is guaranteed to contain all of our descendants that may need
+        // repositioning, so update compositing layers from there.
+        if (RenderLayer* compositingAncestor = stackingContext()->enclosingCompositingLayer()) {
+            if (compositor()->compositingConsultsOverlap())
+                compositor()->updateCompositingLayers(CompositingUpdateOnScroll, compositingAncestor);
+            else {
+                bool isUpdateRoot = true;
+                compositingAncestor->backing()->updateAfterLayout(RenderLayerBacking::AllDescendants, isUpdateRoot);
+            }
+        }
+    }
+#endif
 
     RenderBoxModelObject* repaintContainer = renderer()->containerForRepaint();
     IntRect rectForRepaint = renderer()->clippedOverflowRectForRepaint(repaintContainer);
@@ -3186,7 +3190,7 @@ void RenderLayer::updateHoverActiveState(const HitTestRequest& request, HitTestR
         // We are clearing the :active chain because the mouse has been released.
         for (RenderObject* curr = activeNode->renderer(); curr; curr = curr->parent()) {
             if (curr->node() && !curr->isText())
-                curr->node()->setInActiveChain(false);
+                curr->node()->clearInActiveChain();
         }
         doc->setActiveNode(0);
     } else {
@@ -3196,7 +3200,7 @@ void RenderLayer::updateHoverActiveState(const HitTestRequest& request, HitTestR
             // will need to reference this chain.
             for (RenderObject* curr = newActiveNode->renderer(); curr; curr = curr->parent()) {
                 if (curr->node() && !curr->isText()) {
-                    curr->node()->setInActiveChain(true);
+                    curr->node()->setInActiveChain();
                 }
             }
             doc->setActiveNode(newActiveNode);

@@ -311,7 +311,7 @@ protected:
 #endif
     }
 
-protected:
+private:
     RenderStyle();
     // used to create the default style.
     RenderStyle(bool);

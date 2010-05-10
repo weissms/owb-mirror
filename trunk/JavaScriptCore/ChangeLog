@@ -1,3 +1,743 @@
+2010-05-10  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        JavaScriptCore/wtf/MD5.h: checksum should take a reference to output.
+        https://bugs.webkit.org/show_bug.cgi?id=38723
+
+        * JavaScriptCore.exp:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+        * wtf/MD5.cpp:
+        (WTF::expectMD5):
+          Fix for checksum change.
+        (WTF::MD5::checksum):
+          Take a reference to output, instead of returning the result by value, to reduce coping for performance.
+        * wtf/MD5.h:
+
+2010-05-09  Oliver Hunt  <oliver@apple.com>
+
+        Build fix.
+
+        Fix accidental repeat addition of emit_op_new_regexp
+
+        * jit/JITOpcodes.cpp:
+
+2010-05-09  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        REGRESSION(r57955): RegExp literals should not actually be cached, so r57955 should be rolled out.
+        https://bugs.webkit.org/show_bug.cgi?id=38828
+        <rdar://problem/7961634>
+
+        Rollout r57955
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::regexpToSourceString):
+        (JSC::regexpName):
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::shrinkToFit):
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::addRegExp):
+        (JSC::CodeBlock::regexp):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::addRegExp):
+        (JSC::BytecodeGenerator::emitNewRegExp):
+        * bytecompiler/BytecodeGenerator.h:
+        * bytecompiler/NodesCodegen.cpp:
+        (JSC::RegExpNode::emitBytecode):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JIT.h:
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_new_regexp):
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * jit/JITStubs.h:
+        (JSC::):
+
+2010-05-09  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Reserve a large-ish initial capacity for Lexer::m_buffer16.
+        
+        SunSpider says 0.3% faster.
+        
+        m_buffer16 is used when parsing complex strings -- for example, strings
+        with escape sequences in them. These kinds of strings can be really long,
+        and we want to avoid repeatedly copying as we grow m_buffer16.
+        
+        The net memory cost is quite low, since it's proporitional to source
+        code we already have in memory, and we throw away m_buffer16 right when
+        we're done parsing.
+
+        * parser/Lexer.cpp:
+        (JSC::Lexer::Lexer): No need to reserve initial capacity in our constructor,
+        since setCode will be called before we're asked to lex anything.
+        (JSC::Lexer::setCode): Reserve enough space to lex half the source code
+        as a complex string without having to copy.
+        (JSC::Lexer::clear): No need to reserve initial capacity here either,
+        since setCode will be called before we're asked to lex anything.
+
+2010-05-09  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Eric Seidel.
+
+        [Qt] Remove YARR configuration rules from Qt make system
+        https://bugs.webkit.org/show_bug.cgi?id=38819
+
+        Setting YARR based on JIT seeting is now in Platform.h 
+        for all ports. This patch essentially reverses r49238.
+
+        * JavaScriptCore.pri:
+
+2010-05-09  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Improve string indexing performance
+        https://bugs.webkit.org/show_bug.cgi?id=38814
+
+        Add an assembly stub to do indexed loads from strings much
+        more cheaply than the current stub dispatch logic.  We can
+        do this because we are able to make guarantees about the
+        register contents when entering the stub so the call overhead
+        is negligible.
+
+        * jit/JIT.h:
+        * jit/JITInlineMethods.h:
+        * jit/JITOpcodes.cpp:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::stringGetByValStubGenerator):
+        (JSC::JIT::emitSlow_op_get_by_val):
+           Moved from JITOpcodes.cpp to keep the slowcase next to
+           the normal case codegen as we do for everything else.
+        * jit/JITPropertyAccess32_64.cpp:
+        (JSC::JIT::stringGetByValStubGenerator):
+        (JSC::JIT::emitSlow_op_get_by_val):
+        * jit/JSInterfaceJIT.h:
+        (JSC::JSInterfaceJIT::emitFastArithImmToInt):
+
+2010-05-09  Maciej Stachowiak  <mjs@apple.com>
+
+        Fixed version of: "Optimized o[s] where o is a cell and s is a string"
+        https://bugs.webkit.org/show_bug.cgi?id=38815
+        
+        Fixed the previous patch for this from Geoff Garen.
+        
+        The two problems were a missing exception check and a PropertySlot
+        initialized improperly, leading to crashes and failures in the case
+        of getters accessed with bracket syntax.
+
+    Previous patch:
+
+        Optimized o[s] where o is a cell and s is a string, removing some old
+        code that wasn't really tuned for the JIT.
+        
+        SunSpider says 0.8% faster.
+
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/JSCell.h:
+
+2010-05-08  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Unreviewed, build fix.
+
+        Fix missing terminating ' character warning
+
+        The warning has been only seen on the Gtk buildbots.
+
+        * wtf/Platform.h:
+
+2010-05-08  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Refactor YARR and YARR_JIT default rules in Platform.h
+        https://bugs.webkit.org/show_bug.cgi?id=38727
+
+        Turn on YARR and YARR JIT by default of JIT is enabled.
+        Ports can overrule this default decisions as they wish.
+
+        * wtf/Platform.h:
+
+2010-05-08  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Split JSVALUE32_64 code out of JITOpcodes.cpp and into JITOpcodes32_64.cpp
+        https://bugs.webkit.org/show_bug.cgi?id=38808
+
+        * GNUmakefile.am:
+        * JavaScriptCore.gypi:
+        * JavaScriptCore.pro:
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.vcproj:
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * jit/JITOpcodes.cpp:
+        * jit/JITOpcodes32_64.cpp: Added.
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        (JSC::JIT::emit_op_mov):
+        (JSC::JIT::emit_op_end):
+        (JSC::JIT::emit_op_jmp):
+        (JSC::JIT::emit_op_loop_if_lesseq):
+        (JSC::JIT::emitSlow_op_loop_if_lesseq):
+        (JSC::JIT::emit_op_new_object):
+        (JSC::JIT::emit_op_instanceof):
+        (JSC::JIT::emitSlow_op_instanceof):
+        (JSC::JIT::emit_op_new_func):
+        (JSC::JIT::emit_op_get_global_var):
+        (JSC::JIT::emit_op_put_global_var):
+        (JSC::JIT::emit_op_get_scoped_var):
+        (JSC::JIT::emit_op_put_scoped_var):
+        (JSC::JIT::emit_op_tear_off_activation):
+        (JSC::JIT::emit_op_tear_off_arguments):
+        (JSC::JIT::emit_op_new_array):
+        (JSC::JIT::emit_op_resolve):
+        (JSC::JIT::emit_op_to_primitive):
+        (JSC::JIT::emitSlow_op_to_primitive):
+        (JSC::JIT::emit_op_strcat):
+        (JSC::JIT::emit_op_resolve_base):
+        (JSC::JIT::emit_op_resolve_skip):
+        (JSC::JIT::emit_op_resolve_global):
+        (JSC::JIT::emitSlow_op_resolve_global):
+        (JSC::JIT::emit_op_not):
+        (JSC::JIT::emitSlow_op_not):
+        (JSC::JIT::emit_op_jfalse):
+        (JSC::JIT::emitSlow_op_jfalse):
+        (JSC::JIT::emit_op_jtrue):
+        (JSC::JIT::emitSlow_op_jtrue):
+        (JSC::JIT::emit_op_jeq_null):
+        (JSC::JIT::emit_op_jneq_null):
+        (JSC::JIT::emit_op_jneq_ptr):
+        (JSC::JIT::emit_op_jsr):
+        (JSC::JIT::emit_op_sret):
+        (JSC::JIT::emit_op_eq):
+        (JSC::JIT::emitSlow_op_eq):
+        (JSC::JIT::emit_op_neq):
+        (JSC::JIT::emitSlow_op_neq):
+        (JSC::JIT::compileOpStrictEq):
+        (JSC::JIT::emit_op_stricteq):
+        (JSC::JIT::emitSlow_op_stricteq):
+        (JSC::JIT::emit_op_nstricteq):
+        (JSC::JIT::emitSlow_op_nstricteq):
+        (JSC::JIT::emit_op_eq_null):
+        (JSC::JIT::emit_op_neq_null):
+        (JSC::JIT::emit_op_resolve_with_base):
+        (JSC::JIT::emit_op_new_func_exp):
+        (JSC::JIT::emit_op_throw):
+        (JSC::JIT::emit_op_get_pnames):
+        (JSC::JIT::emit_op_next_pname):
+        (JSC::JIT::emit_op_push_scope):
+        (JSC::JIT::emit_op_pop_scope):
+        (JSC::JIT::emit_op_to_jsnumber):
+        (JSC::JIT::emitSlow_op_to_jsnumber):
+        (JSC::JIT::emit_op_push_new_scope):
+        (JSC::JIT::emit_op_catch):
+        (JSC::JIT::emit_op_jmp_scopes):
+        (JSC::JIT::emit_op_switch_imm):
+        (JSC::JIT::emit_op_switch_char):
+        (JSC::JIT::emit_op_switch_string):
+        (JSC::JIT::emit_op_new_error):
+        (JSC::JIT::emit_op_debug):
+        (JSC::JIT::emit_op_enter):
+        (JSC::JIT::emit_op_enter_with_activation):
+        (JSC::JIT::emit_op_create_arguments):
+        (JSC::JIT::emit_op_init_arguments):
+        (JSC::JIT::emit_op_convert_this):
+        (JSC::JIT::emitSlow_op_convert_this):
+        (JSC::JIT::emit_op_profile_will_call):
+        (JSC::JIT::emit_op_profile_did_call):
+
+2010-05-08  Gabor Loki  <loki@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix halfword loads on ARM
+        https://bugs.webkit.org/show_bug.cgi?id=38741
+
+        The BaseIndex and ImplicitAddress are contain 32bit wide offset, but
+        the load16 functions were working with 8 bit data (encoded in the
+        instruction). If the offset cannot be encoded in an instruction, it
+        should be stored in a temporary register.
+
+        * assembler/ARMAssembler.h:
+        (JSC::ARMAssembler::getOffsetForHalfwordDataTransfer):
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::load16):
+
+2010-05-08  Gabor Loki  <loki@webkit.org>
+
+        Reviewed by Gavin Barraclough.
+
+        Fix spanning branch instruction on Cortex-A8 with Thumb-2 JIT
+        https://bugs.webkit.org/show_bug.cgi?id=38280
+
+        If the 32-bit Thumb-2 branch instruction spans two 4KiB regions and
+        the target of the branch falls within the first region it is
+        possible for the processor to incorrectly determine the branch
+        instruction, and it is also possible in some cases for the processor
+        to enter a deadlock state.
+
+        * assembler/ARMv7Assembler.h:
+        (JSC::ARMv7Assembler::linkJumpAbsolute):
+
+2010-05-08  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        [WTFURL] Add a buffer for managing the output of the canonicalizer
+        https://bugs.webkit.org/show_bug.cgi?id=38671
+
+        The canonicalizer produces a stream of canonicalized characters, which
+        we will store in a URLBuffer.  URLBuffer is quite similar to Vector,
+        but serves as an abstraction to isolate us from the underlying
+        character storage.  In the case of WebKit, we'll probably implement a
+        subclass of URLBuffer with Vector.  In Chromium, the backing store is a
+        std::string, which avoids an unnecessary memcpy that would be caused by
+        using Vector instead.
+
+        * wtf/url/src/URLBuffer.h: Added.
+        (WTF::URLBuffer::URLBuffer):
+        (WTF::URLBuffer::~URLBuffer):
+        (WTF::URLBuffer::at):
+        (WTF::URLBuffer::set):
+        (WTF::URLBuffer::capacity):
+        (WTF::URLBuffer::length):
+        (WTF::URLBuffer::data):
+        (WTF::URLBuffer::setLength):
+        (WTF::URLBuffer::append):
+        (WTF::URLBuffer::grow):
+
+2010-05-08  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, just reverting commit.
+
+        REGRESSION(59000): r59000 contained all sorts of changes it should not have, needs revert.
+        https://bugs.webkit.org/show_bug.cgi?id=38798
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitResolve):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_resolve_global):
+
+2010-05-04  Jer Noble  <jer.noble@apple.com>
+
+        Reviewed by Maciej Stachowiak
+
+        Safari pegs CPU and drops tons of frames using HTML5 Vimeo player
+        <https://bugs.webkit.org/show_bug.cgi?id=34005>
+        <rdar://problem/7569713>
+        
+        Added cancelCallOnMainThread.  callOnMainThread should always now be paired
+        with cancelCallOnMainThread in situations where the refcon passed to callOnMainThread
+        may be dealloced before the main thread function can be dispatched.  
+        
+        * wtf/MainThread.cpp:
+        (WTF::FunctionWithContext::operator == ): Supports the FunctionWithContextFinder predicate functor.
+        (WTF::FunctionWithContextFinder::FunctionWithContextFinder):  Predicate functor for use with Dequeue::findIf
+        (WTF::FunctionWithContextFinder::operator()):
+        (WTF::cancelCallOnMainThread):
+        * wtf/MainThread.h:
+
+2010-05-07  Oliver Hunt  <oliver@apple.com>
+
+        Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-05-07  Eric Seidel  <eric@webkit.org>
+
+        Unreviewed, rolling out r58990.
+        http://trac.webkit.org/changeset/58990
+
+        Broke 4 tests on Snow Leopard and Qt.
+
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/JSCell.h:
+
+2010-05-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Optimize access to the global object from a function that uses eval
+        https://bugs.webkit.org/show_bug.cgi?id=38644
+
+        Fix bug where cross scope access to a global var (vs. property) would
+        be allowed without checking for intervening dynamic scopes.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitResolve):
+
+2010-05-07  Oliver Hunt  <oliver@apple.com>
+
+        32-bit buildfix.
+
+        Macro expansion I stab at thee!
+
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_resolve_global):
+
+2010-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Optimized o[s] where o is a cell and s is a string, removing some old
+        code that wasn't really tuned for the JIT.
+        
+        SunSpider says 0.8% faster.
+
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * runtime/JSCell.h:
+
+2010-05-07  Oliver Hunt  <oliver@apple.com>
+
+        Windows build fix.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-05-07  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Optimize access to the global object from a function that uses eval
+        https://bugs.webkit.org/show_bug.cgi?id=38644
+
+        Add op_resolve_global_dynamic, a variant of op_resolve_global that
+        checks each node in the scope chain for dynamically inserted properties
+        and falls back to the normal resolve logic in that case.
+
+        * JavaScriptCore.exp:
+        * bytecode/CodeBlock.cpp:
+        (JSC::isGlobalResolve):
+        (JSC::CodeBlock::printStructures):
+        (JSC::CodeBlock::dump):
+        (JSC::CodeBlock::derefStructures):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::findScopedProperty):
+           Now take an additional reference parameter to used to indicate that
+           there were nodes that may gain dynamic properties
+        (JSC::BytecodeGenerator::emitResolve):
+        (JSC::BytecodeGenerator::emitResolveBase):
+        (JSC::BytecodeGenerator::emitResolveWithBase):
+           deal with additional argument to findScopedProperty
+        * bytecompiler/BytecodeGenerator.h:
+        * bytecompiler/NodesCodegen.cpp:
+        (JSC::FunctionCallResolveNode::emitBytecode):
+        (JSC::PostfixResolveNode::emitBytecode):
+        (JSC::PrefixResolveNode::emitBytecode):
+        (JSC::ReadModifyResolveNode::emitBytecode):
+        (JSC::AssignResolveNode::emitBytecode):
+           These functions use findScopedProperty directly in order to
+           optimise lookup.  They cannot trivially handle any degree of
+           dynamism in the lookup so we just give up in such case.
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::resolveGlobalDynamic):
+        (JSC::Interpreter::execute):
+        (JSC::Interpreter::privateExecute):
+        * interpreter/Interpreter.h:
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        * jit/JIT.h:
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_resolve_global):
+        (JSC::JIT::emit_op_resolve_global_dynamic):
+        (JSC::JIT::emitSlow_op_resolve_global):
+        (JSC::JIT::emitSlow_op_resolve_global_dynamic):
+           Happily resolve_global_dynamic can share the slow case!
+        * jit/JITStubs.h:
+        (JSC::):
+        * runtime/JSActivation.cpp:
+        (JSC::JSActivation::isDynamicScope):
+        * runtime/JSActivation.h:
+        * runtime/JSGlobalObject.cpp:
+        (JSC::JSGlobalObject::isDynamicScope):
+        * runtime/JSGlobalObject.h:
+        * runtime/JSStaticScopeObject.cpp:
+        (JSC::JSStaticScopeObject::isDynamicScope):
+        * runtime/JSStaticScopeObject.h:
+        * runtime/JSVariableObject.h:
+
+2010-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin Barraclough.
+
+        Fixed Sputnik failure seen on buildbot.
+
+        * runtime/NumberPrototype.cpp:
+        (JSC::numberProtoFuncToString): Cast to unsigned before checking magnitude,
+        to efficiently exclude negative numbers, which require two characters
+        instead of one.
+
+2010-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Alexey Proskuryakov.
+        
+        Slightly more effective way to guarantee a compile-time constant, at
+        least on gcc.
+
+        * runtime/NumberPrototype.cpp:
+        (JSC::numberProtoFuncToString): Use pointer notation instead of array
+        notation, so the compiler treats the string and its contents as constant.
+
+2010-05-07  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        [WTFURL] Add core URL parser
+        https://bugs.webkit.org/show_bug.cgi?id=38572
+
+        This patch adds the core of the URL parser.  The URL parser uses a
+        templated notion of a code unit to support different string types.
+        Later we'll add some non-templated APIs with concrete types that
+        clients can use more conveniently.
+
+        The URLParser has a couple calls to ASSERT(), which I've commented out
+        for now.  I'm not 100% sure how to handle the dependency issues there
+        yet, so I've punted on the issue for now.
+
+        Also, there are a number of methods that are declared public in this
+        patch that are only used by the canonicalizer.  My plan is to make
+        those private or protected and make the canonicalizer a friend of the
+        parser.  The details will be in a later patch.
+
+        * wtf/url/src/URLComponent.h:
+        (WTF::URLComponent::fromRange):
+        (WTF::URLComponent::isNonEmpty):
+        (WTF::URLComponent::isEmptyOrInvalid):
+        * wtf/url/src/URLParser.h: Added.
+        (WTF::URLParser::):
+        (WTF::URLParser::isPossibleAuthorityTerminator):
+        (WTF::URLParser::parseAuthority):
+        (WTF::URLParser::extractScheme):
+        (WTF::URLParser::parseAfterScheme):
+        (WTF::URLParser::parseStandardURL):
+        (WTF::URLParser::parsePath):
+        (WTF::URLParser::parsePathURL):
+        (WTF::URLParser::parseMailtoURL):
+        (WTF::URLParser::parsePort):
+        (WTF::URLParser::extractFileName):
+        (WTF::URLParser::extractQueryKeyValue):
+        (WTF::URLParser::isURLSlash):
+        (WTF::URLParser::shouldTrimFromURL):
+        (WTF::URLParser::trimURL):
+        (WTF::URLParser::consecutiveSlashes):
+        (WTF::URLParser::isPortDigit):
+        (WTF::URLParser::nextAuthorityTerminator):
+        (WTF::URLParser::parseUserInfo):
+        (WTF::URLParser::parseServerInfo):
+
+2010-05-07  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Added a fast path for number-to-character conversion via
+        Number.prototype.toString base 36.
+        
+        0.7% speedup on SunSpider.
+
+        * runtime/NumberPrototype.cpp:
+        (JSC::numberProtoFuncToString): Made radix interpretation a little more
+        efficient by keeping it in int space. Turned "const char" into
+        "static const char" just in case. Added a fast path for base 36
+        conversion of something that will turn into a character.
+
+2010-05-07  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Darin Fisher.
+
+        [WTFURL] Add a malloc-backed URLBuffer
+        https://bugs.webkit.org/show_bug.cgi?id=38694
+
+        This patch adds a URLBuffer that uses new/delete to manage the backing
+        store for the buffer.
+
+        * wtf/url/src/RawURLBuffer.h: Added.
+        (WTF::RawURLBuffer::RawURLBuffer):
+        (WTF::RawURLBuffer::~RawURLBuffer):
+        (WTF::RawURLBuffer::resize):
+
+2010-05-06  Fumitoshi Ukai  <ukai@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        JavaScriptCore/wtf/RandomNumber.h should provide using WTF::*
+        https://bugs.webkit.org/show_bug.cgi?id=38719
+
+        * wtf/RandomNumber.h:
+          Add using directives.
+
+2010-05-06  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Enable YARR_JIT for X86 Mac for QtWebKit
+        https://bugs.webkit.org/show_bug.cgi?id=38668
+
+        * wtf/Platform.h:
+
+2010-05-06  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 38714 - Add result caching for Math.sin
+
+        Math.sin is frequently called with the same operand, caching the result should
+        improve performance.  CachedTranscendentalFunction adds a generic mechanism to
+        cache results for pure functions with the signature "double func(double)", and
+        where NaN maps to NaN.
+
+        CachedTranscendentalFunction uses a very simple hash function designed to be
+        fast to execute since we cannot cache the result, and trivial to JIT generate,
+        should we wish to do so.
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * runtime/CachedTranscendentalFunction.h: Added.
+        (JSC::CachedTranscendentalFunction::CachedTranscendentalFunction):
+        (JSC::CachedTranscendentalFunction::~CachedTranscendentalFunction):
+        (JSC::CachedTranscendentalFunction::operator()):
+        (JSC::CachedTranscendentalFunction::initialize):
+        (JSC::CachedTranscendentalFunction::hash):
+        * runtime/JSGlobalData.h:
+        * runtime/MathObject.cpp:
+        (JSC::mathProtoFuncSin):
+        * wtf/Platform.h:
+
+2010-05-06  Geoffrey Garen  <ggaren@apple.com>
+
+        Windows build fix.
+
+        * bytecode/SamplingTool.cpp:
+        (JSC::SamplingFlags::sample): Use a cast, so Windows will be happy when
+        this code is enabled.
+        * wtf/Platform.h: Reverted last change to this file, which seems to have
+        been accidental.
+
+2010-05-06  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Add compile switch to make debugger keyword plant breakpoint instructions.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitDebugHook):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_debug):
+        * wtf/Platform.h:
+
+2010-05-06  Oliver Hunt  <oliver@apple.com>
+
+        Build fix
+
+        Fix ARM builds
+
+        * assembler/MacroAssemblerARM.h:
+        (JSC::MacroAssemblerARM::load16):
+        * assembler/MacroAssemblerARMv7.h:
+        (JSC::MacroAssemblerARMv7::load16):
+
+2010-05-06  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Improve performance of single character string compares
+        https://bugs.webkit.org/show_bug.cgi?id=38659
+
+        Add logic to the jit to identify comparisons to single character string literals
+        and then just perform the comparison inline, rather than ignoring the evidence
+        and attempting to perform an integer comparison.
+
+        Multiple changes required -- add jnlesseq opcode, add helper function to identify
+        single character string constants, add a helper to load single character strings.
+        Then add the 32_64 and normal codepaths to the JIT.
+
+        * assembler/MacroAssemblerX86Common.h:
+        (JSC::MacroAssemblerX86Common::load16):
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitJumpIfTrue):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        * jit/JIT.h:
+        * jit/JITArithmetic.cpp:
+        (JSC::JIT::emit_op_jnless):
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emit_op_jless):
+        (JSC::JIT::emitSlow_op_jless):
+        (JSC::JIT::emit_op_jlesseq):
+        (JSC::JIT::emit_op_jnlesseq):
+        (JSC::JIT::emitSlow_op_jlesseq):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        * jit/JITArithmetic32_64.cpp:
+        (JSC::JIT::emit_op_jnless):
+        (JSC::JIT::emitSlow_op_jnless):
+        (JSC::JIT::emit_op_jless):
+        (JSC::JIT::emitSlow_op_jless):
+        (JSC::JIT::emit_op_jlesseq):
+        (JSC::JIT::emit_op_jnlesseq):
+        (JSC::JIT::emitSlow_op_jlesseq):
+        (JSC::JIT::emitSlow_op_jnlesseq):
+        (JSC::JIT::emitBinaryDoubleOp):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitLoadCharacterString):
+        (JSC::JIT::isOperandConstantImmediateChar):
+        * jit/JSInterfaceJIT.h:
+        (JSC::ThunkHelpers::stringImplDataOffset):
+        (JSC::ThunkHelpers::jsStringLengthOffset):
+        (JSC::ThunkHelpers::jsStringValueOffset):
+         Moved from ThunkGenerators to make it possible to share.
+        * jit/ThunkGenerators.cpp:
+
+2010-05-06  Martin Robinson  <mrobinson@webkit.org>
+
+        Reviewed by Gustavo Noronha Silva.
+
+        [GTK] Enable DOM clipboard and drag-and-drop access
+        https://bugs.webkit.org/show_bug.cgi?id=30623
+
+        Convert dragging portion of drag-and-drop to use DataObjectGtk.
+
+        * wtf/gobject/GRefPtr.h: Add forward declarations for GObject functions.
+
+2010-05-06  Steve Block  <steveblock@google.com>
+
+        Reviewed by Eric Seidel.
+
+        MAC_JAVA_BRIDGE should be renamed JAVA_BRIDGE
+        https://bugs.webkit.org/show_bug.cgi?id=38544
+
+        * wtf/Platform.h:
+
+2010-05-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Maciej Stachowiak.
+
+        [WTFURL] Add a class to represent the segments of a URL
+        https://bugs.webkit.org/show_bug.cgi?id=38566
+
+        When paired with a string, this class represents a parsed URL.
+
+        * wtf/url/src/URLSegments.cpp: Added.
+        (WTF::URLSegments::length):
+        (WTF::URLSegments::charactersBefore):
+        * wtf/url/src/URLSegments.h: Added.
+        (WTF::URLSegments::):
+        (WTF::URLSegments::URLSegments):
+        * wtf/url/wtfurl.gyp:
+
 2010-05-06  Tony Gentilcore  <tonyg@chromium.org>
 
         Reviewed by Adam Barth.

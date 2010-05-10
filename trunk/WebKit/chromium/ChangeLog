@@ -1,3 +1,116 @@
+2010-05-10  Jens Alfke  <snej@chromium.org>
+
+        Reviewed by Darin Fisher.
+
+        [chromium] WebFrame::registerPasswordListener shouldn't assert on duplicate listener.
+        https://bugs.webkit.org/show_bug.cgi?id=38765
+
+        * public/WebFrame.h:
+        (WebKit::WebFrameImpl::registerPasswordListener): Changed return type to bool. Updated comment.
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::registerPasswordListener): Return false instead of asserting.
+        * src/WebFrameImpl.h:
+        (WebKit::WebFrameImpl::registerPasswordListener): Changed return type to bool.
+
+2010-05-08  Michael Nordman  <michaeln@google.com>
+
+        Reviewed by Dmitry Titov.
+
+        Add an additional parameter to the WebSharedWorker::startWorkerContext method
+        to indicate which appcache the shared worker script resource was loaded from,
+        and provide that value when calling out to chrome via this interface.
+        https://bugs.webkit.org/show_bug.cgi?id=38605
+
+        I'm keeping the old method around until patches can land in both repositories
+        that make the old method obsolete and unneeded. There's a FIXME for that.
+
+        Also somewhat related but independent change to propagate the runtime enabled 
+        flag thru to the page settings instance used by the 'shadow page'.
+ 
+        * public/WebSharedWorker.h: Add the new param (but keep the old interface around for now too)
+        (WebKit::WebSharedWorker::startWorkerContext):
+        * src/SharedWorkerRepository.cpp: Provide the value when calling out to chrome.
+        (WebCore::SharedWorkerScriptLoader::notifyFinished):
+        * src/WebSharedWorkerImpl.cpp:
+        (WebKit::WebSharedWorkerImpl::startWorkerContext):
+        * src/WebSharedWorkerImpl.h:
+        * src/WebWorkerBase.cpp: Propagate runtime enabled flag thru to the page settings.
+        (WebKit::WebWorkerBase::initializeLoader):
+
+2010-05-07  Darin Fisher  <darin@chromium.org>
+
+        Fix build bustage.  Update to Chromium code that avoids a bad
+        dependency from net/ on chrome/.
+
+        * DEPS:
+
+2010-05-07  Darin Fisher  <darin@chromium.org>
+
+        Fix build bustage.  Update to Chromium code that no longer uses
+        deprecated methods.
+
+        * DEPS:
+
+2010-05-07  Darin Fisher  <darin@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium] clear out more deprecated methods that are no longer used
+        https://bugs.webkit.org/show_bug.cgi?id=38702
+
+        * public/WebFrame.h:
+        * public/WebNode.h:
+        * src/WebFrameImpl.cpp:
+        * src/WebFrameImpl.h:
+        * src/WebNode.cpp:
+
+2010-05-07  Finnur Thorarinsson  <finnur.webkit@gmail.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        [chromium]: Fixing Find in page crash on sites.google.com
+        https://bugs.webkit.org/show_bug.cgi?id=38591
+        
+        setMarkerActive should not try to set a collapsed marker as
+        active. This can happen when you Edit a Sites page after doing
+        a Find operation and then you press FindNext.
+        
+        * src/WebFrameImpl.cpp:
+        (WebKit::WebFrameImpl::setMarkerActive):
+
+2010-05-06  Kent Tamura  <tkent@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        [DRT/Chromium] Add support for resources on Mac
+        https://bugs.webkit.org/show_bug.cgi?id=38637
+
+        * DEPS: Check out tools/data_pack.
+
+2010-05-06  Pavel Feldman  <pfeldman@chromium.org>
+
+        Reviewed by Timothy Hatcher.
+
+        Chromium Dev Tools: Large toolbar icons flash when dev
+        tools is opened in docked mode.
+
+        https://bugs.webkit.org/show_bug.cgi?id=38631
+
+        * src/js/DevTools.js:
+        (devtools.domContentLoaded):
+
+2010-05-06  Adam Barth  <abarth@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        drop support for sessionStorage in sandbox iframes
+        https://bugs.webkit.org/show_bug.cgi?id=38151
+
+        Update client of sessionStorage to handle exceptions.
+
+        * src/StorageAreaProxy.cpp:
+        (WebCore::StorageAreaProxy::storageEvent):
+
 2010-05-06  Darin Fisher  <darin@chromium.org>
 
         Reviewed by Dimitri Glazkov.

@@ -139,8 +139,10 @@ if(ENABLE_DATABASE)
     list(APPEND WEBCORE_SRC
         bindings/js/JSCustomSQLStatementErrorCallback.cpp
         bindings/js/JSDatabaseCustom.cpp
+        bindings/js/JSDatabaseSyncCustom.cpp
         bindings/js/JSSQLResultSetRowListCustom.cpp
         bindings/js/JSSQLTransactionCustom.cpp
+        bindings/js/JSSQLTransactionSyncCustom.cpp
     )
 endif(ENABLE_DATABASE)
 

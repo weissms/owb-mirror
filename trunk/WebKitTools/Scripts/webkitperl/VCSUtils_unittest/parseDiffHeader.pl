@@ -68,9 +68,8 @@ Index: WebKitTools/index_path.py
 +++ WebKitTools/index_path.py	(working copy)
 END
     copiedFromPath => "copied_from_path.py",
-    executableBitDelta => 0,
     indexPath => "index_path.py",
-    scmFormat => "svn",
+    isSvn => 1,
     sourceRevision => 53048,
 },
 "@@ -0,0 +1,7 @@\n"],
@@ -93,11 +92,9 @@ Index: WebKitTools/foo.exe
 old mode 100644
 new mode 100755
 END
-    copiedFromPath => undef,
     executableBitDelta => 1,
     indexPath => "foo.exe",
-    scmFormat => "git",
-    sourceRevision => undef,
+    isGit => 1,
 },
 undef],
     expectedNextLine => undef,

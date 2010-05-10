@@ -67,6 +67,7 @@
 #include "SelectionController.h"
 #include "Settings.h"
 #include "TextEvent.h"
+#include "TextIterator.h"
 #include "UserGestureIndicator.h"
 #include "WheelEvent.h"
 #include "htmlediting.h" // for comparePositions()
@@ -341,6 +342,12 @@ bool EventHandler::handleMousePressEventTripleClick(const MouseEventWithHitTestR
     return true;
 }
 
+static int textDistance(const Position& start, const Position& end)
+{
+     RefPtr<Range> range = Range::create(start.node()->document(), start, end);
+     return TextIterator::rangeLength(range.get(), true);
+}
+
 bool EventHandler::handleMousePressEventSingleClick(const MouseEventWithHitTestResults& event)
 {
     Node* innerNode = event.targetNode();
@@ -371,14 +378,21 @@ bool EventHandler::handleMousePressEventSingleClick(const MouseEventWithHitTestR
     if (extendSelection && newSelection.isCaretOrRange()) {
         m_frame->selection()->setIsDirectional(false);
         
-        // See <rdar://problem/3668157> REGRESSION (Mail): shift-click deselects when selection 
-        // was created right-to-left
-        Position start = newSelection.start();
-        Position end = newSelection.end();
-        if (comparePositions(pos, start) <= 0)
-            newSelection = VisibleSelection(pos, end);
-        else
-            newSelection = VisibleSelection(start, pos);
+        ASSERT(m_frame->settings());
+        if (m_frame->settings()->editingBehavior() == EditingMacBehavior) {
+            // See <rdar://problem/3668157> REGRESSION (Mail): shift-click deselects when selection
+            // was created right-to-left
+            Position start = newSelection.start();
+            Position end = newSelection.end();
+            int distanceToStart = textDistance(start, pos);
+            int distanceToEnd = textDistance(pos, end);
+            if (distanceToStart <= distanceToEnd)
+                newSelection = VisibleSelection(end, pos);
+            else
+                newSelection = VisibleSelection(start, pos);
+        } else {
+            newSelection.setExtent(pos);
+        }
 
         if (m_frame->selectionGranularity() != CharacterGranularity) {
             granularity = m_frame->selectionGranularity();
@@ -1514,7 +1528,7 @@ bool EventHandler::handleMouseReleaseEvent(const PlatformMouseEvent& mouseEvent)
     if (mouseEvent.button() == MiddleButton)
         m_panScrollButtonPressed = false;
     if (m_springLoadedPanScrollInProgress)
-       stopAutoscrollTimer();
+        stopAutoscrollTimer();
 #endif
 
     m_mousePressed = false;
@@ -2805,21 +2819,21 @@ bool EventHandler::handleTouchEvent(const PlatformTouchEvent& event)
 
         // Increment the platform touch id by 1 to avoid storing a key of 0 in the hashmap.
         unsigned touchPointTargetKey = point.id() + 1;
-        EventTarget* touchTarget = 0;
+        RefPtr<EventTarget> touchTarget;
         if (point.state() == PlatformTouchPoint::TouchPressed) {
             m_originatingTouchPointTargets.set(touchPointTargetKey, target);
             touchTarget = target;
         } else if (point.state() == PlatformTouchPoint::TouchReleased || point.state() == PlatformTouchPoint::TouchCancelled) {
             // The target should be the original target for this touch, so get it from the hashmap. As it's a release or cancel
             // we also remove it from the map.
-            touchTarget = m_originatingTouchPointTargets.take(touchPointTargetKey).get();
+            touchTarget = m_originatingTouchPointTargets.take(touchPointTargetKey);
         } else
-            touchTarget = m_originatingTouchPointTargets.get(touchPointTargetKey).get();
+            touchTarget = m_originatingTouchPointTargets.get(touchPointTargetKey);
 
-        if (!touchTarget)
+        if (!touchTarget.get())
             continue;
 
-        RefPtr<Touch> touch = Touch::create(doc->frame(), touchTarget, point.id(),
+        RefPtr<Touch> touch = Touch::create(doc->frame(), touchTarget.get(), point.id(),
                                             point.screenPos().x(), point.screenPos().y(),
                                             adjustedPageX, adjustedPageY);
 

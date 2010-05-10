@@ -447,7 +447,6 @@ namespace JSC {
         Jump emitFastArithDeTagImmediateJumpIfZero(RegisterID);
 #endif
         void emitFastArithReTagImmediate(RegisterID src, RegisterID dest);
-        void emitFastArithImmToInt(RegisterID);
         void emitFastArithIntToImmNoCheck(RegisterID src, RegisterID dest);
 
         void emitTagAsBoolImmediate(RegisterID reg);
@@ -672,6 +671,7 @@ namespace JSC {
         void emit_op_jneq_ptr(Instruction*);
         void emit_op_jnless(Instruction*);
         void emit_op_jless(Instruction*);
+        void emit_op_jlesseq(Instruction*, bool invert = false);
         void emit_op_jnlesseq(Instruction*);
         void emit_op_jsr(Instruction*);
         void emit_op_jtrue(Instruction*);
@@ -694,6 +694,7 @@ namespace JSC {
         void emit_op_new_func(Instruction*);
         void emit_op_new_func_exp(Instruction*);
         void emit_op_new_object(Instruction*);
+        void emit_op_new_regexp(Instruction*);
         void emit_op_get_pnames(Instruction*);
         void emit_op_next_pname(Instruction*);
         void emit_op_not(Instruction*);
@@ -716,7 +717,8 @@ namespace JSC {
         void emit_op_put_setter(Instruction*);
         void emit_op_resolve(Instruction*);
         void emit_op_resolve_base(Instruction*);
-        void emit_op_resolve_global(Instruction*);
+        void emit_op_resolve_global(Instruction*, bool dynamic = false);
+        void emit_op_resolve_global_dynamic(Instruction*);
         void emit_op_resolve_skip(Instruction*);
         void emit_op_resolve_with_base(Instruction*);
         void emit_op_ret(Instruction*);
@@ -759,6 +761,7 @@ namespace JSC {
         void emitSlow_op_jfalse(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_jnless(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_jless(Instruction*, Vector<SlowCaseEntry>::iterator&);
+        void emitSlow_op_jlesseq(Instruction*, Vector<SlowCaseEntry>::iterator&, bool invert = false);
         void emitSlow_op_jnlesseq(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_jtrue(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_loop_if_less(Instruction*, Vector<SlowCaseEntry>::iterator&);
@@ -780,6 +783,7 @@ namespace JSC {
         void emitSlow_op_put_by_id(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_put_by_val(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_resolve_global(Instruction*, Vector<SlowCaseEntry>::iterator&);
+        void emitSlow_op_resolve_global_dynamic(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_rshift(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_stricteq(Instruction*, Vector<SlowCaseEntry>::iterator&);
         void emitSlow_op_sub(Instruction*, Vector<SlowCaseEntry>::iterator&);
@@ -812,6 +816,7 @@ namespace JSC {
 
         JSValue getConstantOperand(unsigned src);
         bool isOperandConstantImmediateInt(unsigned src);
+        bool isOperandConstantImmediateChar(unsigned src);
 
         Jump getSlowCase(Vector<SlowCaseEntry>::iterator& iter)
         {
@@ -835,6 +840,9 @@ namespace JSC {
         void restoreReturnAddressBeforeReturn(RegisterID);
         void restoreReturnAddressBeforeReturn(Address);
 
+        // Loads the character value of a single character string into dst.
+        void emitLoadCharacterString(RegisterID src, RegisterID dst, JumpList& failures);
+        
         void emitTimeoutCheck();
 #ifndef NDEBUG
         void printBytecodeOperandTypes(unsigned src1, unsigned src2);
@@ -896,6 +904,7 @@ namespace JSC {
         int m_uninterruptedConstantSequenceBegin;
 #endif
 #endif
+        static PassRefPtr<NativeExecutable> stringGetByValStubGenerator(JSGlobalData* globalData, ExecutablePool* pool);
     } JIT_CLASS_ALIGNMENT;
 
     inline void JIT::emit_op_loop(Instruction* currentInstruction)

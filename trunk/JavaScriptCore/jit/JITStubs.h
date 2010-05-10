@@ -337,6 +337,7 @@ extern "C" {
     EncodedJSValue JIT_STUB cti_op_resolve(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_resolve_base(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_resolve_global(STUB_ARGS_DECLARATION);
+    EncodedJSValue JIT_STUB cti_op_resolve_global_dynamic(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_resolve_skip(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_resolve_with_base(STUB_ARGS_DECLARATION);
     EncodedJSValue JIT_STUB cti_op_rshift(STUB_ARGS_DECLARATION);
@@ -356,6 +357,7 @@ extern "C" {
     JSObject* JIT_STUB cti_op_new_func(STUB_ARGS_DECLARATION);
     JSObject* JIT_STUB cti_op_new_func_exp(STUB_ARGS_DECLARATION);
     JSObject* JIT_STUB cti_op_new_object(STUB_ARGS_DECLARATION);
+    JSObject* JIT_STUB cti_op_new_regexp(STUB_ARGS_DECLARATION);
     JSObject* JIT_STUB cti_op_push_activation(STUB_ARGS_DECLARATION);
     JSObject* JIT_STUB cti_op_push_new_scope(STUB_ARGS_DECLARATION);
     JSObject* JIT_STUB cti_op_push_scope(STUB_ARGS_DECLARATION);

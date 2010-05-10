@@ -116,6 +116,7 @@ DOM_CLASSES = \
     DOMWindow \
     Database \
     DatabaseCallback \
+    DatabaseSync \
     Document \
     DocumentFragment \
     DocumentType \
@@ -254,6 +255,8 @@ DOM_CLASSES = \
     SQLTransaction \
     SQLTransactionCallback \
     SQLTransactionErrorCallback \
+    SQLTransactionSync \
+    SQLTransactionSyncCallback \
     Storage \
     StorageEvent \
     SVGAElement \
@@ -399,6 +402,7 @@ DOM_CLASSES = \
     SVGUnitTypes \
     SVGUseElement \
     SVGViewElement \
+    SVGVKernElement \
     SVGZoomAndPan \
     SVGZoomEvent \
     Screen \
@@ -827,7 +831,7 @@ CharsetData.cpp : platform/text/mac/make-charset-table.pl platform/text/mac/char
 
 # export file
 
-ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_MAC_JAVA_BRIDGE | cut -d' ' -f3), 1)
+ifeq ($(shell gcc -E -P -dM $(FRAMEWORK_FLAGS) WebCore/ForwardingHeaders/wtf/Platform.h | grep ENABLE_JAVA_BRIDGE | cut -d' ' -f3), 1)
     WEBCORE_EXPORT_DEPENDENCIES := $(WEBCORE_EXPORT_DEPENDENCIES) WebCore.JNI.exp
 endif
 

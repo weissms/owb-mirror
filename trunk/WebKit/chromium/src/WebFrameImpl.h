@@ -160,10 +160,9 @@ public:
     virtual void cancelPendingScopingEffort();
     virtual void increaseMatchCount(int count, int identifier);
     virtual void resetMatchCount();
-    virtual void registerPasswordListener(
+    virtual bool registerPasswordListener(
         WebInputElement, WebPasswordAutocompleteListener*);
 
-    virtual WebURL completeURL(const WebString& url) const;
     virtual WebString contentAsText(size_t maxChars) const;
     virtual WebString contentAsMarkup() const;
     virtual WebString renderTreeAsText() const;

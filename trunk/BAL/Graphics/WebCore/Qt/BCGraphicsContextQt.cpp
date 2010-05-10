@@ -651,12 +651,12 @@ void GraphicsContext::fillRect(const FloatRect& rect)
     }
 }
 
-void GraphicsContext::fillRect(const FloatRect& rect, const Color& c, ColorSpace colorSpace)
+void GraphicsContext::fillRect(const FloatRect& rect, const Color& color, ColorSpace colorSpace)
 {
-    if (paintingDisabled())
+    if (paintingDisabled() || !color.isValid())
         return;
 
-    m_data->solidColor.setColor(c);
+    m_data->solidColor.setColor(color);
     QPainter* p = m_data->p();
     if (m_common->state.shadowColor.isValid())
         drawBorderlessRectShadow(this, p, rect);
@@ -665,7 +665,7 @@ void GraphicsContext::fillRect(const FloatRect& rect, const Color& c, ColorSpace
 
 void GraphicsContext::fillRoundedRect(const IntRect& rect, const IntSize& topLeft, const IntSize& topRight, const IntSize& bottomLeft, const IntSize& bottomRight, const Color& color, ColorSpace colorSpace)
 {
-    if (paintingDisabled() || !color.alpha())
+    if (paintingDisabled() || !color.isValid() || !color.alpha())
         return;
 
     Path path = Path::createRoundedRectangle(rect, topLeft, topRight, bottomLeft, bottomRight);
@@ -727,7 +727,7 @@ void GraphicsContext::drawFocusRing(const Vector<Path>& paths, int width, int of
  */
 void GraphicsContext::drawFocusRing(const Vector<IntRect>& rects, int /* width */, int /* offset */, const Color& color)
 {
-    if (paintingDisabled())
+    if (paintingDisabled() || !color.isValid())
         return;
 
     unsigned rectCount = rects.size();
@@ -1151,8 +1151,9 @@ void GraphicsContext::setURLForRect(const KURL&, const IntRect&)
 
 void GraphicsContext::setPlatformStrokeColor(const Color& color, ColorSpace colorSpace)
 {
-    if (paintingDisabled())
+    if (paintingDisabled() || !color.isValid())
         return;
+
     QPainter* p = m_data->p();
     QPen newPen(p->pen());
     m_data->solidColor.setColor(color);
@@ -1182,8 +1183,9 @@ void GraphicsContext::setPlatformStrokeThickness(float thickness)
 
 void GraphicsContext::setPlatformFillColor(const Color& color, ColorSpace colorSpace)
 {
-    if (paintingDisabled())
+    if (paintingDisabled() || !color.isValid())
         return;
+
     m_data->solidColor.setColor(color);
     m_data->p()->setBrush(m_data->solidColor);
 }

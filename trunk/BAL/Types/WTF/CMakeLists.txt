@@ -31,7 +31,8 @@ if(USE_THREADS_QT)
     aux_source_directory(${BAL_DIR}/Types/WTF/Qt WTF_SRC)
 endif(USE_THREADS_QT)
 
+create_include_link(${BAL_DIR}/Types/WTF/URL BAL/wtf)
+aux_source_directory(${BAL_DIR}/Types/WTF/URL WTF_SRC)
 
 create_include_link(${BAL_DIR}/Types/WTF BAL/wtf)
-
 aux_source_directory(${BAL_DIR}/Types/WTF WTF_SRC)

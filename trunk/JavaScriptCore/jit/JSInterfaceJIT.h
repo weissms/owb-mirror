@@ -169,10 +169,17 @@ namespace JSC {
 #if USE(JSVALUE32) || USE(JSVALUE64)
         Jump emitJumpIfImmediateNumber(RegisterID reg);
         Jump emitJumpIfNotImmediateNumber(RegisterID reg);
+        void emitFastArithImmToInt(RegisterID reg);
 #endif
 
         inline Address payloadFor(unsigned index, RegisterID base = callFrameRegister);
         inline Address addressFor(unsigned index, RegisterID base = callFrameRegister);
+    };
+
+    struct ThunkHelpers {
+        static unsigned stringImplDataOffset() { return WebCore::StringImpl::dataOffset(); }
+        static unsigned jsStringLengthOffset() { return OBJECT_OFFSETOF(JSString, m_length); }
+        static unsigned jsStringValueOffset() { return OBJECT_OFFSETOF(JSString, m_value); }
     };
 
 #if USE(JSVALUE32_64)
@@ -254,7 +261,11 @@ namespace JSC {
         done.link(this);
         return notNumber;
     }
-
+    
+    ALWAYS_INLINE void JSInterfaceJIT::emitFastArithImmToInt(RegisterID)
+    {
+    }
+    
 #endif
 
 #if USE(JSVALUE32)
@@ -277,6 +288,12 @@ namespace JSC {
         ASSERT_NOT_REACHED();
         return jump();
     }
+    
+    ALWAYS_INLINE void JSInterfaceJIT::emitFastArithImmToInt(RegisterID reg)
+    {
+        rshift32(Imm32(JSImmediate::IntegerPayloadShift), reg);
+    }
+    
 #endif
 
 #if !USE(JSVALUE32_64)

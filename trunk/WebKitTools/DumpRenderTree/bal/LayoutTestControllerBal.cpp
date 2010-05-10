@@ -635,3 +635,9 @@ void LayoutTestController::authenticateSession(JSStringRef, JSStringRef, JSStrin
 {
     // FIXME: If there is a concept per-session (per-process) credential storage, the credentials should be added to it for later use.
 }
+
+void LayoutTestController::setPluginsEnabled(bool flag)
+{
+    WebView* webView = getWebView();
+    webView->preferences()->setPlugInsEnabled(flag);
+}

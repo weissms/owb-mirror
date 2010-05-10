@@ -247,14 +247,16 @@ sub handleBinaryChange($$)
 
 sub handleGitBinaryChange($$)
 {
-    my ($fullPath, $contents) = @_;
+    my ($fullPath, $diffHashRef) = @_;
+
+    my $contents = $diffHashRef->{svnConvertedText};
 
     my ($binaryChunkType, $binaryChunk, $reverseBinaryChunkType, $reverseBinaryChunk) = decodeGitBinaryPatch($contents, $fullPath);
     # FIXME: support "delta" type.
     die "only literal type is supported now" if ($binaryChunkType ne "literal" || $reverseBinaryChunkType ne "literal");
 
-    my $isFileAddition = $contents =~ /\nnew file mode \d+\n/;
-    my $isFileDeletion = $contents =~ /\ndeleted file mode \d+\n/;
+    my $isFileAddition = $diffHashRef->{isNew};
+    my $isFileDeletion = $diffHashRef->{isDeletion};
 
     my $originalContents = "";
     if (open FILE, $fullPath) {
@@ -303,29 +305,33 @@ sub patch($)
 {
     my ($diffHashRef) = @_;
 
-    my $patch = $diffHashRef->{svnConvertedText};
+    # Make sure $patch is initialized to some value.  A deletion can have no
+    # svnConvertedText property in the case of a deletion resulting from a
+    # Git rename.
+    my $patch = $diffHashRef->{svnConvertedText} || "";
+
     my $fullPath = $diffHashRef->{indexPath};
+    my $isBinary = $diffHashRef->{isBinary};
+    my $isGit = $diffHashRef->{isGit};
 
     my $deletion = 0;
     my $addition = 0;
-    my $isBinary = 0;
-    my $isGitBinary = 0;
 
-    # FIXME: This information should be extracted from the diff file as
-    #        part of the parsing stage, i.e. the call to parsePatch().
-    $addition = 1 if ($patch =~ /\n--- .+\(revision 0\)\n/ || $patch =~ /\n@@ -0,0 .* @@/);
-    $deletion = 1 if $patch =~ /\n@@ .* \+0,0 @@/;
-    $isBinary = 1 if $patch =~ /\nCannot display: file marked as a binary type\./;
-    $isGitBinary = 1 if $patch =~ /\nGIT binary patch\n/;
+    # FIXME: Do we need the exists($copiedFiles...) check here?  It looks like
+    #        it can be removed since modifications to copies do not register
+    #        as new files.  If this is the case, we should be able to remove
+    #        the variable from this file entirely.
+    $addition = 1 if ($diffHashRef->{isNew} || $patch =~ /\n@@ -0,0 .* @@/) && !exists($copiedFiles{$fullPath});
+    $deletion = 1 if ($diffHashRef->{isDeletion} || $patch =~ /\n@@ .* \+0,0 @@/);
 
-    if (!$addition && !$deletion && !$isBinary && !$isGitBinary) {
+    if (!$addition && !$deletion && !$isBinary) {
         # Standard patch, patch tool can handle this.
-        if (basename($fullPath) =~ "ChangeLog") {
+        if (basename($fullPath) eq "ChangeLog") {
             my $changeLogDotOrigExisted = -f "${fullPath}.orig";
-            applyPatch(setChangeLogDateAndReviewer(fixChangeLogPatch($patch), $reviewer), $fullPath, ["--fuzz=3 --force"]);
+            applyPatch(setChangeLogDateAndReviewer(fixChangeLogPatch($patch), $reviewer), $fullPath, ["--fuzz=3"]);
             unlink("${fullPath}.orig") if (! $changeLogDotOrigExisted);
         } else {
-            applyPatch($patch, $fullPath, ["--force"]);
+            applyPatch($patch, $fullPath) if $patch;
         }
     } else {
         # Either a deletion, an addition or a binary change.
@@ -333,19 +339,18 @@ sub patch($)
         addDirectoriesIfNeeded(dirname($fullPath));
 
         if ($isBinary) {
-            # Binary change
-            handleBinaryChange($fullPath, $patch);
-        } elsif ($isGitBinary) {
-            # Git binary change
-            handleGitBinaryChange($fullPath, $patch);
+            if ($isGit) {
+                handleGitBinaryChange($fullPath, $diffHashRef);
+            } else {
+                handleBinaryChange($fullPath, $patch) if $patch;
+            }
         } elsif ($deletion) {
-            # Deletion
-            applyPatch($patch, $fullPath, ["--force"]);
+            applyPatch($patch, $fullPath, ["--force"]) if $patch;
             scmRemove($fullPath);
         } else {
             # Addition
             rename($fullPath, "$fullPath.orig") if -e $fullPath;
-            applyPatch($patch, $fullPath, ["--force"]);
+            applyPatch($patch, $fullPath) if $patch;
             unlink("$fullPath.orig") if -e "$fullPath.orig" && checksum($fullPath) eq checksum("$fullPath.orig");
             scmAdd($fullPath);
             # What is this for?
@@ -400,6 +405,23 @@ sub scmWillDeleteFile($)
     return 0;
 }
 
+# Return whether the file at the given path is known to Git.
+#
+# This method outputs a message like the following to STDERR when
+# returning false:
+#
+# "error: pathspec 'test.png' did not match any file(s) known to git.
+#  Did you forget to 'git add'?"
+sub gitKnowsOfFile($)
+{
+    my $path = shift;
+
+    `git ls-files --error-unmatch -- $path`;
+    # FIXME: Change this to use VCSUtils.pm's exitStatus().
+    my $exitCode = $? >> 8;
+    return $exitCode == 0;
+}
+
 sub scmKnowsOfFile($)
 {
     my ($path) = @_;
@@ -412,9 +434,8 @@ sub scmKnowsOfFile($)
         # This does not handle errors well.
         return 1;
     } elsif (isGit()) {
-        `git ls-files --error-unmatch -- $path`;
-        my $exitCode = $? >> 8;
-        return $exitCode == 0;
+        my @result = callSilently(\&gitKnowsOfFile, $path);
+        return $result[0];
     }
 }
 

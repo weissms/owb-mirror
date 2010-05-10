@@ -1,3 +1,96 @@
+2010-05-10  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig and Simon Fraser.
+
+        <rdar://problem/7947356>
+        QT Plug-in in hardware-accelerated WebKit is missing the controller
+
+        Replace the useSoftwareRenderer boolean with an enum that lets the plug-in host opt into using a layer
+        backed NSView instead of inserting the layer into the WebCore layer hierarchy.
+
+        * Plugins/Hosted/NetscapePluginHostManager.mm:
+        (WebKit::NetscapePluginHostManager::instantiatePlugin):
+        * Plugins/Hosted/NetscapePluginHostProxy.mm:
+        (WKPCInstantiatePluginReply):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.h:
+        (WebKit::NetscapePluginInstanceProxy::rendererType):
+        (WebKit::NetscapePluginInstanceProxy::setRendererType):
+        (WebKit::NetscapePluginInstanceProxy::InstantiatePluginReply::InstantiatePluginReply):
+        * Plugins/Hosted/NetscapePluginInstanceProxy.mm:
+        (WebKit::NetscapePluginInstanceProxy::NetscapePluginInstanceProxy):
+        Replace the useSoftwareRenderer boolean everywhere with the RendererType enum.
+        
+        * Plugins/Hosted/WebHostedNetscapePluginView.mm:
+        (-[WebHostedNetscapePluginView createPlugin]):
+        Only go into full compositing mode when the renderer type returned is UseAcceleratedCompositing.
+        Otherwise, use a layer backed NSView.
+
+        * Plugins/Hosted/WebKitPluginHostTypes.h:
+        Add a RendererType enum.
+
+2010-05-06  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Darin Adler and Dan Bernstein..
+
+        REGRESSION (r51617): when plugins are disabled, plugins show up as garbage characters
+        https://bugs.webkit.org/show_bug.cgi?id=38698
+        <rdar://problem/7942075>
+
+        When the plug-in database is initialized, we will register all the MIME types it supports with the global
+        WebView dictionary. When plug-ins are disabled for a single web view, the MIME types still need to be 
+        in the global mapping (because other web views might still have plug-ins enabled).
+        
+        Prior to r51617 we would always look at the plug-in database to determine that the MIME type belongs to a 
+        plug-in, but now we won't even touch the plug-in database when plug-ins are disabled.
+        
+        In order to fix this, a new set of registered MIME types that are known to be plug-ins is added. When
+        +[WebView _viewClass:andRepresentationClass:forMIMEType:allowingPlugins:] is called and allowingPlugins is FALSE
+        we check if the MIME type is a known plug-in MIME type and return false in that case.
+        
+        * Plugins/WebPluginDatabase.mm:
+        (-[WebPluginDatabase refresh]):
+        (-[WebPluginDatabase _removePlugin:]):
+        * WebView/WebView.mm:
+        (knownPluginMIMETypes):
+        (+[WebView _registerPluginMIMEType:]):
+        (+[WebView _unregisterPluginMIMEType:]):
+        (+[WebView _viewClass:andRepresentationClass:forMIMEType:allowingPlugins:]):
+        * WebView/WebViewInternal.h:
+
+2010-05-06  Dan Bernstein  <mitz@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        <rdar://problem/7951285> REGRESSION (r58847): Composited iframe content obscures Safari's application chrome
+
+        Fixed this other regression from r58847. The regression was caused by overriding -visibleRect to
+        return the WebClipView’s full bounds. AppKit uses -visibleRect to determine the geometry
+        of the surface for the child WebFrameView. The fix is to restrict the special behavior of
+        -[WebClipView visibleRect] to when AppKit is consulting it for the purpose of invalidating
+        areas while scrolling.
+
+        * WebView/WebClipView.h:
+        * WebView/WebClipView.mm:
+        (-[WebClipView visibleRect]): If the WebClipView is not scrolling, always return
+        [super visibleRect]. 
+        (-[WebClipView _immediateScrollToPoint:]): Override this internal NSClipView method
+        to set a flag telling -visibleRect that the view is scrolling.
+        * WebView/WebView.mm:
+        (layerSyncRunLoopObserverCallBack): Ensure that screen updates, disabled by AppKit
+        when it thinks an upcoming window flush will re-enable them, are enabled here in
+        case the -setNeedsDisplayInRect: override has prevented the window from needing to be
+        flushed.
+
+2010-05-06  Steve Block  <steveblock@google.com>
+
+        Reviewed by Eric Seidel.
+
+        MAC_JAVA_BRIDGE should be renamed JAVA_BRIDGE
+        https://bugs.webkit.org/show_bug.cgi?id=38544
+
+        * WebCoreSupport/WebFrameLoaderClient.h:
+        * WebCoreSupport/WebFrameLoaderClient.mm:
+
 2010-05-06  Dan Bernstein  <mitz@apple.com>
 
         Reviewed by Mark Rowe.

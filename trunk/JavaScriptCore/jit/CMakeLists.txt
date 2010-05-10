@@ -6,6 +6,7 @@ list(APPEND JSC_SRC
     jit/JITArithmetic32_64.cpp
     jit/JITCall.cpp
     jit/JITOpcodes.cpp
+    jit/JITOpcodes32_64.cpp
     jit/JITPropertyAccess.cpp
     jit/JITPropertyAccess32_64.cpp
     jit/JITStubs.cpp

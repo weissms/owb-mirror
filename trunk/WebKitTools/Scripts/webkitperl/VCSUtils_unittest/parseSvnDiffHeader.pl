@@ -57,7 +57,6 @@ Index: WebKitTools/WebKitTools/Scripts/VCSUtils.pm
 --- WebKitTools/WebKitTools/Scripts/VCSUtils.pm	(revision 53004)
 +++ WebKitTools/WebKitTools/Scripts/VCSUtils.pm	(working copy)
 END
-    copiedFromPath => undef,
     indexPath => "WebKitTools/Scripts/VCSUtils.pm",
     sourceRevision => "53004",
 },
@@ -83,9 +82,8 @@ Index: WebKitTools/WebKitTools/Scripts/webkitperl/VCSUtils_unittest/parseDiffHea
 --- WebKitTools/WebKitTools/Scripts/webkitperl/VCSUtils_unittest/parseDiffHeader.pl	(revision 0)
 +++ WebKitTools/WebKitTools/Scripts/webkitperl/VCSUtils_unittest/parseDiffHeader.pl	(revision 0)
 END
-    copiedFromPath => undef,
     indexPath => "WebKitTools/Scripts/webkitperl/VCSUtils_unittest/parseDiffHeader.pl",
-    sourceRevision => undef,
+    isNew => 1,
 },
 "@@ -0,0 +1,262 @@\n"],
     expectedNextLine => "+#!/usr/bin/perl -w\n",
@@ -122,7 +120,7 @@ END
     inputText => <<END, # No single quotes to allow interpolation of "\r"
 Index: WebKitTools/index_path.py\r
 ===================================================================\r
---- WebKitTools/index_path.py	(revision 53048)	(from copied_from_path.py:53048)\r
+--- WebKitTools/index_path.py	(revision 53048)\r
 +++ WebKitTools/index_path.py	(working copy)\r
 @@ -0,0 +1,7 @@\r
 +# Python file...\r
@@ -132,10 +130,9 @@ END
     svnConvertedText => <<END, # No single quotes to allow interpolation of "\r"
 Index: WebKitTools/index_path.py\r
 ===================================================================\r
---- WebKitTools/index_path.py	(revision 53048)	(from copied_from_path.py:53048)\r
+--- WebKitTools/index_path.py	(revision 53048)\r
 +++ WebKitTools/index_path.py	(working copy)\r
 END
-    copiedFromPath => "copied_from_path.py",
     indexPath => "index_path.py",
     sourceRevision => 53048,
 },
@@ -195,9 +192,8 @@ Index: WebKitTools/test_file.swf
 ===================================================================
 Cannot display: file marked as a binary type.
 END
-    copiedFromPath => undef,
     indexPath => "test_file.swf",
-    sourceRevision => undef,
+    isBinary => 1,
 },
 "svn:mime-type = application/octet-stream\n"],
     expectedNextLine => "\n",

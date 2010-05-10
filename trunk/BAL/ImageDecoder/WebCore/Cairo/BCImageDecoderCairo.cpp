@@ -27,47 +27,15 @@
 #include "ImageDecoder.h"
 
 #include <cairo.h>
-#include <directfb.h>
-#include <cairo-directfb.h>
 
 namespace WebCore {
 
 NativeImagePtr RGBA32Buffer::asNewNativeImage() const
 {
-    cairo_surface_t *src = cairo_image_surface_create_for_data(reinterpret_cast<unsigned char*>(const_cast<PixelData*>(m_bytes.data())),
-                                                               CAIRO_FORMAT_ARGB32,
-                                                               width(),
-                                                               height(),
-                                                               width() * sizeof(PixelData));
-                                                               
-#if PLATFORM(CAIRO_DIRECTFB)
-    IDirectFB *dfb = NULL;
-    DFBCHECK(DirectFBCreate(&dfb));
-
-    DFBSurfaceDescription dsc;
-    dsc.flags       = (DFBSurfaceDescriptionFlags)(DSDESC_CAPS | DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT);
-    dsc.caps        = DSCAPS_VIDEOONLY;
-    dsc.width       = width();
-    dsc.height      = height();
-    dsc.pixelformat = DSPF_ARGB;    // DFB equivalent for CAIRO_FORMAT_ARGB32
-
-    IDirectFBSurface* dfbsurface = NULL;
-    DFBCHECK(dfb->CreateSurface(dfb, &dsc, &dfbsurface));
-    cairo_surface_t *dest = cairo_directfb_surface_create(dfb, dfbsurface);
-
-    // Copy the image data back to the native Cairo-DirectFB backend surface
-    // in order to leverage the backend hardware accelerations
-    cairo_t* cr = cairo_create(dest);
-    cairo_set_source_surface(cr, src, 0, 0);
-    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-    cairo_paint(cr);
-    cairo_destroy(cr);
-    cairo_surface_destroy(src);
-    
-    return dest;
-#else
-    return src;
-#endif //PLATFORM(CAIRO_DIRECTFB)
+    return cairo_image_surface_create_for_data(
+        reinterpret_cast<unsigned char*>(const_cast<PixelData*>(
+            m_bytes.data())), CAIRO_FORMAT_ARGB32, width(), height(),
+        width() * sizeof(PixelData));
 }
 
 } // namespace WebCore

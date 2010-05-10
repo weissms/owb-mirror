@@ -67,6 +67,7 @@ if(ENABLE_SVG)
         svg/SVGHKernElement.cpp
         svg/SVGImageElement.cpp
         svg/SVGImageLoader.cpp
+        svg/SVGVKernElement.cpp
         svg/SVGLangSpace.cpp
         svg/SVGLength.cpp
         svg/SVGLengthList.cpp
@@ -224,6 +225,7 @@ if(ENABLE_SVG)
         svg/SVGGradientElement.idl
         svg/SVGHKernElement.idl
         svg/SVGImageElement.idl
+        svg/SVGVKernElement.idl
         svg/SVGLangSpace.idl
         svg/SVGLength.idl
         svg/SVGLengthList.idl

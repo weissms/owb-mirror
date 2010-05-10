@@ -620,7 +620,7 @@ void ContainerNode::detach()
 {
     for (Node* child = m_firstChild; child; child = child->nextSibling())
         child->detach();
-    setChildNeedsStyleRecalc(false);
+    clearChildNeedsStyleRecalc();
     Node::detach();
 }
 
@@ -637,7 +637,7 @@ void ContainerNode::removedFromDocument()
     Node::removedFromDocument();
     if (document()->cssTarget() == this) 
         document()->setCSSTarget(0); 
-    setInDocument(false);
+    clearInDocument();
     removedFromTree(false);
     for (Node* child = m_firstChild; child; child = child->nextSibling())
         child->removedFromDocument();

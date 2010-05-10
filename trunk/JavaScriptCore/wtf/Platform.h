@@ -587,8 +587,8 @@
 #if !defined(BUILDING_ON_LEOPARD) && !defined(BUILDING_ON_TIGER) && CPU(X86_64)
 #define WTF_USE_PLUGIN_HOST_PROCESS 1
 #endif
-#if !defined(ENABLE_MAC_JAVA_BRIDGE)
-#define ENABLE_MAC_JAVA_BRIDGE 1
+#if !defined(ENABLE_JAVA_BRIDGE)
+#define ENABLE_JAVA_BRIDGE 1
 #endif
 #if !defined(ENABLE_DASHBOARD_SUPPORT)
 #define ENABLE_DASHBOARD_SUPPORT 1
@@ -619,7 +619,7 @@
 #define ENABLE_GEOLOCATION 1
 #define ENABLE_ICONDATABASE 0
 #define ENABLE_INSPECTOR 0
-#define ENABLE_MAC_JAVA_BRIDGE 0
+#define ENABLE_JAVA_BRIDGE 0
 #define ENABLE_NETSCAPE_PLUGIN_API 0
 #define ENABLE_ORIENTATION_EVENTS 1
 #define ENABLE_REPAINT_THROTTLING 1
@@ -633,7 +633,7 @@
 #define WTF_USE_PTHREADS 1
 #define WTF_PLATFORM_SGL 1
 #define USE_SYSTEM_MALLOC 1
-#define ENABLE_MAC_JAVA_BRIDGE 1
+#define ENABLE_JAVA_BRIDGE 1
 #define LOG_DISABLED 1
 /* Prevents Webkit from drawing the caret in textfields and textareas
    This prevents unnecessary invals. */
@@ -789,7 +789,7 @@
 /* ENABLE macro defaults */
 
 #if PLATFORM(QT)
-// We musn't customize the global operator new and delete for the Qt port.
+// We must not customize the global operator new and delete for the Qt port.
 #define ENABLE_GLOBAL_FASTMALLOC_NEW 0
 #endif
 
@@ -835,8 +835,8 @@
 #define ENABLE_INSPECTOR 1
 #endif
 
-#if !defined(ENABLE_MAC_JAVA_BRIDGE)
-#define ENABLE_MAC_JAVA_BRIDGE 0
+#if !defined(ENABLE_JAVA_BRIDGE)
+#define ENABLE_JAVA_BRIDGE 0
 #endif
 
 #if !defined(ENABLE_NETSCAPE_PLUGIN_API)
@@ -859,6 +859,7 @@
 #define ENABLE_GLOBAL_FASTMALLOC_NEW 1
 #endif
 
+#define ENABLE_DEBUG_WITH_BREAKPOINT 0
 #define ENABLE_SAMPLING_COUNTERS 0
 #define ENABLE_SAMPLING_FLAGS 0
 #define ENABLE_OPCODE_SAMPLING 0
@@ -1007,29 +1008,10 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
 /* Yet Another Regex Runtime. */
 #if !defined(ENABLE_YARR_JIT)
 
-/* YARR supports x86 & x86-64, and has been tested on Mac and Windows. */
-#if (CPU(X86) && PLATFORM(MAC)) \
-    || (CPU(X86_64) && PLATFORM(MAC)) \
-    || (CPU(ARM_THUMB2) && PLATFORM(IPHONE)) \
-    || (CPU(ARM_THUMB2) && PLATFORM(ANDROID) && ENABLE(ANDROID_JSC_JIT)) \
-    || (CPU(X86) && PLATFORM(WIN)) \
-    || (CPU(X86) && PLATFORM(WX))
+/* YARR and YARR_JIT is usually turned on for JIT enabled ports */
+#if ENABLE(JIT)
 #define ENABLE_YARR 1
 #define ENABLE_YARR_JIT 1
-#endif
-
-#if PLATFORM(QT)
-#if (CPU(X86) && OS(WINDOWS) && COMPILER(MINGW) && GCC_VERSION >= 40100) \
-    || (CPU(X86_64) && OS(WINDOWS) && COMPILER(MINGW64) && GCC_VERSION >= 40100) \
-    || (CPU(X86) && OS(WINDOWS) && COMPILER(MSVC)) \
-    || (CPU(X86) && OS(LINUX) && GCC_VERSION >= 40100) \
-    || (CPU(X86_64) && OS(LINUX) && GCC_VERSION >= 40100) \
-    || (CPU(ARM_TRADITIONAL) && OS(LINUX)) \
-    || (CPU(ARM_TRADITIONAL) && OS(SYMBIAN) && COMPILER(RVCT)) \
-    || (CPU(MIPS) && OS(LINUX))
-#define ENABLE_YARR 1
-#define ENABLE_YARR_JIT 1
-#endif
 #endif
 
 #endif /* !defined(ENABLE_YARR_JIT) */

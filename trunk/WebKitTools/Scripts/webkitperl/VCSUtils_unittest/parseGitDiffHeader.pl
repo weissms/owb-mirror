@@ -51,14 +51,13 @@ index f5d5e74..3b6aa92 100644
 --- WebKitTools/foo.h
 +++ WebKitTools/foo.h
 END
-    executableBitDelta => 0,
     indexPath => "foo.h",
 },
 "@@ -1 +1 @@\n"],
     expectedNextLine => "-file contents\n",
 },
 {   # New test
-    diffName => "New file",
+    diffName => "new file",
     inputText => <<'END',
 diff --git a/foo.h b/foo.h
 new file mode 100644
@@ -77,11 +76,39 @@ index 0000000..3c9f114
 --- WebKitTools/foo.h
 +++ WebKitTools/foo.h
 END
-    executableBitDelta => 0,
     indexPath => "foo.h",
+    isNew => 1,
 },
 "@@ -0,0 +1,34 @@\n"],
     expectedNextLine => "+<html>\n",
+},
+{   # New test
+    diffName => "file deletion",
+    inputText => <<'END',
+diff --git a/foo b/foo
+deleted file mode 100644
+index 1e50d1d..0000000
+--- WebKitTools/a/foo
++++ WebKitTools//dev/null
+@@ -1,1 +0,0 @@
+-line1
+diff --git a/configure.ac b/configure.ac
+index d45dd40..3494526 100644
+END
+    expectedReturn => [
+{
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo
+deleted file mode 100644
+index 1e50d1d..0000000
+--- WebKitTools/foo
++++ WebKitTools/foo
+END
+    indexPath => "foo",
+    isDeletion => 1,
+},
+"@@ -1,1 +0,0 @@\n"],
+    expectedNextLine => "-line1\n",
 },
 {   # New test
     diffName => "using --no-prefix",
@@ -101,11 +128,155 @@ index c925780..9e65c43 100644
 --- WebKitTools/foo.h
 +++ WebKitTools/foo.h
 END
-    executableBitDelta => 0,
     indexPath => "foo.h",
 },
 "@@ -1,3 +1,17 @@\n"],
     expectedNextLine => "+contents\n",
+},
+####
+#    Copy operations
+##
+{   # New test
+    diffName => "copy (with similarity index 100%)",
+    inputText => <<'END',
+diff --git a/foo b/foo_new
+similarity index 100%
+copy from foo
+copy to foo_new
+diff --git a/bar b/bar
+index d45dd40..3494526 100644
+END
+    expectedReturn => [
+{
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo_new
+similarity index 100%
+copy from foo
+copy to foo_new
+END
+    copiedFromPath => "foo",
+    indexPath => "foo_new",
+},
+"diff --git a/bar b/bar\n"],
+    expectedNextLine => "index d45dd40..3494526 100644\n",
+},
+{   # New test
+    diffName => "copy (with similarity index < 100%)",
+    inputText => <<'END',
+diff --git a/foo b/foo_new
+similarity index 99%
+copy from foo
+copy to foo_new
+diff --git a/bar b/bar
+index d45dd40..3494526 100644
+END
+    expectedReturn => [
+{
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo_new
+similarity index 99%
+copy from foo
+copy to foo_new
+END
+    copiedFromPath => "foo",
+    indexPath => "foo_new",
+    isCopyWithChanges => 1,
+},
+"diff --git a/bar b/bar\n"],
+    expectedNextLine => "index d45dd40..3494526 100644\n",
+},
+{   # New test
+    diffName => "rename (with similarity index 100%)",
+    inputText => <<'END',
+diff --git a/foo b/foo_new
+similarity index 100%
+rename from foo
+rename to foo_new
+diff --git a/bar b/bar
+index d45dd40..3494526 100644
+END
+    expectedReturn => [
+{
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo_new
+similarity index 100%
+rename from foo
+rename to foo_new
+END
+    copiedFromPath => "foo",
+    indexPath => "foo_new",
+    shouldDeleteSource => 1,
+},
+"diff --git a/bar b/bar\n"],
+    expectedNextLine => "index d45dd40..3494526 100644\n",
+},
+{   # New test
+    diffName => "rename (with similarity index < 100%)",
+    inputText => <<'END',
+diff --git a/foo b/foo_new
+similarity index 99%
+rename from foo
+rename to foo_new
+index 1e50d1d..1459d21 100644
+--- WebKitTools/a/foo
++++ WebKitTools/b/foo_new
+@@ -15,3 +15,4 @@ release r deployment dep deploy:
+ line1
+ line2
+ line3
++line4
+diff --git a/bar b/bar
+index d45dd40..3494526 100644
+END
+    expectedReturn => [
+{
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo_new
+similarity index 99%
+rename from foo
+rename to foo_new
+index 1e50d1d..1459d21 100644
+--- WebKitTools/foo_new
++++ WebKitTools/foo_new
+END
+    copiedFromPath => "foo",
+    indexPath => "foo_new",
+    isCopyWithChanges => 1,
+    shouldDeleteSource => 1,
+},
+"@@ -15,3 +15,4 @@ release r deployment dep deploy:\n"],
+    expectedNextLine => " line1\n",
+},
+{   # New test
+    diffName => "rename (with executable bit change)",
+    inputText => <<'END',
+diff --git a/foo b/foo_new
+old mode 100644
+new mode 100755
+similarity index 100%
+rename from foo
+rename to foo_new
+diff --git a/bar b/bar
+index d45dd40..3494526 100644
+END
+    expectedReturn => [
+{
+    svnConvertedText => <<'END',
+Index: WebKitTools/foo_new
+old mode 100644
+new mode 100755
+similarity index 100%
+rename from foo
+rename to foo_new
+END
+    copiedFromPath => "foo",
+    executableBitDelta => 1,
+    indexPath => "foo_new",
+    isCopyWithChanges => 1,
+    shouldDeleteSource => 1,
+},
+"diff --git a/bar b/bar\n"],
+    expectedNextLine => "index d45dd40..3494526 100644\n",
 },
 ####
 #    Binary file test cases
@@ -133,8 +304,9 @@ new file mode 100644
 index 0000000000000000000000000000000000000000..64a9532e7794fcd791f6f12157406d9060151690
 GIT binary patch
 END
-    executableBitDelta => 0,
     indexPath => "foo.gif",
+    isBinary => 1,
+    isNew => 1,
 },
 "literal 7\n"],
     expectedNextLine => "OcmYex&reDa;sO8*F9L)B\n",
@@ -162,8 +334,9 @@ deleted file mode 100644
 index 323fae0..0000000
 GIT binary patch
 END
-    executableBitDelta => 0,
     indexPath => "foo.gif",
+    isBinary => 1,
+    isDeletion => 1,
 },
 "literal 0\n"],
     expectedNextLine => "HcmV?d00001\n",
@@ -192,7 +365,6 @@ index d03e242..435ad3a 100755
 --- WebKitTools/foo
 +++ WebKitTools/foo
 END
-    executableBitDelta => 0,
     indexPath => "foo",
 },
 "@@ -1 +1 @@\n"],
@@ -266,6 +438,7 @@ index 0000000..d03e242
 END
     executableBitDelta => 1,
     indexPath => "foo",
+    isNew => 1,
 },
 "@@ -0,0 +1 @@\n"],
     expectedNextLine => "+file contents\n",
@@ -294,6 +467,7 @@ index d03e242..0000000
 END
     executableBitDelta => -1,
     indexPath => "foo",
+    isDeletion => 1,
 },
 "@@ -1 +0,0 @@\n"],
     expectedNextLine => "-file contents\n",

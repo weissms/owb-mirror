@@ -164,7 +164,8 @@ module window {
             raises(DOMException);
 #endif
 #if defined(ENABLE_DOM_STORAGE) && ENABLE_DOM_STORAGE
-        readonly attribute [EnabledAtRuntime] Storage sessionStorage;
+        readonly attribute [EnabledAtRuntime] Storage sessionStorage
+            getter raises(DOMException);
         readonly attribute [EnabledAtRuntime] Storage localStorage
             getter raises(DOMException);
 #endif
@@ -673,9 +674,9 @@ module window {
         attribute SVGFontFaceUriElementConstructor SVGFontFaceUriElement;
         attribute SVGGlyphElementConstructor SVGGlyphElement;
 //      attribute SVGGlyphRefElementConstructor SVGGlyphRefElement;
-//      attribute SVGHKernElementConstructor SVGHKernElement;
+        attribute SVGHKernElementConstructor SVGHKernElement;
         attribute SVGMissingGlyphElementConstructor SVGMissingGlyphElement;
-//      attribute SVGVKernElementConstructor SVGVKernElement;
+        attribute SVGVKernElementConstructor SVGVKernElement;
 #endif
 
 #if defined(ENABLE_SVG_FOREIGN_OBJECT) && ENABLE_SVG_FOREIGN_OBJECT

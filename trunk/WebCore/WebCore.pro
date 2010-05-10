@@ -122,7 +122,7 @@ maemo5|symbian|embedded {
     DEFINES += ENABLE_FAST_MOBILE_SCROLLING=1
 }
 
-maemo5 {
+maemo5|symbian {
     DEFINES += WTF_USE_QT_MOBILE_THEME=1
 }
 
@@ -1962,6 +1962,7 @@ HEADERS += \
     svg/SVGUseElement.h \
     svg/SVGViewElement.h \
     svg/SVGViewSpec.h \
+    svg/SVGVKernElement.h \
     svg/SVGZoomAndPan.h \
     svg/SVGZoomEvent.h \
     wml/WMLAccessElement.h \
@@ -2041,6 +2042,7 @@ HEADERS += \
     $$PWD/../WebKit/qt/WebCoreSupport/FrameLoaderClientQt.h \
     $$PWD/../WebKit/qt/WebCoreSupport/NotificationPresenterClientQt.h \
     $$PWD/../WebKit/qt/WebCoreSupport/PageClientQt.h \
+    $$PWD/../WebKit/qt/WebCoreSupport/QtPlatformPlugin.h \
     $$PWD/platform/network/qt/DnsPrefetchHelper.h
 
 SOURCES += \
@@ -2112,7 +2114,7 @@ SOURCES += \
     platform/qt/SharedTimerQt.cpp \
     platform/qt/SoundQt.cpp \
     platform/qt/LoggingQt.cpp \
-    platform/qt/TemporaryLinkStubs.cpp \
+    platform/qt/TemporaryLinkStubsQt.cpp \
     platform/text/qt/TextBoundariesQt.cpp \
     platform/text/qt/TextBreakIteratorQt.cpp \
     platform/text/qt/TextCodecQt.cpp \
@@ -2130,6 +2132,7 @@ SOURCES += \
     ../WebKit/qt/WebCoreSupport/InspectorClientQt.cpp \
     ../WebKit/qt/WebCoreSupport/NotificationPresenterClientQt.cpp \
     ../WebKit/qt/WebCoreSupport/PageClientQt.cpp \
+    ../WebKit/qt/WebCoreSupport/QtPlatformPlugin.cpp \
     ../WebKit/qt/Api/qwebframe.cpp \
     ../WebKit/qt/Api/qgraphicswebview.cpp \
     ../WebKit/qt/Api/qwebpage.cpp \
@@ -2300,8 +2303,10 @@ contains(DEFINES, ENABLE_DATABASE=1) {
         storage/SQLTransactionSync.cpp \
         bindings/js/JSCustomSQLStatementErrorCallback.cpp \
         bindings/js/JSDatabaseCustom.cpp \
+        bindings/js/JSDatabaseSyncCustom.cpp \
         bindings/js/JSSQLResultSetRowListCustom.cpp \
-        bindings/js/JSSQLTransactionCustom.cpp
+        bindings/js/JSSQLTransactionCustom.cpp \
+        bindings/js/JSSQLTransactionSyncCustom.cpp
 }
 
 contains(DEFINES, ENABLE_DOM_STORAGE=1) {
@@ -2325,6 +2330,7 @@ contains(DEFINES, ENABLE_DOM_STORAGE=1) {
         storage/SQLTransactionClient.h \
         storage/SQLTransactionCoordinator.h \
         storage/SQLTransactionSync.h \
+        storage/SQLTransactionSyncCallback.h \
         storage/StorageArea.h \
         storage/StorageAreaImpl.h \
         storage/StorageAreaSync.h \
@@ -2696,6 +2702,7 @@ contains(DEFINES, ENABLE_SVG=1) {
         svg/SVGUseElement.cpp \
         svg/SVGViewElement.cpp \
         svg/SVGViewSpec.cpp \
+        svg/SVGVKernElement.cpp \
         svg/SVGZoomAndPan.cpp \
         svg/animation/SMILTime.cpp \
         svg/animation/SMILTimeContainer.cpp \

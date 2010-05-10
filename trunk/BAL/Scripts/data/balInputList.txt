@@ -871,6 +871,12 @@ BAL/Types/WTF/Pthreads	JavaScriptCore/wtf/ThreadingPthreads.cpp
 BAL/Types/WTF/Qt	JavaScriptCore/wtf/qt/ThreadingQt.cpp
 BAL/Types/WTF/Qt	JavaScriptCore/wtf/Threading.h
 BAL/Types/WTF/Qt	JavaScriptCore/wtf/qt/MainThreadQt.cpp
+BAL/Types/WTF/URL    JavaScriptCore/wtf/url/src/RawURLBuffer.h
+BAL/Types/WTF/URL    JavaScriptCore/wtf/url/src/URLBuffer.h
+BAL/Types/WTF/URL    JavaScriptCore/wtf/url/src/URLComponent.h
+BAL/Types/WTF/URL    JavaScriptCore/wtf/url/src/URLParser.h
+BAL/Types/WTF/URL    JavaScriptCore/wtf/url/src/URLSegments.cpp
+BAL/Types/WTF/URL    JavaScriptCore/wtf/url/src/URLSegments.h
 BAL/Types/WebCore/Gtk	WebCore/platform/graphics/gtk/IconGtk.cpp	BCIconGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/KURLGtk.cpp
 BAL/Types/WebCore/Gtk   WebCore/platform/gtk/GRefPtrGtk.cpp
