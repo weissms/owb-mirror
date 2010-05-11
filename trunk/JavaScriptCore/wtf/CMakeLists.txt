@@ -3,7 +3,7 @@ set(BAL_DIR ../../BAL)
 include(${BAL_DIR}/Memory/WTF/CMakeLists.txt)
 include(${BAL_DIR}/Internationalization/WTF/CMakeLists.txt)
 include(${BAL_DIR}/Types/WTF/CMakeLists.txt)
-
+include(${BAL_DIR}/Types/WTF/URL/CMakeLists.txt)
 
 include_directories(
     ${BASE_INCLUDE_DIRS}

@@ -79,7 +79,7 @@ set_source_files_properties(${JSC_SRC}
     PROPERTIES COMPILE_FLAGS "-fno-rtti -fno-exceptions"
 )
 add_library(jsc STATIC ${JSC_SRC})
-add_dependencies(jsc wtf)
+add_dependencies(jsc wtf wtfurl)
 
 
 ##################################################
