@@ -123,7 +123,6 @@ WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.cpp BAL/Media/WebCore/Phon
 WebCore/platform/graphics/qt/MediaPlayerPrivatePhonon.h BAL/Media/WebCore/Phonon/BCMediaPlayerPrivatePhonon.h
 WebCore/platform/graphics/qt/MediaPlayerPrivateQt.cpp BAL/Media/WebCore/Qt/BCMediaPlayerPrivateQt.cpp
 WebCore/platform/graphics/qt/MediaPlayerPrivateQt.h BAL/Media/WebCore/Qt/BCMediaPlayerPrivateQt.h
-WebCore/platform/gtk/TemporaryLinkStubs.cpp
 WebCore/platform/gtk/PasteboardHelper.cpp BAL/Widgets/WebCore/Gtk/BCPasteboardHelperGtk.cpp
 WebCore/platform/image-decoders/xbm/XBMImageDecoder.cpp BAL/ImageDecoder/WebCore/XBM/WK/BCXBMImageDecoderWK.cpp
 WebCore/platform/WindowsKeyboardCodes.h BAL/Events/WebCore/WK/BCWindowsKeyboardCodesWK.h
