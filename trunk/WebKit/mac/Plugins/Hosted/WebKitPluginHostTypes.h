@@ -59,9 +59,9 @@ enum ValueType {
 };
 
 enum RendererType {
-    UseLayerBackedView,
+    UseAcceleratedCompositing,
     UseSoftwareRenderer,
-    UseAcceleratedCompositing
+    UseLayerBackedView
 };
 
 #endif // WebKitPluginHostTypes_h

@@ -176,26 +176,27 @@ IDL_BINDINGS += \
 	WebCore/dom/WebKitTransitionEvent.idl \
 	WebCore/dom/WheelEvent.idl \
 	WebCore/html/Blob.idl \
-	WebCore/html/canvas/WebGLArray.idl \
-	WebCore/html/canvas/WebGLArrayBuffer.idl \
-	WebCore/html/canvas/WebGLByteArray.idl \
-	WebCore/html/canvas/WebGLFloatArray.idl \
+	WebCore/html/canvas/ArrayBufferView.idl \
+	WebCore/html/canvas/ArrayBuffer.idl \
+	WebCore/html/canvas/Int8Array.idl \
+	WebCore/html/canvas/FloatArray.idl \
 	WebCore/html/canvas/CanvasGradient.idl \
-	WebCore/html/canvas/WebGLIntArray.idl \
+	WebCore/html/canvas/Int32Array.idl \
 	WebCore/html/canvas/CanvasPattern.idl \
 	WebCore/html/canvas/CanvasRenderingContext.idl \
 	WebCore/html/canvas/CanvasRenderingContext2D.idl \
 	WebCore/html/canvas/WebGLRenderingContext.idl \
-	WebCore/html/canvas/WebGLShortArray.idl \
-	WebCore/html/canvas/WebGLUnsignedByteArray.idl \
-	WebCore/html/canvas/WebGLUnsignedIntArray.idl \
-	WebCore/html/canvas/WebGLUnsignedShortArray.idl \
+	WebCore/html/canvas/Int16Array.idl \
+	WebCore/html/canvas/Uint8Array.idl \
+	WebCore/html/canvas/Uint32Array.idl \
+	WebCore/html/canvas/Uint16Array.idl \
 	WebCore/html/DataGridColumn.idl \
 	WebCore/html/DataGridColumnList.idl \
 	WebCore/html/DOMFormData.idl \
 	WebCore/html/File.idl \
 	WebCore/html/FileError.idl \
 	WebCore/html/FileList.idl \
+	WebCore/html/FileReader.idl \
 	WebCore/html/HTMLAllCollection.idl \
 	WebCore/html/HTMLAnchorElement.idl \
 	WebCore/html/HTMLAppletElement.idl \
@@ -243,6 +244,7 @@ IDL_BINDINGS += \
 	WebCore/html/MediaError.idl \
 	WebCore/html/HTMLMenuElement.idl \
 	WebCore/html/HTMLMetaElement.idl \
+	WebCore/html/HTMLMeterElement.idl \
 	WebCore/html/HTMLModElement.idl \
 	WebCore/html/HTMLOListElement.idl \
 	WebCore/html/HTMLObjectElement.idl \
@@ -526,6 +528,7 @@ webcore_sources += \
 	WebCore/bindings/js/ScriptEventListener.h \
 	WebCore/bindings/js/ScriptFunctionCall.cpp \
 	WebCore/bindings/js/ScriptFunctionCall.h \
+	WebCore/bindings/js/ScriptGCEvent.cpp \
 	WebCore/bindings/js/ScriptGCEvent.h \
 	WebCore/bindings/js/ScriptInstance.h \
 	WebCore/bindings/js/ScriptObject.cpp \
@@ -1165,6 +1168,8 @@ webcore_sources += \
 	WebCore/html/HTMLMenuElement.h \
 	WebCore/html/HTMLMetaElement.cpp \
 	WebCore/html/HTMLMetaElement.h \
+	WebCore/html/HTMLMeterElement.cpp \
+	WebCore/html/HTMLMeterElement.h \
 	WebCore/html/HTMLModElement.cpp \
 	WebCore/html/HTMLModElement.h \
 	WebCore/html/HTMLNameCollection.cpp \
@@ -1898,6 +1903,8 @@ webcore_sources += \
 	WebCore/rendering/RenderMarquee.h \
 	WebCore/rendering/RenderMenuList.cpp \
 	WebCore/rendering/RenderMenuList.h \
+	WebCore/rendering/RenderMeter.cpp \
+	WebCore/rendering/RenderMeter.h \
 	WebCore/rendering/RenderObject.cpp \
 	WebCore/rendering/RenderObject.h \
 	WebCore/rendering/RenderObjectChildList.cpp \
@@ -2245,6 +2252,14 @@ webcore_cppflags += \
 	-DENABLE_DATAGRID=0
 
 # ----
+# HTML Meter Element - disable for now.
+# ----
+FEATURE_DEFINES += ENABLE_METER_TAG=0
+
+webcore_cppflags += \
+    -DENABLE_METER_TAG=0
+
+# ----
 # HTML Progress Element - disable for now, since painting code is missing.
 # ----
 FEATURE_DEFINES += ENABLE_PROGRESS_TAG=0
@@ -2340,6 +2355,8 @@ webcore_sources += \
 	WebCore/platform/sql/SQLiteStatement.h \
 	WebCore/platform/sql/SQLiteTransaction.cpp \
 	WebCore/platform/sql/SQLiteTransaction.h \
+	WebCore/storage/AbstractDatabase.cpp \
+	WebCore/storage/AbstractDatabase.h \
 	WebCore/storage/ChangeVersionWrapper.cpp \
 	WebCore/storage/ChangeVersionWrapper.h \
 	WebCore/storage/Database.cpp \
@@ -2411,6 +2428,42 @@ FEATURE_DEFINES += ENABLE_EVENTSOURCE=1
 webcore_cppflags += \
 	-DENABLE_EVENTSOURCE=1
 endif # ENABLE_EVENTSOURCE
+
+# ----
+# Indexed Database API support
+# ----
+if ENABLE_INDEXED_DATABASE
+FEATURE_DEFINES += ENABLE_INDEXED_DATABASE=1
+
+IDL_BINDINGS += \
+	WebCore/storage/IDBDatabaseError.idl \
+	WebCore/storage/IDBDatabaseException.idl \
+	WebCore/storage/IDBDatabaseRequest.idl \
+	WebCore/storage/IDBRequest.idl \
+	WebCore/storage/IndexedDatabaseRequest.idl
+
+webcore_cppflags += \
+	-DENABLE_INDEXED_DATABASE=1
+
+webcore_sources += \
+	WebCore/bindings/js/JSIDBRequestCustom.cpp \
+	WebCore/storage/IDBCallbacks.cpp \
+	WebCore/storage/IDBCallbacks.h \
+	WebCore/storage/IDBDatabase.cpp \
+	WebCore/storage/IDBDatabase.h \
+	WebCore/storage/IDBDatabaseError.h \
+	WebCore/storage/IDBDatabaseException.h \
+	WebCore/storage/IDBDatabaseRequest.cpp \
+	WebCore/storage/IDBDatabaseRequest.h \
+	WebCore/storage/IDBRequest.cpp \
+	WebCore/storage/IDBRequest.h \
+	WebCore/storage/IndexedDatabase.cpp \
+	WebCore/storage/IndexedDatabase.h \
+	WebCore/storage/IndexedDatabaseImpl.cpp \
+	WebCore/storage/IndexedDatabaseImpl.h \
+	WebCore/storage/IndexedDatabaseRequest.cpp \
+	WebCore/storage/IndexedDatabaseRequest.h
+endif # END ENABLE_INDEXED_DATABASE
 
 # ----
 # HTML5 client-side session and persistent storage
@@ -3185,6 +3238,8 @@ webcore_sources += \
 	WebCore/rendering/SVGShadowTreeElements.cpp \
 	WebCore/rendering/SVGShadowTreeElements.h \
 	WebCore/rendering/SVGTextChunkLayoutInfo.h \
+	WebCore/rendering/SVGTextLayoutUtilities.cpp \
+	WebCore/rendering/SVGTextLayoutUtilities.h \
 	WebCore/rendering/style/SVGRenderStyle.cpp \
 	WebCore/rendering/style/SVGRenderStyle.h \
 	WebCore/rendering/style/SVGRenderStyleDefs.cpp \
@@ -3488,6 +3543,8 @@ webcore_sources += \
 	WebCore/svg/graphics/filters/SVGFEFlood.h \
 	WebCore/svg/graphics/filters/SVGFEImage.cpp \
 	WebCore/svg/graphics/filters/SVGFEImage.h \
+	WebCore/svg/graphics/filters/SVGFELighting.cpp \
+	WebCore/svg/graphics/filters/SVGFELighting.h \
 	WebCore/svg/graphics/filters/SVGFEMerge.cpp \
 	WebCore/svg/graphics/filters/SVGFEMerge.h \
 	WebCore/svg/graphics/filters/SVGFEMorphology.cpp \
@@ -3945,10 +4002,10 @@ GDOM_HEADERS_FIXED += $(patsubst %,$(srcdir)/WebCore/bindings/gobject/WebKitDOM%
 libgdom_h_api += $(GDOM_HEADERS_FIXED) $(GDOM_HEADERS_BUILT)
 
 DerivedSources/webkit/webkitdom.h: $(WebCore)/bindings/scripts/gobject-generate-headers.pl
-	echo $(GDOM_CLASSES) | $(PERL) $< gdom > $@
+	$(AM_V_GEN)echo $(GDOM_CLASSES) | $(PERL) $< gdom > $@
 
 DerivedSources/webkit/webkitdomdefines.h: $(WebCore)/bindings/scripts/gobject-generate-headers.pl $(IDL_BINDINGS_GDOM) $(WebCore)/GNUmakefile.am
-	echo $(GDOM_CLASSES) | $(PERL) $< defines > $@
+	$(AM_V_GEN)echo $(GDOM_CLASSES) | $(PERL) $< defines > $@
 
 DerivedSources/webkit/WebKitDOM%.h: DerivedSources/webkit/WebKitDOM%.cpp;
 

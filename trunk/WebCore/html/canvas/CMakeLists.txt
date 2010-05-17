@@ -1,4 +1,6 @@
 list(APPEND WEBCORE_SRC
+    html/canvas/ArrayBuffer.cpp
+    html/canvas/ArrayBufferView.cpp
     html/canvas/CanvasContextAttributes.cpp
     html/canvas/CanvasGradient.cpp
     html/canvas/CanvasNumberArray.cpp
@@ -8,45 +10,43 @@ list(APPEND WEBCORE_SRC
     html/canvas/CanvasStyle.cpp
     html/canvas/CanvasRenderingContext.cpp
     html/canvas/CanvasRenderingContext2D.cpp
-    html/canvas/WebGLArray.cpp
-    html/canvas/WebGLArrayBuffer.cpp
-    html/canvas/WebGLByteArray.cpp
+    html/canvas/FloatArray.cpp
+    html/canvas/Int16Array.cpp
+    html/canvas/Int32Array.cpp
+    html/canvas/Int8Array.cpp
+    html/canvas/Uint16Array.cpp
+    html/canvas/Uint32Array.cpp
+    html/canvas/Uint8Array.cpp
     html/canvas/WebGLContextAttributes.cpp
-    html/canvas/WebGLFloatArray.cpp
     html/canvas/WebGLFramebuffer.cpp
-    html/canvas/WebGLIntArray.cpp
     html/canvas/WebGLProgram.cpp
     html/canvas/WebGLRenderbuffer.cpp
     html/canvas/WebGLShader.cpp
-    html/canvas/WebGLShortArray.cpp
     html/canvas/WebGLTexture.cpp
-    html/canvas/WebGLUnsignedByteArray.cpp
-    html/canvas/WebGLUnsignedIntArray.cpp
-    html/canvas/WebGLUnsignedShortArray.cpp
 ) 
 
 list(APPEND IDL_SRC
+    html/canvas/ArrayBuffer.idl
+    html/canvas/ArrayBufferView.idl
     html/canvas/CanvasGradient.idl
     html/canvas/CanvasNumberArray.idl
     html/canvas/CanvasPattern.idl
     html/canvas/CanvasRenderingContext2D.idl
     html/canvas/CanvasRenderingContext.idl
-    html/canvas/WebGLArray.idl
-    html/canvas/WebGLArrayBuffer.idl
-    html/canvas/WebGLByteArray.idl
+    html/canvas/FloatArray.idl
+    html/canvas/Int16Array.idl
+    html/canvas/Int32Array.idl
+    html/canvas/Int8Array.idl
+    html/canvas/Uint16Array.idl
+    html/canvas/Uint32Array.idl
+    html/canvas/Uint8Array.idl
     html/canvas/WebGLContextAttributes.idl
-    html/canvas/WebGLFloatArray.idl
     html/canvas/WebGLFramebuffer.idl
-    html/canvas/WebGLIntArray.idl
     html/canvas/WebGLProgram.idl
     html/canvas/WebGLRenderbuffer.idl
     html/canvas/WebGLRenderingContext.idl
     html/canvas/WebGLShader.idl
-    html/canvas/WebGLShortArray.idl
     html/canvas/WebGLTexture.idl
-    html/canvas/WebGLUnsignedByteArray.idl
-    html/canvas/WebGLUnsignedIntArray.idl
-    html/canvas/WebGLUnsignedShortArray.idl
 )
 
 if(ENABLE_3D_CANVAS)

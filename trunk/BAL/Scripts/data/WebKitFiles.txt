@@ -64,6 +64,7 @@ WebCore/loader/EmptyClients.h
 WebCore/loader/FrameLoader.cpp
 WebCore/loader/FrameLoader.h
 WebCore/loader/FrameLoaderClient.h
+WebCore/loader/loader.cpp
 WebCore/loader/ResourceLoadNotifier.cpp
 WebCore/loader/ThreadableLoader.cpp
 WebCore/loader/ResourceLoader.cpp

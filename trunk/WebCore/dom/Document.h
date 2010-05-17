@@ -3,7 +3,7 @@
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
  *           (C) 2001 Dirk Mueller (mueller@kde.org)
  *           (C) 2006 Alexey Proskuryakov (ap@webkit.org)
- * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Apple Inc. All rights reserved.
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Apple Inc. All rights reserved.
  * Copyright (C) 2008, 2009 Torch Mobile Inc. All rights reserved. (http://www.torchmobile.com/)
  *
  * This library is free software; you can redistribute it and/or
@@ -36,12 +36,13 @@
 #include "DocumentMarker.h"
 #include "ScriptExecutionContext.h"
 #include "Timer.h"
-#if USE(JSC)
-#include <runtime/WeakGCMap.h>
-#endif
 #include <wtf/HashCountedSet.h>
 #include <wtf/OwnPtr.h>
 #include <wtf/PassOwnPtr.h>
+
+#if USE(JSC)
+#include <runtime/WeakGCMap.h>
+#endif
 
 namespace WebCore {
 
@@ -87,6 +88,7 @@ namespace WebCore {
     class IntPoint;
     class DOMWrapperWorld;
     class JSNode;
+    class MediaCanStartListener;
     class MouseEventWithHitTestResults;
     class NodeFilter;
     class NodeIterator;
@@ -622,6 +624,9 @@ public:
     void detachRange(Range*);
 
     void nodeChildrenChanged(ContainerNode*);
+    // nodeChildrenWillBeRemoved is used when removing all node children at once.
+    void nodeChildrenWillBeRemoved(ContainerNode*);
+    // nodeWillBeRemoved is only safe when removing one node at a time.
     void nodeWillBeRemoved(Node*);
 
     void textInserted(Node*, unsigned offset, unsigned length);
@@ -974,6 +979,10 @@ public:
     void enqueuePageshowEvent(PageshowEventPersistence);
     void enqueueHashchangeEvent(const String& oldURL, const String& newURL);
 
+    void addMediaCanStartListener(MediaCanStartListener*);
+    void removeMediaCanStartListener(MediaCanStartListener*);
+    MediaCanStartListener* takeAnyMediaCanStartListener();
+
 protected:
     Document(Frame*, bool isXHTML, bool isHTML);
 
@@ -1245,6 +1254,8 @@ private:
 #endif
 
     RefPtr<DocumentWeakReference> m_weakReference;
+
+    HashSet<MediaCanStartListener*> m_mediaCanStartListeners;
 };
 
 inline bool Document::hasElementWithId(AtomicStringImpl* id) const

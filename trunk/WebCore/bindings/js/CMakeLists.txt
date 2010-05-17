@@ -14,6 +14,8 @@ list(APPEND WEBCORE_SRC
     bindings/js/DOMObjectHashTableMap.cpp
     bindings/js/GCController.cpp
     bindings/js/JavaScriptCallFrame.cpp
+    bindings/js/JSArrayBufferConstructor.cpp
+    bindings/js/JSArrayBufferViewCustom.cpp
     bindings/js/JSAttrCustom.cpp
     bindings/js/JSCDATASectionCustom.cpp
     bindings/js/JSCoordinatesCustom.cpp
@@ -46,6 +48,8 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSDataGridColumnListCustom.cpp
     bindings/js/JSDataGridDataSource.h
     bindings/js/JSDataGridDataSource.cpp
+    bindings/js/JSFloatArrayConstructor.cpp
+    bindings/js/JSFloatArrayCustom.cpp
     bindings/js/JSHTMLAllCollectionCustom.cpp
     bindings/js/JSHTMLAppletElementCustom.cpp
     bindings/js/JSHTMLCanvasElementCustom.cpp
@@ -63,10 +67,17 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSHTMLOptionsCollectionCustom.cpp
     bindings/js/JSHTMLSelectElementCustom.cpp
     bindings/js/JSHistoryCustom.cpp
+    bindings/js/JSIDBRequestCustom.cpp
     bindings/js/JSImageConstructor.cpp
     bindings/js/JSImageDataCustom.cpp
     bindings/js/JSInjectedScriptHostCustom.cpp
     bindings/js/JSInspectorFrontendHostCustom.cpp
+    bindings/js/JSInt16ArrayConstructor.cpp
+    bindings/js/JSInt16ArrayCustom.cpp
+    bindings/js/JSInt32ArrayConstructor.cpp
+    bindings/js/JSInt32ArrayCustom.cpp
+    bindings/js/JSInt8ArrayConstructor.cpp
+    bindings/js/JSInt8ArrayCustom.cpp
     bindings/js/JSLazyEventListener.cpp
     bindings/js/JSLocationCustom.cpp
     bindings/js/JSMessageChannelConstructor.cpp
@@ -91,22 +102,12 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSStyleSheetListCustom.cpp
     bindings/js/JSTextCustom.cpp
     bindings/js/JSTreeWalkerCustom.cpp
-    bindings/js/JSWebGLArrayBufferConstructor.cpp
-    bindings/js/JSWebGLArrayCustom.cpp
-    bindings/js/JSWebGLByteArrayConstructor.cpp
-    bindings/js/JSWebGLByteArrayCustom.cpp
-    bindings/js/JSWebGLFloatArrayConstructor.cpp
-    bindings/js/JSWebGLFloatArrayCustom.cpp
-    bindings/js/JSWebGLIntArrayConstructor.cpp
-    bindings/js/JSWebGLIntArrayCustom.cpp
-    bindings/js/JSWebGLShortArrayConstructor.cpp
-    bindings/js/JSWebGLShortArrayCustom.cpp
-    bindings/js/JSWebGLUnsignedByteArrayConstructor.cpp
-    bindings/js/JSWebGLUnsignedByteArrayCustom.cpp
-    bindings/js/JSWebGLUnsignedIntArrayConstructor.cpp
-    bindings/js/JSWebGLUnsignedIntArrayCustom.cpp
-    bindings/js/JSWebGLUnsignedShortArrayConstructor.cpp
-    bindings/js/JSWebGLUnsignedShortArrayCustom.cpp
+    bindings/js/JSUint16ArrayConstructor.cpp
+    bindings/js/JSUint16ArrayCustom.cpp
+    bindings/js/JSUint32ArrayConstructor.cpp
+    bindings/js/JSUint32ArrayCustom.cpp
+    bindings/js/JSUint8ArrayConstructor.cpp
+    bindings/js/JSUint8ArrayCustom.cpp
     bindings/js/JSWebKitCSSMatrixConstructor.cpp
     bindings/js/JSWebKitPointConstructor.cpp
     bindings/js/JSWorkerContextErrorHandler.cpp
@@ -122,11 +123,12 @@ list(APPEND WEBCORE_SRC
     bindings/js/ScriptDebugServer.cpp
     bindings/js/ScriptEventListener.cpp
     bindings/js/ScriptFunctionCall.cpp
+    bindings/js/ScriptGCEvent.cpp
     bindings/js/ScriptObject.cpp
     bindings/js/ScriptProfiler.cpp
     bindings/js/ScriptState.cpp
     bindings/js/ScriptValue.cpp
-    bindings/js/SerializedScriptValue.cpp
+    bindings/js/SerializedScriptValue.cpp    
 )
 
 if(ENABLE_3D_CANVAS)

@@ -141,7 +141,6 @@ bool truncateFile(PlatformFileHandle handle, long long offset)
     return !ftruncate(handle, offset);
 }
 
-#if !PLATFORM(ANDROID)
 int writeToFile(PlatformFileHandle handle, const char* data, int length)
 {
     do {
@@ -151,7 +150,6 @@ int writeToFile(PlatformFileHandle handle, const char* data, int length)
     } while (errno == EINTR);
     return -1;
 }
-#endif
 
 int readFromFile(PlatformFileHandle handle, char* data, int length)
 {

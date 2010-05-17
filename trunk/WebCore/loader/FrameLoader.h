@@ -354,6 +354,8 @@ public:
 
     void clear(bool clearWindowProperties = true, bool clearScriptObjects = true, bool clearFrameView = true);
     
+    bool shouldClose();
+
 private:
     bool canCachePageContainingThisFrame();
 #ifndef NDEBUG
@@ -421,6 +423,8 @@ private:
     bool shouldReloadToHandleUnreachableURL(DocumentLoader*);
 
     void dispatchDidCommitLoad();
+
+    void urlSelected(const ResourceRequest&, const String& target, PassRefPtr<Event>, bool lockHistory, bool lockBackForwardList, bool userGesture, ReferrerPolicy, ShouldReplaceDocumentIfJavaScriptURL);
 
     void loadWithDocumentLoader(DocumentLoader*, FrameLoadType, PassRefPtr<FormState>); // Calls continueLoadAfterNavigationPolicy
     void load(DocumentLoader*);                                                         // Calls loadWithDocumentLoader   
@@ -496,7 +500,7 @@ private:
 
     bool m_didCallImplicitClose;
     bool m_wasUnloadEventEmitted;
-    bool m_unloadEventBeingDispatched;
+    bool m_pageDismissalEventBeingDispatched;
     bool m_isComplete;
     bool m_isLoadingMainResource;
 

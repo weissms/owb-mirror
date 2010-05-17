@@ -41,6 +41,7 @@ list(APPEND WEBCORE_SRC
     rendering/RenderListMarker.cpp
     rendering/RenderMarquee.cpp
     rendering/RenderMenuList.cpp
+    rendering/RenderMeter.cpp
     rendering/RenderObject.cpp
     rendering/RenderObjectChildList.cpp
     rendering/RenderPart.cpp
@@ -115,6 +116,7 @@ if(ENABLE_SVG)
         rendering/SVGRenderTreeAsText.cpp
         rendering/SVGRootInlineBox.cpp
         rendering/SVGShadowTreeElements.cpp
+        rendering/SVGTextLayoutUtilities.cpp
     )
 endif(ENABLE_SVG)
 

@@ -751,9 +751,6 @@ bool HTMLInputElement::shouldUseInputMethod() const
 void HTMLInputElement::handleFocusEvent()
 {
     InputElement::dispatchFocusEvent(this, this);
-
-    if (isTextField())
-        m_autofilled = false;
 }
 
 void HTMLInputElement::handleBlurEvent()
@@ -1428,6 +1425,7 @@ void HTMLInputElement::setChecked(bool nowChecked, bool sendChangeEvent)
 
     m_useDefaultChecked = false;
     m_checked = nowChecked;
+    setNeedsValidityCheck();
     setNeedsStyleRecalc();
 
     updateCheckedRadioButtons();
@@ -1493,7 +1491,7 @@ String HTMLInputElement::value() const
 
     String value = m_data.value();
     if (value.isNull()) {
-        value = sanitizeValue(getAttribute(valueAttr));
+        value = sanitizeValue(fastGetAttribute(valueAttr));
         
         // If no attribute exists, extra handling may be necessary.
         // For Checkbox Types just use "on" or "" based off the checked() state of the control.
@@ -1944,6 +1942,9 @@ void HTMLInputElement::setValueFromRenderer(const String& value)
     updatePlaceholderVisibility(false);
     InputElement::setValueFromRenderer(m_data, this, this, value);
     setNeedsValidityCheck();
+
+    // Clear autofill flag (and yellow background) on user edit.
+    setAutofilled(false);
 }
 
 void HTMLInputElement::setFileListFromRenderer(const Vector<String>& paths)
@@ -2346,7 +2347,7 @@ void HTMLInputElement::defaultEventHandler(Event* evt)
 
         // Form may never have been present, or may have been destroyed by code responding to the change event.
         if (formForSubmission)
-            formForSubmission->submitImplicitly(evt, isTextField());
+            formForSubmission->submitImplicitly(evt, canTriggerImplicitSubmission());
 
         evt->setDefaultHandled();
         return;

@@ -488,6 +488,7 @@ BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringHash.h
 BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringImpl.cpp
 BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringImpl.h
 BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/StringImplBase.h
+BAL/Internationalization/WTF/Text   JavaScriptCore/wtf/text/StringStatics.cpp
 BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/WTFString.cpp
 BAL/Internationalization/WTF/Text	JavaScriptCore/wtf/text/WTFString.h
 BAL/Internationalization/WebCore/Gtk	WebCore/platform/gtk/LocalizedStringsGtk.cpp	BCLocalizedStringsGtk.cpp

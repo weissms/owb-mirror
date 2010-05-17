@@ -63,6 +63,7 @@ list(APPEND WEBCORE_SRC
     html/HTMLMarqueeElement.cpp
     html/HTMLMenuElement.cpp
     html/HTMLMetaElement.cpp
+    html/HTMLMeterElement.cpp
     html/HTMLModElement.cpp
     html/HTMLNameCollection.cpp
     html/HTMLNoScriptElement.cpp
@@ -110,6 +111,7 @@ list(APPEND IDL_SRC
     html/DataGridColumn.idl
     html/File.idl
     html/FileList.idl
+    html/FileReader.idl
     html/HTMLAllCollection.idl
     html/HTMLAnchorElement.idl
     html/HTMLAppletElement.idl
@@ -157,6 +159,7 @@ list(APPEND IDL_SRC
     html/HTMLMediaElement.idl
     html/HTMLMenuElement.idl
     html/HTMLMetaElement.idl
+    html/HTMLMeterElement.idl
     html/HTMLModElement.idl
     html/HTMLObjectElement.idl
     html/HTMLOListElement.idl

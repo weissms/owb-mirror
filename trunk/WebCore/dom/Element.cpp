@@ -42,12 +42,6 @@
 #include "HTMLElement.h"
 #include "HTMLNames.h"
 #include "HTMLTokenizer.h"
-
-#if ENABLE(INSPECTOR)
-#include "InspectorController.h"
-#endif // ENABLE(INSPECTOR)
-
-#include "NamedNodeMap.h"
 #include "NodeList.h"
 #include "NodeRenderStyle.h"
 #include "Page.h"
@@ -60,6 +54,10 @@
 
 #if HAVE(ACCESSIBILITY)
 #include "AXObjectCache.h"
+#endif
+
+#if ENABLE(INSPECTOR)
+#include "InspectorController.h"
 #endif
 
 #if ENABLE(SVG)
@@ -226,19 +224,15 @@ bool Element::hasAttribute(const QualifiedName& name) const
 
 const AtomicString& Element::getAttribute(const QualifiedName& name) const
 {
-    if (name == styleAttr && !isStyleAttributeValid())
+    if (UNLIKELY(name == styleAttr) && !isStyleAttributeValid())
         updateStyleAttribute();
 
 #if ENABLE(SVG)
-    if (!areSVGAttributesValid())
+    if (UNLIKELY(!areSVGAttributesValid()))
         updateAnimatedSVGAttribute(name);
 #endif
 
-    if (namedAttrMap)
-        if (Attribute* a = namedAttrMap->getAttributeItem(name))
-            return a->value();
-
-    return nullAtom;
+    return fastGetAttribute(name);
 }
 
 void Element::scrollIntoView(bool alignToTop) 
@@ -887,6 +881,12 @@ bool Element::pseudoStyleCacheIsInvalid(const RenderStyle* currentStyle, RenderS
             if (pseudoId < FIRST_INTERNAL_PSEUDOID)
                 newStyle->setHasPseudoStyle(pseudoId);
             newStyle->addCachedPseudoStyle(newPseudoStyle);
+            if (pseudoId == FIRST_LINE || pseudoId == FIRST_LINE_INHERITED) {
+                // FIXME: We should do an actual diff to determine whether a repaint vs. layout
+                // is needed, but for now just assume a layout will be required.  The diff code
+                // in RenderObject::setStyle would need to be factored out so that it could be reused.
+                renderer()->setNeedsLayoutAndPrefWidthsRecalc();
+            }
             return true;
         }
     }
@@ -1434,9 +1434,15 @@ void Element::normalizeAttributes()
     NamedNodeMap* attrs = attributes(true);
     if (!attrs)
         return;
-    unsigned numAttrs = attrs->length();
-    for (unsigned i = 0; i < numAttrs; i++) {
-        if (Attr* attr = attrs->attributeItem(i)->attr())
+
+    if (attrs->isEmpty())
+        return;
+
+    Vector<RefPtr<Attribute> > attributeVector;
+    attrs->copyAttributesToVector(attributeVector);
+    size_t numAttrs = attributeVector.size();
+    for (size_t i = 0; i < numAttrs; ++i) {
+        if (Attr* attr = attributeVector[i]->attr())
             attr->normalize();
     }
 }

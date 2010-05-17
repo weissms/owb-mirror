@@ -143,6 +143,7 @@ if(ENABLE_SVG)
         svg/graphics/filters/SVGFEDisplacementMap.cpp
         svg/graphics/filters/SVGFEFlood.cpp
         svg/graphics/filters/SVGFEImage.cpp
+        svg/graphics/filters/SVGFELighting.cpp
         svg/graphics/filters/SVGFEMerge.cpp
         svg/graphics/filters/SVGFEMorphology.cpp
         svg/graphics/filters/SVGFEOffset.cpp

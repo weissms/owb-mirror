@@ -206,7 +206,7 @@ bool PluginView::startOrAddToUnstartedList()
     // ourselves. Otherwise, the loader will try to deliver data before we've
     // started the plug-in.
     if (!m_loadManually && !m_parentFrame->page()->canStartMedia()) {
-        m_parentFrame->page()->addMediaCanStartListener(this);
+        m_parentFrame->document()->addMediaCanStartListener(this);
         m_isWaitingToStart = true;
         return true;
     }
@@ -281,7 +281,8 @@ PluginView::~PluginView()
 
     instanceMap().remove(m_instance);
 
-    removeFromUnstartedListIfNecessary();
+    if (m_isWaitingToStart)
+        m_parentFrame->document()->removeMediaCanStartListener(this);
 
     stop();
 
@@ -296,17 +297,6 @@ PluginView::~PluginView()
 
     if (m_plugin && !(m_plugin->quirks().contains(PluginQuirkDontUnloadPlugin)))
         m_plugin->unload();
-}
-
-void PluginView::removeFromUnstartedListIfNecessary()
-{
-    if (!m_isWaitingToStart)
-        return;
-
-    if (!m_parentFrame->page())
-        return;
-
-    m_parentFrame->page()->removeMediaCanStartListener(this);
 }
 
 void PluginView::stop()
@@ -528,7 +518,8 @@ NPError PluginView::load(const FrameLoadRequest& frameLoadRequest, bool sendNoti
         return NPERR_INVALID_URL;
 
     // Don't allow requests to be made when the document loader is stopping all loaders.
-    if (m_parentFrame->loader()->documentLoader()->isStopping())
+    DocumentLoader* loader = m_parentFrame->loader()->documentLoader();
+    if (!loader || loader->isStopping())
         return NPERR_GENERIC_ERROR;
 
     const String& targetFrameName = frameLoadRequest.frameName();

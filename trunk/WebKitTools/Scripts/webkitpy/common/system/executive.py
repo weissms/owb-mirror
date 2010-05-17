@@ -167,17 +167,10 @@ class Executive(object):
         # machines.
         return 2
 
-    # Executive unit tests uses this information to validate that
-    # kill_process/kill_all work as expected an cause the expected exit codes.
-    # We store this information in this file to keep it next to the platform ifs.
-    # taskkill.exe causes processes to exit 0, otherwise processes exit -SIGNAL
-    _KILL_PROCESS_KILLED_PROCESS_EXIT_CODE = 0 if sys.platform == "windows" else -signal.SIGKILL
-    _KILL_ALL_KILLED_PROCESS_EXIT_CODE = 0 if sys.platform in ("windows", "cygwin") else -signal.SIGTERM
-
     def kill_process(self, pid):
         """Attempts to kill the given pid.
         Will fail silently if pid does not exist or insufficient permisssions."""
-        if sys.platform == "windows":
+        if sys.platform == "win32":
             # We only use taskkill.exe on windows (not cygwin) because subprocess.pid
             # is a CYGWIN pid and taskkill.exe expects a windows pid.
             # Thankfully os.kill on CYGWIN handles either pid type.
@@ -215,7 +208,7 @@ class Executive(object):
     def kill_all(self, process_name):
         """Attempts to kill processes matching process_name.
         Will fail silently if no process are found."""
-        if sys.platform in ("windows", "cygwin"):
+        if sys.platform in ("win32", "cygwin"):
             image_name = self._windows_image_name(process_name)
             command = ["taskkill.exe", "/f", "/im", image_name]
             # taskkill will exit 128 if the process is not found.  We should log.

@@ -32,6 +32,7 @@
 #include "RuntimeEnabledFeatures.h"
 
 #include "Database.h"
+#include "DatabaseSync.h"
 #include "MediaPlayer.h"
 #include "SharedWorkerRepository.h"
 #include "WebSocket.h"
@@ -46,7 +47,7 @@ bool RuntimeEnabledFeatures::isGeolocationEnabled = true;
 bool RuntimeEnabledFeatures::isIndexedDBEnabled = false;
 bool RuntimeEnabledFeatures::isWebGLEnabled = false;
 bool RuntimeEnabledFeatures::isPushStateEnabled = false;
-bool RuntimeEnabledFeatures::isTouchEnabled = false;
+bool RuntimeEnabledFeatures::isTouchEnabled = true;
 
 #if ENABLE(VIDEO)
 
@@ -95,6 +96,11 @@ bool RuntimeEnabledFeatures::webSocketEnabled()
 bool RuntimeEnabledFeatures::openDatabaseEnabled()
 {
     return Database::isAvailable();
+}
+
+bool RuntimeEnabledFeatures::openDatabaseSyncEnabled()
+{
+    return DatabaseSync::isAvailable();
 }
 #endif
 

@@ -41,6 +41,10 @@
 #include <wtf/Assertions.h>
 #include <wtf/Vector.h>
 
+#if ENABLE(INSPECTOR)
+#include "InspectorTimelineAgent.h"
+#endif
+
 #define REQUEST_MANAGEMENT_ENABLED 1
 #define REQUEST_DEBUG 0
 
@@ -145,6 +149,13 @@ void Loader::load(DocLoader* docLoader, CachedResource* resource, bool increment
         host->servePendingRequests(priority);
     } else {
         // Handle asynchronously so early low priority requests don't get scheduled before later high priority ones
+#if ENABLE(INSPECTOR)
+        if (InspectorTimelineAgent::instanceCount()) {
+            InspectorTimelineAgent* agent = docLoader->doc()->inspectorTimelineAgent();
+            if (agent)
+                agent->didScheduleResourceRequest(resource->url());
+        }
+#endif // ENABLE(INSPECTOR)
         scheduleServePendingRequests();
     }
 }
@@ -549,6 +560,20 @@ void Loader::Host::didReceiveData(SubresourceLoader* loader, const char* data, i
         resource->data(copiedData.release(), true);
     } else if (request->isIncremental())
         resource->data(loader->resourceData(), false);
+}
+    
+void Loader::Host::didReceiveCachedMetadata(SubresourceLoader* loader, const char* data, int size)
+{
+    RefPtr<Host> protector(this);
+
+    Request* request = m_requestsLoading.get(loader);
+    if (!request)
+        return;
+
+    CachedResource* resource = request->cachedResource();    
+    ASSERT(!resource->isCacheValidator());
+
+    resource->setSerializedCachedMetadata(data, size);
 }
     
 void Loader::Host::cancelPendingRequests(RequestQueue& requestsPending, DocLoader* docLoader)
