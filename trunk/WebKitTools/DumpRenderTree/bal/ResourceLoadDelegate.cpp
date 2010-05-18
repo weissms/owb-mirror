@@ -240,3 +240,23 @@ void ResourceLoadDelegate::didReceiveResponse(WebView *webView, unsigned long id
     if (!done && gLayoutTestController->dumpResourceResponseMIMETypes())
         printf("%s has MIME type %s\n", response->URL(), response->MIMEType());
 }
+
+void ResourceLoadDelegate::didReceiveAuthenticationChallenge(WebView *webView, unsigned long identifier, WebURLAuthenticationChallenge *challenge, WebDataSource *dataSource)
+{
+    if (!gLayoutTestController->handlesAuthenticationChallenges())
+        return;
+
+    const char* user = gLayoutTestController->authenticationUsername().c_str();
+    const char* password = gLayoutTestController->authenticationPassword().c_str();
+
+    printf("%s - didReceiveAuthenticationChallenge - Responding with %s:%s\n", descriptionSuitableForTestResult(identifier).c_str(), user, password);
+
+    WebURLAuthenticationChallengeSender* sender = challenge->sender();
+    if (!sender)
+        return;
+
+    WebURLCredential* credential = WebURLCredential::createInstance();
+    credential->initWithUser(user, password, WebURLCredentialPersistenceForSession);
+
+    sender->useCredential(credential, challenge);
+}

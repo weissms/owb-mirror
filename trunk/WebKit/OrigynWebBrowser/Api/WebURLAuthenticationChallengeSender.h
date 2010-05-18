@@ -38,10 +38,7 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <wtf/Forward.h>
-#include <wtf/Forward.h>
-#include <wtf/RefPtr.h>
+#include "WebKitTypes.h"
 
 namespace WebCore {
     class AuthenticationClient;
@@ -51,18 +48,18 @@ class WebURLAuthenticationChallenge;
 class WebURLCredential;
 
 class WebURLAuthenticationChallengeSender {
-public:
-
+protected:
+    friend class WebURLAuthenticationChallenge;
     /**
      * create a new instance of WebURLAuthenticationChallengeSender
      */
-    static WebURLAuthenticationChallengeSender* createInstance(PassRefPtr<WebCore::AuthenticationClient>);
+    static WebURLAuthenticationChallengeSender* createInstance(WebCore::AuthenticationClient*);
 private:
 
     /**
      *  WebURLAuthenticationChallengeSender constructor
      */
-    WebURLAuthenticationChallengeSender(PassRefPtr<WebCore::AuthenticationClient>);
+    WebURLAuthenticationChallengeSender(WebCore::AuthenticationClient*);
 public:
 
     /**
@@ -85,6 +82,7 @@ public:
      */
     virtual void useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge);
 
+protected:
     /**
      * get resource handle
      */
@@ -92,7 +90,7 @@ public:
 
 private:
 
-    RefPtr<WebCore::AuthenticationClient> m_authenticationClient;
+    WebCore::AuthenticationClient* m_authenticationClient;
 };
 
 #endif

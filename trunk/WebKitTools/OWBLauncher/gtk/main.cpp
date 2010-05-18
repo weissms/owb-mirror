@@ -132,7 +132,8 @@ int main (int argc, char* argv[])
 
     main_window = create_window ();
 
-    GdkRectangle clientRect= {0, 0, 800, 600};
+    //GdkRectangle clientRect= {0, 0, 800, 600};
+    GdkRectangle clientRect= {0, 0, 1280, 720};
    
     webView->initWithFrame(clientRect, "", "");
 

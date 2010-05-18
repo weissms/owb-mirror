@@ -35,13 +35,22 @@
 #include "WebURLProtectionSpace.h"
 #include "WebURLResponse.h"
 
+#include <AuthenticationChallenge.h>
 #include <PlatformString.h>
 #include <ResourceHandle.h>
 
 using namespace WebCore;
 
+class WebURLAuthenticationChallengePrivate
+{
+public :
+    WebURLAuthenticationChallengePrivate(const WebCore::AuthenticationChallenge& auth) : m_authenticationChallenge(auth) {}
+
+    WebCore::AuthenticationChallenge m_authenticationChallenge;
+};
+
 WebURLAuthenticationChallenge::WebURLAuthenticationChallenge(const AuthenticationChallenge& authenticationChallenge, WebURLAuthenticationChallengeSender* sender)
-    : m_authenticationChallenge(authenticationChallenge)
+    : m_priv(new WebURLAuthenticationChallengePrivate(authenticationChallenge))
     , m_sender(sender)
 {
 }
@@ -49,6 +58,7 @@ WebURLAuthenticationChallenge::WebURLAuthenticationChallenge(const Authenticatio
 WebURLAuthenticationChallenge::~WebURLAuthenticationChallenge()
 {
     delete m_sender;
+    delete m_priv;
 }
 
 WebURLAuthenticationChallenge* WebURLAuthenticationChallenge::createInstance(const AuthenticationChallenge& authenticationChallenge)
@@ -70,7 +80,7 @@ void WebURLAuthenticationChallenge::initWithProtectionSpace(WebURLProtectionSpac
     // FIXME: After we change AuthenticationChallenge to use "ResourceHandle" as the abstract "Sender" or "Source of this Auth Challenge", then we'll
     // construct the AuthenticationChallenge with that as obtained from the webSender
 
-    m_authenticationChallenge = AuthenticationChallenge(space->protectionSpace(), proposedCredential->credential(), previousFailureCount, failureResponse->resourceResponse(), error->resourceError());
+    m_priv->m_authenticationChallenge = AuthenticationChallenge(space->protectionSpace(), proposedCredential->credential(), previousFailureCount, failureResponse->resourceResponse(), error->resourceError());
 }
 
 void WebURLAuthenticationChallenge::initWithAuthenticationChallenge(WebURLAuthenticationChallenge* challenge, WebURLAuthenticationChallengeSender* sender)
@@ -85,27 +95,28 @@ void WebURLAuthenticationChallenge::initWithAuthenticationChallenge(WebURLAuthen
 
 WebError* WebURLAuthenticationChallenge::error()
 {
-    return WebError::createInstance(m_authenticationChallenge.error());
+    return WebError::createInstance(m_priv->m_authenticationChallenge.error());
 }
 
 WebURLResponse* WebURLAuthenticationChallenge::failureResponse()
 {
-    return WebURLResponse::createInstance(m_authenticationChallenge.failureResponse());
+    return WebURLResponse::createInstance(m_priv->m_authenticationChallenge.failureResponse());
 }
 
 unsigned WebURLAuthenticationChallenge::previousFailureCount()
 {
-    return m_authenticationChallenge.previousFailureCount();
+    return m_priv->m_authenticationChallenge.previousFailureCount();
 }
 
 WebURLCredential* WebURLAuthenticationChallenge::proposedCredential()
 {
-    return WebURLCredential::createInstance(m_authenticationChallenge.proposedCredential());
+    WebURLCredential* webURLCredential = WebURLCredential::createInstance(m_priv->m_authenticationChallenge.proposedCredential());
+    return webURLCredential;
 }
 
 WebURLProtectionSpace* WebURLAuthenticationChallenge::protectionSpace()
 {
-    return WebURLProtectionSpace::createInstance(m_authenticationChallenge.protectionSpace());
+    return WebURLProtectionSpace::createInstance(m_priv->m_authenticationChallenge.protectionSpace());
 }
 
 WebURLAuthenticationChallengeSender* WebURLAuthenticationChallenge::sender()
@@ -115,7 +126,7 @@ WebURLAuthenticationChallengeSender* WebURLAuthenticationChallenge::sender()
         // FIXME : implement this 
         AuthenticationClient* authenticationClient = 0;
 #else
-        AuthenticationClient* authenticationClient = m_authenticationChallenge.authenticationClient();
+        AuthenticationClient* authenticationClient = m_priv->m_authenticationChallenge.authenticationClient();
 #endif
         m_sender = WebURLAuthenticationChallengeSender::createInstance(authenticationClient);
     }
@@ -125,5 +136,5 @@ WebURLAuthenticationChallengeSender* WebURLAuthenticationChallenge::sender()
 
 const AuthenticationChallenge& WebURLAuthenticationChallenge::authenticationChallenge() const
 {
-    return m_authenticationChallenge;
+    return m_priv->m_authenticationChallenge;
 }

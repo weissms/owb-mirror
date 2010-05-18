@@ -609,6 +609,8 @@ void dump()
             dumpBackForwardList();
         }
 
+        invalidateAnyPreviousWaitToDumpWatchdog();
+
         if (printSeparators) {
             puts("#EOF"); // terminate the content block
             fputs("#EOF\n", stderr);
@@ -815,9 +817,23 @@ void runTest(const string& testPathOrURL)
     SharedPtr<FrameLoadDelegate> frameLoadDelegate = FrameLoadDelegate::createInstance();
     SharedPtr<JSDelegate> jsActionDelegate = JSDelegate::createInstance();
 
+    gLayoutTestController->setIconDatabaseEnabled(false);
+    
+    if (shouldOpenWebInspector(pathOrURL.c_str())) {
+        if (!inspectorURLAvailable()) {
+            printf("You must set environment variable INSPECTOR_URL correctly\n");
+            exit(1);
+        }
+        gLayoutTestController->showWebInspector();
+    }
+
+    if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
+        gLayoutTestController->setDumpFrameLoadCallbacks(true);
+
 #if ENABLE(DAE)
     BalWidget *view = createWindow(0, rect);
-    SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, testPathOrURL.c_str(), frameLoadDelegate, jsActionDelegate);
+    //SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, testPathOrURL.c_str(), frameLoadDelegate, jsActionDelegate);
+    SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, 0, frameLoadDelegate, jsActionDelegate);
     gWebView = application->webView();
 #else
 #if !PLATFORM(QT)
@@ -842,23 +858,10 @@ void runTest(const string& testPathOrURL)
     initializeFonts();
 #endif
 
-
     WebBackForwardList* bfList = getWebView()->backForwardList();
     if (bfList)
         prevTestBFItem = bfList->currentItem();
 
-    gLayoutTestController->setIconDatabaseEnabled(false);
-    
-    if (shouldOpenWebInspector(pathOrURL.c_str())) {
-        if (!inspectorURLAvailable()) {
-            printf("You must set environment variable INSPECTOR_URL correctly\n");
-            exit(1);
-        }
-        gLayoutTestController->showWebInspector();
-    }
-
-    if (shouldLogFrameLoadDelegates(pathOrURL.c_str()))
-        gLayoutTestController->setDumpFrameLoadCallbacks(true);
 
     if (shouldLogHistoryDelegates(pathOrURL.c_str())) {
         gLayoutTestController->setDumpHistoryDelegateCallbacks(true);
@@ -866,9 +869,9 @@ void runTest(const string& testPathOrURL)
     } else
         getWebView()->setHistoryDelegate(0);
 
-#if !ENABLE(DAE)
+//#if !ENABLE(DAE)
     getWebView()->mainFrame()->loadURL(url);
-#endif
+//#endif
     free(url);
     url = NULL;
 
@@ -877,11 +880,13 @@ void runTest(const string& testPathOrURL)
     if (shouldOpenWebInspector(pathOrURL.c_str()))
         gLayoutTestController->closeWebInspector();
 
+    getWebView()->mainFrame()->stopLoading();
+
     const char* groupName = getWebView()->groupName();
     if (groupName)
         getWebView()->removeAllUserContentFromGroup(groupName);
     // A blank load seems to be necessary to reset state after certain tests.
-    //webApplication->webView()->mainFrame()->loadURL("about:blank");
+    //getWebView()->mainFrame()->loadURL("about:blank");
     
     //WorkQueue::shared()->clear();
 

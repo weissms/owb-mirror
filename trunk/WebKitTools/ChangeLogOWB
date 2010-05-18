@@ -1,3 +1,20 @@
+2010-05-17  Mario Bensi  <mbensi@connected-labs.com>
+
+        Reviewed by Gilles Bertal.
+
+        Implement didReceiveAuthenticationChallenge in ResourceLoadDelegate
+        for DRT
+        fix a problem on the SDL eventLoop, need more investigation on this hack.
+
+        * DumpRenderTree/bal/DumpRenderTree.cpp:
+        (dump):
+        (runTest):
+        * DumpRenderTree/bal/ResourceLoadDelegate.cpp:
+        (ResourceLoadDelegate::didReceiveAuthenticationChallenge):
+        * DumpRenderTree/bal/ResourceLoadDelegate.h:
+        * DumpRenderTree/bal/SDL/DumpRenderTreeSDL.cpp:
+        (waitEvent):
+
 2010-04-22  Gilles Bertal  <gbertal@connected-labs.com>
 
         Updated the DRT SDL event loop following the recent update on

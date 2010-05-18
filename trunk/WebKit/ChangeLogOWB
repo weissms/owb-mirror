@@ -1,3 +1,45 @@
+2010-05-17  Mario Bensi  <mbensi@connected-labs.com>
+
+        Reviewed by Gilles Bertal.
+
+        Add WebURL* needed to test credential with the layout test.
+
+        * OrigynWebBrowser/Api/WebKit.h:
+        * OrigynWebBrowser/Api/WebURLAuthenticationChallenge.cpp:
+        (WebURLAuthenticationChallengePrivate::):
+        (WebURLAuthenticationChallenge::WebURLAuthenticationChallenge):
+        (WebURLAuthenticationChallenge::~WebURLAuthenticationChallenge):
+        (WebURLAuthenticationChallenge::initWithProtectionSpace):
+        (WebURLAuthenticationChallenge::error):
+        (WebURLAuthenticationChallenge::failureResponse):
+        (WebURLAuthenticationChallenge::previousFailureCount):
+        (WebURLAuthenticationChallenge::proposedCredential):
+        (WebURLAuthenticationChallenge::protectionSpace):
+        (WebURLAuthenticationChallenge::sender):
+        (WebURLAuthenticationChallenge::authenticationChallenge):
+        * OrigynWebBrowser/Api/WebURLAuthenticationChallenge.h:
+        * OrigynWebBrowser/Api/WebURLAuthenticationChallengeSender.cpp:
+        (WebURLAuthenticationChallengeSender::WebURLAuthenticationChallengeSender):
+        (WebURLAuthenticationChallengeSender::createInstance):
+        (WebURLAuthenticationChallengeSender::cancelAuthenticationChallenge):
+        (WebURLAuthenticationChallengeSender::continueWithoutCredentialForAuthenticationChallenge):
+        (WebURLAuthenticationChallengeSender::useCredential):
+        (WebURLAuthenticationChallengeSender::authenticationClient):
+        * OrigynWebBrowser/Api/WebURLAuthenticationChallengeSender.h:
+        * OrigynWebBrowser/Api/WebURLCredential.cpp:
+        (WebURLCredentialPrivate::WebURLCredentialPrivate):
+        (WebURLCredentialPrivate::~WebURLCredentialPrivate):
+        (WebURLCredential::WebURLCredential):
+        (WebURLCredential::~WebURLCredential):
+        (WebURLCredential::createInstance):
+        (WebURLCredential::hasPassword):
+        (WebURLCredential::initWithUser):
+        (WebURLCredential::password):
+        (WebURLCredential::persistence):
+        (WebURLCredential::user):
+        (WebURLCredential::credential):
+        * OrigynWebBrowser/Api/WebURLCredential.h:
+
 2010-05-06  Mario Bensi  <mbensi@connected-labs.com>
 
         Reviewed by Gilles Bertal.

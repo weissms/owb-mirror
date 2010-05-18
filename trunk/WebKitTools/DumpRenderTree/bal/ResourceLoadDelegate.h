@@ -40,7 +40,7 @@ public:
         
     virtual WebMutableURLRequest* willSendRequest(WebView *webView, unsigned long identifier, WebMutableURLRequest *request, WebURLResponse *redirectResponse, WebDataSource *dataSource);
         
-    virtual void didReceiveAuthenticationChallenge(WebView *webView, unsigned long identifier, WebURLAuthenticationChallenge *challenge, WebDataSource *dataSource) { }
+    virtual void didReceiveAuthenticationChallenge(WebView *webView, unsigned long identifier, WebURLAuthenticationChallenge *challenge, WebDataSource *dataSource);
         
     virtual void didCancelAuthenticationChallenge(WebView *webView, unsigned long identifier, WebURLAuthenticationChallenge *challenge, WebDataSource *dataSource) { }
         

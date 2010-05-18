@@ -33,7 +33,6 @@
 #include <DumpRenderTree.h>
 #include <WebKit.h>
 
-
 // Choose some default values.
 const unsigned int maxViewWidth = 800;
 const unsigned int maxViewHeight = 600;
@@ -100,10 +99,12 @@ void waitEvent()
 
     //SDL_Surface* scr;
     while (!done) {
-        //printf("waitEvent \n");
-        if (SDL_WaitEvent(&event) != 0)
+        //printf("SDL_WaitEvent\n");
+        //if (SDL_WaitEvent(&event) != 0)
+        // We need to use a polling SDL because waitEvent block during a new event are sending, if an event are sending before the waitEvent, the event is lost.
+        if (SDL_PollEvent(&event) != 0)
         {
-            //printf("event type = %d\n", event.type);
+            //printf("event type = %d timer = %d \n", event.type, SDLUserEventCode_Timer);
             switch (event.type) {
                 case SDL_ACTIVEEVENT:
                     //printf("gain =%d state = %d\n", event.active.gain, event.active.state);
@@ -172,6 +173,10 @@ void waitEvent()
                 default:
                     ;//printf("other event\n");
             }
+        } else {
+            webView->fireWebKitThreadEvents();
+            webView->fireWebKitTimerEvents();
+            usleep(1000);
         }
     }
 }
@@ -294,6 +299,7 @@ void waitEvent()
         } else {
             webView->fireWebKitThreadEvents();
             webView->fireWebKitTimerEvents();
+            usleep(1000);
         }
     }
 }

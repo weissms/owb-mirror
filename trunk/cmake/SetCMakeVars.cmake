@@ -35,6 +35,9 @@ list(APPEND API_HEADER
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebScriptObject.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebScriptWorld.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebSecurityOrigin.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebURLAuthenticationChallenge.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebURLAuthenticationChallengeSender.h
+    ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebURLCredential.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebURLResponse.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebValue.h
     ${OWB_SOURCE_DIR}/WebKit/OrigynWebBrowser/Api/WebView.h

@@ -29,37 +29,55 @@
 #include "config.h"
 #include "WebURLCredential.h"
 
-#include <PlatformString.h>
+#include "Credential.h"
+#include "CString.h"
+#include "PlatformString.h"
 
 using namespace WebCore;
 
-WebURLCredential::WebURLCredential(const Credential& credential)
-    : m_credential(credential)
+class WebURLCredentialPrivate 
+{
+public:
+    WebURLCredentialPrivate() {}
+    WebURLCredentialPrivate(const WebCore::Credential& cred) : m_credential(cred) {}
+    ~WebURLCredentialPrivate() {}
+
+    WebCore::Credential m_credential;
+};
+
+WebURLCredential::WebURLCredential()
+    : m_priv(new WebURLCredentialPrivate())
+{
+}
+
+WebURLCredential::WebURLCredential(const WebCore::Credential& cred)
+    : m_priv(new WebURLCredentialPrivate(cred))
 {
 }
 
 WebURLCredential::~WebURLCredential()
 {
+    delete m_priv;
 }
 
 WebURLCredential* WebURLCredential::createInstance()
 {
-    WebURLCredential* instance = new WebURLCredential(Credential());
+    WebURLCredential* instance = new WebURLCredential();
     return instance;
 }
 
-WebURLCredential* WebURLCredential::createInstance(const Credential& credential)
+WebURLCredential* WebURLCredential::createInstance(const WebCore::Credential& cred)
 {
-    WebURLCredential* instance = new WebURLCredential(credential);
+    WebURLCredential* instance = new WebURLCredential(cred);
     return instance;
 }
 
 bool WebURLCredential::hasPassword()
 {
-    return m_credential.hasPassword();
+    return m_priv->m_credential.hasPassword();
 }
 
-void WebURLCredential::initWithUser(String user, String password, WebURLCredentialPersistence persistence)
+void WebURLCredential::initWithUser(const char* user, const char* password, WebURLCredentialPersistence persistence)
 {
     CredentialPersistence corePersistence = CredentialPersistenceNone;
     switch (persistence) {
@@ -75,17 +93,17 @@ void WebURLCredential::initWithUser(String user, String password, WebURLCredenti
         ASSERT_NOT_REACHED();
     }
 
-    m_credential = Credential(user, password, corePersistence);
+    m_priv->m_credential = Credential(user, password, corePersistence);
 }
 
-String WebURLCredential::password()
+const char* WebURLCredential::password()
 {
-    return  m_credential.password();
+    return strdup(m_priv->m_credential.password().utf8().data());
 }
 
 WebURLCredentialPersistence WebURLCredential::persistence()
 {
-    switch (m_credential.persistence()) {
+    switch (m_priv->m_credential.persistence()) {
     case CredentialPersistenceNone:
         return WebURLCredentialPersistenceNone;
     case CredentialPersistenceForSession:
@@ -98,13 +116,14 @@ WebURLCredentialPersistence WebURLCredential::persistence()
     return WebURLCredentialPersistenceNone;
 }
 
-String WebURLCredential::user()
+const char* WebURLCredential::user()
 {
-    return m_credential.user();
+    return strdup(m_priv->m_credential.user().utf8().data());
 }
 
-const WebCore::Credential& WebURLCredential::credential() const
+
+WebCore::Credential& WebURLCredential::credential()
 {
-    return m_credential;
+    return m_priv->m_credential;
 }
 

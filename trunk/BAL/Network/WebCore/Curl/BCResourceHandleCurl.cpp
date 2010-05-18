@@ -29,6 +29,7 @@
 #include "ResourceHandle.h"
 
 #include "CookieManager.h"
+#include "CredentialStorage.h"
 #include "CString.h"
 #include "DocLoader.h"
 #include "NotImplemented.h"
@@ -237,32 +238,45 @@ void ResourceHandle::loadResourceSynchronously(const ResourceRequest& request, S
 
 void ResourceHandle::didReceiveAuthenticationChallenge(const AuthenticationChallenge& challenge) 
 {
-    // If the currentWebChallenge is not null, it means that we have already been called, so avoid an infinite loop by bailing out.
-    // We call didReceiveAuthenticationChallenge so that the user can input his credentials if we have a client.
-    if (!d->m_currentWebChallenge.isNull()) {
-        if (client())
-            client()->didReceiveAuthenticationChallenge(this, challenge);
-        return;
-    }
+    ASSERT(d->m_currentWebChallenge.isNull());
+    ASSERT(challenge.authenticationClient() == this);
 
-    if (!d->m_user.isEmpty() && !d->m_pass.isEmpty()) {
+    if (!d->m_user.isNull() && !d->m_pass.isNull()) {
         Credential urlCredential(d->m_user, d->m_pass, CredentialPersistenceNone);
-        receivedCredential(challenge, urlCredential);
+
+        KURL urlToStore;
+        urlToStore = d->m_request.url();
+
+        CredentialStorage::set(urlCredential, challenge.protectionSpace(), urlToStore);
+
         d->m_user = String();
         d->m_pass = String();
         return;
     }
 
+    d->m_currentWebChallenge = challenge;
+
     if (client())
-        client()->didReceiveAuthenticationChallenge(this, challenge);
+        client()->didReceiveAuthenticationChallenge(this, d->m_currentWebChallenge);
 }
 
 void ResourceHandle::receivedCredential(const AuthenticationChallenge& challenge, const Credential& credential)
 {
-    // FIXME: We should assert somehow that challenge is the current challenge.
-    //
-    // Mac uses this method to store the credential. We should do that too in the database.
-    
+    ASSERT(!challenge.isNull());
+    if (challenge != d->m_currentWebChallenge)
+        return;
+
+    if (credential.isEmpty()) {
+        receivedRequestToContinueWithoutCredential(challenge);
+        return;
+    }
+
+    KURL urlToStore;
+    urlToStore = d->m_request.url();
+
+    CredentialStorage::set(credential, challenge.protectionSpace(), urlToStore);
+
+    clearAuthentication();
     // Clone our ResourceHandle and add it so that it is send with the credential.
     // FIXME: We should have a way of cloning an handle.
     RefPtr<ResourceHandle> newHandle = ResourceHandle::create(request(), client(), 0, d->m_defersLoading, shouldContentSniff());
@@ -271,13 +285,17 @@ void ResourceHandle::receivedCredential(const AuthenticationChallenge& challenge
 
     // Store the new authentication challenge.
     newHandle->getInternal()->m_currentWebChallenge = newAuthenticationChallenge;
-
     d->m_cancelled = true;
 }
 
-void ResourceHandle::receivedRequestToContinueWithoutCredential(const AuthenticationChallenge&) 
+void ResourceHandle::receivedRequestToContinueWithoutCredential(const AuthenticationChallenge& challenge) 
 {
     // Do nothing as curl will automatically continue its transfer.
+    ASSERT(!challenge.isNull());
+    if (challenge != d->m_currentWebChallenge)
+        return;
+    
+    clearAuthentication();
 }
 
 void ResourceHandle::receivedCancellation(const AuthenticationChallenge&)

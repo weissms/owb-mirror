@@ -36,7 +36,7 @@
 
 using namespace WebCore;
 
-WebURLAuthenticationChallengeSender::WebURLAuthenticationChallengeSender(PassRefPtr<AuthenticationClient> authenticationClient)
+WebURLAuthenticationChallengeSender::WebURLAuthenticationChallengeSender(AuthenticationClient* authenticationClient)
     : m_authenticationClient(authenticationClient)
 {
     ASSERT(m_authenticationClient);
@@ -46,7 +46,7 @@ WebURLAuthenticationChallengeSender::~WebURLAuthenticationChallengeSender()
 {
 }
 
-WebURLAuthenticationChallengeSender* WebURLAuthenticationChallengeSender::createInstance(PassRefPtr<WebCore::AuthenticationClient> authenticationClient)
+WebURLAuthenticationChallengeSender* WebURLAuthenticationChallengeSender::createInstance(WebCore::AuthenticationClient* authenticationClient)
 {
     WebURLAuthenticationChallengeSender* instance = new WebURLAuthenticationChallengeSender(authenticationClient);
     return instance;
@@ -54,21 +54,21 @@ WebURLAuthenticationChallengeSender* WebURLAuthenticationChallengeSender::create
 
 void WebURLAuthenticationChallengeSender::cancelAuthenticationChallenge(WebURLAuthenticationChallenge* challenge)
 {
-    //m_authenticationClient->receivedCancellation(challenge->authenticationChallenge());
+    m_authenticationClient->receivedCancellation(challenge->authenticationChallenge());
 }
 
 void WebURLAuthenticationChallengeSender::continueWithoutCredentialForAuthenticationChallenge(WebURLAuthenticationChallenge* challenge)
 {
-    //m_authenticationClient->receivedRequestToContinueWithoutCredential(challenge->authenticationChallenge());
+    m_authenticationClient->receivedRequestToContinueWithoutCredential(challenge->authenticationChallenge());
 }
 
 void WebURLAuthenticationChallengeSender::useCredential(WebURLCredential* credential, WebURLAuthenticationChallenge* challenge)
 {
-    //m_authenticationClient->receivedCredential(challenge->authenticationChallenge(), credential->credential());
+    m_authenticationClient->receivedCredential(challenge->authenticationChallenge(), credential->credential());
 }
 
 AuthenticationClient* WebURLAuthenticationChallengeSender::authenticationClient() const
 {
-    return m_authenticationClient.get();
+    return m_authenticationClient;
 }
 

@@ -38,9 +38,7 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <Credential.h>
-#include <Credential.h>
+#include "WebKitTypes.h"
 
 typedef enum {
     WebURLCredentialPersistenceNone,
@@ -48,7 +46,13 @@ typedef enum {
     WebURLCredentialPersistencePermanent
 } WebURLCredentialPersistence;
 
-class WebURLCredential
+class WebURLCredentialPrivate;
+
+namespace WebCore {
+    class Credential;
+}
+
+class WEBKIT_OWB_API WebURLCredential
 {
 public:
 
@@ -57,17 +61,6 @@ public:
      */
     static WebURLCredential* createInstance();
 
-    /**
-     * create a new instance of WebURLCredential
-     */
-    static WebURLCredential* createInstance(const WebCore::Credential&);
-private:
-
-    /**
-     * WebURLCredential constructor
-     */
-    WebURLCredential(const WebCore::Credential&);
-public:
 
     /**
      * WebURLCredential destructor
@@ -82,12 +75,12 @@ public:
     /**
      * initialize WebURLCredential with user
      */
-    virtual void initWithUser(WebCore::String user, WebCore::String password, WebURLCredentialPersistence persistence);
+    virtual void initWithUser(const char* user, const char* password, WebURLCredentialPersistence persistence);
 
     /**
      * get password
      */
-    virtual WebCore::String password();
+    virtual const char* password();
 
     /**
      * get url credential persistence
@@ -97,15 +90,20 @@ public:
     /**
      * get user
      */
-    virtual WebCore::String user();
-
-    /**
-     * get credential
-     */
-    const WebCore::Credential& credential() const;
+    virtual const char* user();
 
 protected:
-    WebCore::Credential m_credential;
+    friend class WebURLAuthenticationChallenge;
+    friend class WebURLAuthenticationChallengeSender;
+
+    WebCore::Credential& credential();
+    static WebURLCredential* createInstance(const WebCore::Credential&);
+
+private:
+    WebURLCredential();
+    WebURLCredential(const WebCore::Credential&);
+
+    WebURLCredentialPrivate* m_priv;
 };
 
 

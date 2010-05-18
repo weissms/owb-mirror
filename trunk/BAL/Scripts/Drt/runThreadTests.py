@@ -171,6 +171,18 @@ class runTestThread(threading.Thread):
         expected = f.read()
         f.close()
 
+        #expected = expected.strip("\r\n").replace("\r\n", "\n") + "\n"
+
+        exp = expected.split("\r\n")
+        expected = ""
+        for line in exp :
+            expected += line.strip() + "\n"
+
+        output = out.split("\r\n")
+        out = ""
+        for o in output :
+            out += o.strip() + "\n"
+
         if out == expected :
             return True, ""
         else :

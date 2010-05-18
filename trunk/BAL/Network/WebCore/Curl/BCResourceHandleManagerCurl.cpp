@@ -36,6 +36,7 @@
 
 #include "Base64.h"
 #include "CookieManager.h"
+#include "CredentialStorage.h"
 #include "HTTPParsers.h"
 #include "MIMETypeRegistry.h"
 #include "NotImplemented.h"
@@ -339,7 +340,10 @@ static size_t headerCallback(char* ptr, size_t size, size_t nmemb, void* data)
 
                 ResourceRequest redirectedRequest = job->request();
                 redirectedRequest.setURL(newURL);
-                
+
+                //We need to set the Http Method to Get when we have a redirection
+                redirectedRequest.setHTTPMethod("GET");
+
                 // Should not set Referer after a redirect from a secure resource to non-secure one.
                 if (!redirectedRequest.url().protocolIs("https") && protocolIs(redirectedRequest.httpReferrer(), "https"))
                     redirectedRequest.clearHTTPReferrer();
@@ -800,7 +804,6 @@ void ResourceHandleManager::dispatchSynchronousJob(ResourceHandle* job)
 
     // curl_easy_perform blocks until the transfert is finished.
     CURLcode ret =  curl_easy_perform(handle->m_handle);
-
     if (ret != 0) {
         ResourceError error(String(handle->m_url), ret, String(handle->m_url), String(curl_easy_strerror(ret)));
         handle->client()->didFail(job, error);
@@ -928,11 +931,36 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
         }
     }
 
-    if (!d->m_currentWebChallenge.isNull()) {
-        const Credential& credential = d->m_currentWebChallenge.proposedCredential();
-        const ProtectionSpace& protectionSpace = d->m_currentWebChallenge.protectionSpace();
-        long authentification = 0;
-        switch (protectionSpace.authenticationScheme()) {
+    if ((!d->m_user.isEmpty() || !d->m_pass.isEmpty()) && !d->m_request.url().protocolInHTTPFamily()) {
+        // Credentials for ftp can only be passed in URL, the didReceiveAuthenticationChallenge delegate call won't be made
+        KURL urlWithCredentials(d->m_request.url());
+        urlWithCredentials.setUser(d->m_user);
+        urlWithCredentials.setPass(d->m_pass);
+        d->m_request.setURL(urlWithCredentials);
+    }
+
+    bool shouldUseCredentialStorage = d->client()->shouldUseCredentialStorage(job);
+    if (shouldUseCredentialStorage) {
+        if (d->m_user.isEmpty() && d->m_pass.isEmpty())
+            d->m_initialCredential = CredentialStorage::get(d->m_request.url());
+        else 
+            CredentialStorage::set(Credential(d->m_user, d->m_pass, CredentialPersistenceNone), d->m_request.url());
+    }
+
+    if (!d->m_initialCredential.isEmpty()) {
+        curl_easy_setopt(d->m_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANYSAFE);
+#if LIBCURL_VERSION_NUM > 0x071300
+        curl_easy_setopt(d->m_handle, CURLOPT_USERNAME, d->m_initialCredential.user().utf8().data());
+        curl_easy_setopt(d->m_handle, CURLOPT_PASSWORD, d->m_initialCredential.password().utf8().data());
+#else
+        String userpasswd = credential.user() + ":" + credential.password();
+        curl_easy_setopt(d->m_handle, CURLOPT_USERPWD, userpasswd.utf8().data());
+#endif
+    } else {
+        if (!d->m_currentWebChallenge.isNull()) {
+            const ProtectionSpace& protectionSpace = d->m_currentWebChallenge.protectionSpace();
+            long authentification = 0;
+            switch (protectionSpace.authenticationScheme()) {
             case ProtectionSpaceAuthenticationSchemeHTTPBasic:
                 authentification = CURLAUTH_BASIC;
                 break;
@@ -942,19 +970,21 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
             case ProtectionSpaceAuthenticationSchemeDefault:
             case ProtectionSpaceAuthenticationSchemeHTMLForm:
             case ProtectionSpaceAuthenticationSchemeNTLM:
+                authentification = CURLAUTH_NTLM;
             case ProtectionSpaceAuthenticationSchemeNegotiate:
                 notImplemented();
             default:
                 ASSERT_NOT_REACHED();
-        }
-        curl_easy_setopt(d->m_handle, CURLOPT_HTTPAUTH, authentification);
+            }
+            curl_easy_setopt(d->m_handle, CURLOPT_HTTPAUTH, authentification);
 #if LIBCURL_VERSION_NUM > 0x071300
-        curl_easy_setopt(d->m_handle, CURLOPT_USERNAME, credential.user().isNull() ? "" : credential.user().impl()->ascii().data());
-        curl_easy_setopt(d->m_handle, CURLOPT_PASSWORD, credential.password().isNull() ? "" : credential.password().impl()->ascii().data());
+            curl_easy_setopt(d->m_handle, CURLOPT_USERNAME, d->m_currentWebChallenge.proposedCredential().user().utf8().data());
+            curl_easy_setopt(d->m_handle, CURLOPT_PASSWORD, d->m_currentWebChallenge.proposedCredential().password().utf8().data());
 #else
-// FIXME: use CURLOPT_USERPWD in this case!
-#warning "Disabled HTTP authentification because you need libcURL >= 7.19.1 for the support"
+            String userpasswd = m_currentWebChallenge.proposedCredential().user() + ":" + m_currentWebChallenge.proposedCredential().password();
+            curl_easy_setopt(d->m_handle, CURLOPT_USERPWD, userpasswd.utf8().data());
 #endif
+        }
     }
 
     // Add client certificate information.
@@ -988,8 +1018,13 @@ void ResourceHandleManager::initializeHandle(ResourceHandle* job)
     }
     // curl CURLOPT_USERPWD expects username:password
     if (d->m_user.length() || d->m_pass.length()) {
+#if LIBCURL_VERSION_NUM > 0x071300
+        curl_easy_setopt(d->m_handle, CURLOPT_USERNAME, d->m_user.utf8().data());
+        curl_easy_setopt(d->m_handle, CURLOPT_PASSWORD, d->m_pass.utf8().data());
+#else
         String userpass = d->m_user + ":" + d->m_pass;
         curl_easy_setopt(d->m_handle, CURLOPT_USERPWD, userpass.utf8().data());
+#endif
     }
 
     // Set proxy options if we have them.

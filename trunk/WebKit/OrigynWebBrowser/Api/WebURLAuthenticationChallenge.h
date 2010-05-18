@@ -38,9 +38,7 @@
  * - $Rev$
  * - $Date$
  */
-#include "BALBase.h"
-#include <AuthenticationChallenge.h>
-#include <AuthenticationChallenge.h>
+#include "WebKitTypes.h"
 
 class WebURLProtectionSpace;
 class WebURLCredential;
@@ -48,9 +46,15 @@ class WebURLResponse;
 class WebError;
 class WebURLAuthenticationChallengeSender;
 
-class WebURLAuthenticationChallenge {
-public:
+namespace WebCore {
+    class AuthenticationChallenge;
+}
+class WebURLAuthenticationChallengePrivate;
 
+class WEBKIT_OWB_API WebURLAuthenticationChallenge {
+protected:
+    friend class WebFrameLoaderClient;
+    friend class WebURLAuthenticationChallengeSender;
     /**
      * create a new instance of WebURLAuthenticationChallenge
      */
@@ -113,13 +117,15 @@ public:
      */
     virtual WebURLAuthenticationChallengeSender* sender();
    
+
+protected:
     /**
      * get authentication challenge
      */ 
     const WebCore::AuthenticationChallenge& authenticationChallenge() const;
 
-protected:
-    WebCore::AuthenticationChallenge m_authenticationChallenge;
+private:
+    WebURLAuthenticationChallengePrivate* m_priv;    
     WebURLAuthenticationChallengeSender* m_sender;
 };
 

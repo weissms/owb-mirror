@@ -1,3 +1,20 @@
+2010-05-17  Mario Bensi  <mbensi@connected-labs.com>
+
+        Reviewed by Gilles Bertal.
+
+        * Network/WebCore/Curl/BCResourceHandleCurl.cpp: fix credential issues
+        (WebCore::ResourceHandle::didReceiveAuthenticationChallenge):
+        (WebCore::ResourceHandle::receivedCredential):
+        (WebCore::ResourceHandle::receivedRequestToContinueWithoutCredential):
+        * Network/WebCore/Curl/BCResourceHandleManagerCurl.cpp:
+        (WebCore::headerCallback):
+        (WebCore::ResourceHandleManager::dispatchSynchronousJob):
+        (WebCore::ResourceHandleManager::initializeHandle):
+        * Scripts/Drt/runThreadTests.py: fix diff on text, we need to remove
+        some spaces in end of line in several expected, webkit script do the
+        same thing...
+        * Scripts/data/apache2-gentoo-httpd.conf: change conf for ssl
+
 2010-05-06  Steven Chiang  <steven.chiang@mstarsemi.com>
 
         Reviewed by Gilles Bertal.
