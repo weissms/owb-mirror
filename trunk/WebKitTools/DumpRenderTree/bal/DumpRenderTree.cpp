@@ -832,8 +832,7 @@ void runTest(const string& testPathOrURL)
 
 #if ENABLE(DAE)
     BalWidget *view = createWindow(0, rect);
-    //SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, testPathOrURL.c_str(), frameLoadDelegate, jsActionDelegate);
-    SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, 0, frameLoadDelegate, jsActionDelegate);
+    SharedPtr<WebApplication> application = WebApplicationManager::instance().createApplication(view, rect, testPathOrURL.c_str(), frameLoadDelegate, jsActionDelegate);
     gWebView = application->webView();
 #else
 #if !PLATFORM(QT)
@@ -869,9 +868,9 @@ void runTest(const string& testPathOrURL)
     } else
         getWebView()->setHistoryDelegate(0);
 
-//#if !ENABLE(DAE)
+#if !ENABLE(DAE)
     getWebView()->mainFrame()->loadURL(url);
-//#endif
+#endif
     free(url);
     url = NULL;
 
