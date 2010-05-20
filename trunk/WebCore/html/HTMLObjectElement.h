@@ -58,11 +58,11 @@ private:
     virtual void parseMappedAttribute(Attribute*);
 
 #if ENABLE(DAE)
-    bool parseDAEMappedAttribute(MappedAttribute*);
+    bool parseDAEMappedAttribute(Attribute*);
 #endif
 
 #if ENABLE(CEHTML)
-    bool parseCEHTMLMappedAttribute(MappedAttribute*);
+    bool parseCEHTMLMappedAttribute(Attribute*);
 #endif
 
     virtual void attach();
