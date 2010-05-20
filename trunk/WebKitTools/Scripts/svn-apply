@@ -314,13 +314,13 @@ sub patch($)
 
     if (!$addition && !$deletion && !$isBinary) {
         # Standard patch, patch tool can handle this.
-        if (basename($fullPath) eq "ChangeLog") {
+        if (basename($fullPath) =~ "ChangeLog") {
             my $changeLogDotOrigExisted = -f "${fullPath}.orig";
             my $newPatch = setChangeLogDateAndReviewer(fixChangeLogPatch($patch), $reviewer, $epochTime);
-            applyPatch($newPatch, $fullPath, ["--fuzz=3"]);
+            applyPatch($newPatch, $fullPath, ["--fuzz=3 --force"]);
             unlink("${fullPath}.orig") if (! $changeLogDotOrigExisted);
         } else {
-            applyPatch($patch, $fullPath) if $patch;
+            applyPatch($patch, $fullPath, ["--force"]) if $patch;
         }
     } else {
         # Either a deletion, an addition or a binary change.
@@ -339,7 +339,7 @@ sub patch($)
         } else {
             # Addition
             rename($fullPath, "$fullPath.orig") if -e $fullPath;
-            applyPatch($patch, $fullPath) if $patch;
+            applyPatch($patch, $fullPath, ["--force"]) if $patch;
             unlink("$fullPath.orig") if -e "$fullPath.orig" && checksum($fullPath) eq checksum("$fullPath.orig");
             scmAdd($fullPath);
             # What is this for?

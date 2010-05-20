@@ -57,18 +57,26 @@ endif(ENABLE_DOM_STORAGE)
 
 if(ENABLE_INDEXED_DATABASE)
     list(APPEND WEBCORE_SRC
+        storage/IDBAny.cpp
         storage/IDBDatabase.cpp
         storage/IDBDatabaseRequest.cpp
+        storage/IDBErrorEvent.cpp
+        storage/IDBEvent.cpp
         storage/IDBRequest.cpp
+        storage/IDBSuccessEvent.cpp
         storage/IndexedDatabase.cpp
         storage/IndexedDatabaseImpl.cpp
         storage/IndexedDatabaseRequest.cpp
     )
     list(APPEND IDL_SRC
+        storage/IDBAny.idl
         storage/IDBDatabaseError.idl
         storage/IDBDatabaseException.idl
         storage/IDBDatabaseRequest.idl
+        storage/IDBErrorEvent.idl
+        storage/IDBEvent.idl
         storage/IDBRequest.idl
+        storage/IDBSuccessEvent.idl
         storage/IndexedDatabaseRequest.idl
     )
 endif(ENABLE_INDEXED_DATABASE)

@@ -547,20 +547,8 @@
 #endif
 
 
-/* OS(WINCE) && PLATFORM(QT)
-   We can not determine the endianess at compile time. For
-   Qt for Windows CE the endianess is specified in the
-   device specific makespec
-*/
 #if OS(WINCE) && PLATFORM(QT)
-#   include <QtGlobal>
-#   undef WTF_CPU_BIG_ENDIAN
-#   undef WTF_CPU_MIDDLE_ENDIAN
-#   if Q_BYTE_ORDER == Q_BIG_ENDIAN
-#       define WTF_CPU_BIG_ENDIAN 1
-#   endif
-
-#   include <ce_time.h>
+#include <ce_time.h>
 #endif
 
 #if (PLATFORM(IPHONE) || PLATFORM(MAC) || PLATFORM(WIN) || (PLATFORM(QT) && OS(DARWIN) && !ENABLE(SINGLE_THREADED))) && !defined(ENABLE_JSC_MULTIPLE_THREADS)
@@ -1034,12 +1022,6 @@ on MinGW. See https://bugs.webkit.org/show_bug.cgi?id=29268 */
 
 #if COMPILER(GCC) && !ENABLE(JIT)
 #define HAVE_COMPUTED_GOTO 1
-#endif
-
-#if ENABLE(JIT) && defined(COVERAGE)
-    #define WTF_USE_INTERPRETER 0
-#else
-    #define WTF_USE_INTERPRETER 1
 #endif
 
 /* Yet Another Regex Runtime. */

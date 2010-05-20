@@ -64,6 +64,7 @@ webcore_cppflags += \
 	-I$(srcdir)/WebCore/workers \
 	-I$(srcdir)/WebCore/xml \
 	-I$(top_builddir)/WebCore/bindings/js \
+	-I$(top_builddir)/DerivedSources \
 	-DDATA_DIR=\"${datadir}\"
 
 webcoregtk_cppflags += \
@@ -800,8 +801,6 @@ webcore_sources += \
 	WebCore/dom/InputElement.h \
 	WebCore/dom/KeyboardEvent.cpp \
 	WebCore/dom/KeyboardEvent.h \
-	WebCore/dom/MappedAttribute.cpp \
-	WebCore/dom/MappedAttribute.h \
 	WebCore/dom/MappedAttributeEntry.h \
 	WebCore/dom/MessageChannel.cpp \
 	WebCore/dom/MessageChannel.h \
@@ -819,10 +818,9 @@ webcore_sources += \
 	WebCore/dom/MutationEvent.h \
 	WebCore/dom/NameNodeList.cpp \
 	WebCore/dom/NameNodeList.h \
-	WebCore/dom/NamedAttrMap.cpp \
-	WebCore/dom/NamedAttrMap.h \
 	WebCore/dom/NamedMappedAttrMap.cpp \
 	WebCore/dom/NamedMappedAttrMap.h \
+	WebCore/dom/NamedNodeMap.cpp \
 	WebCore/dom/NamedNodeMap.h \
 	WebCore/dom/Node.cpp \
 	WebCore/dom/Node.h \
@@ -1068,6 +1066,10 @@ webcore_sources += \
 	WebCore/html/FileThreadTask.h \
 	WebCore/html/FormDataList.cpp \
 	WebCore/html/FormDataList.h \
+	WebCore/html/HTML5Lexer.cpp \
+	WebCore/html/HTML5Lexer.h \
+	WebCore/html/HTML5Tokenizer.cpp \
+	WebCore/html/HTML5Tokenizer.h \
 	WebCore/html/HTMLAllCollection.cpp \
 	WebCore/html/HTMLAllCollection.h \
 	WebCore/html/HTMLAnchorElement.cpp \
@@ -1385,6 +1387,8 @@ webcore_sources += \
 	WebCore/loader/ResourceLoader.h \
 	WebCore/loader/ResourceLoadNotifier.cpp \
 	WebCore/loader/ResourceLoadNotifier.h \
+    WebCore/loader/SinkDocument.cpp \
+    WebCore/loader/SinkDocument.h \
 	WebCore/loader/SubresourceLoader.cpp \
 	WebCore/loader/SubresourceLoader.h \
 	WebCore/loader/SubresourceLoaderClient.h \
@@ -2436,10 +2440,14 @@ if ENABLE_INDEXED_DATABASE
 FEATURE_DEFINES += ENABLE_INDEXED_DATABASE=1
 
 IDL_BINDINGS += \
+	WebCore/storage/IDBDAny.idl \
 	WebCore/storage/IDBDatabaseError.idl \
 	WebCore/storage/IDBDatabaseException.idl \
 	WebCore/storage/IDBDatabaseRequest.idl \
+	WebCore/storage/IDBErrorEvent.idl \
+	WebCore/storage/IDBEvent.idl \
 	WebCore/storage/IDBRequest.idl \
+	WebCore/storage/IDBSuccessEvent.idl \
 	WebCore/storage/IndexedDatabaseRequest.idl
 
 webcore_cppflags += \
@@ -2447,6 +2455,8 @@ webcore_cppflags += \
 
 webcore_sources += \
 	WebCore/bindings/js/JSIDBRequestCustom.cpp \
+	WebCore/storage/IDBAny.cpp \
+	WebCore/storage/IDBAny.h \
 	WebCore/storage/IDBCallbacks.cpp \
 	WebCore/storage/IDBCallbacks.h \
 	WebCore/storage/IDBDatabase.cpp \
@@ -2455,8 +2465,14 @@ webcore_sources += \
 	WebCore/storage/IDBDatabaseException.h \
 	WebCore/storage/IDBDatabaseRequest.cpp \
 	WebCore/storage/IDBDatabaseRequest.h \
+	WebCore/storage/IDBErrorEvent.cpp \
+	WebCore/storage/IDBErrorEvent.h \
+	WebCore/storage/IDBEvent.cpp \
+	WebCore/storage/IDBEvent.h \
 	WebCore/storage/IDBRequest.cpp \
 	WebCore/storage/IDBRequest.h \
+	WebCore/storage/IDBSuccessEvent.cpp \
+	WebCore/storage/IDBSuccessEvent.h \
 	WebCore/storage/IndexedDatabase.cpp \
 	WebCore/storage/IndexedDatabase.h \
 	WebCore/storage/IndexedDatabaseImpl.cpp \
@@ -4079,7 +4095,9 @@ webcore_dist += \
 webinspectordir = ${datadir}/webkit-1.0/webinspector
 dist_webinspector_DATA = \
 	$(WebCore)/English.lproj/localizedStrings.js \
-	$(shell ls $(WebCore)/inspector/front-end/*.{js,html,css})
+	$(shell ls $(WebCore)/inspector/front-end/*.js) \
+	$(shell ls $(WebCore)/inspector/front-end/*.html) \
+	$(shell ls $(WebCore)/inspector/front-end/*.css)
 
 webinspectorimagesdir = ${datadir}/webkit-1.0/webinspector/Images
 dist_webinspectorimages_DATA = \

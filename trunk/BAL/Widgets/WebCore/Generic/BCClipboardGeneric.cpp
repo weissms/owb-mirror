@@ -38,7 +38,6 @@
 #include "Frame.h"
 #include "HTMLNames.h"
 #include "Image.h"
-#include "NamedAttrMap.h"
 #include "MIMETypeRegistry.h"
 #include "markup.h"
 #include "NamedNodeMap.h"

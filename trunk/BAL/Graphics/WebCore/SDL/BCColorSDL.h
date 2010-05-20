@@ -59,6 +59,10 @@ public:
     explicit Color(const String&);
     explicit Color(const char*);
     
+    // Returns the color serialized according to HTML5
+    // - http://www.whatwg.org/specs/web-apps/current-work/#serialization-of-a-color
+    String serialized() const;
+
     String name() const;
     void setNamedColor(const String&);
 

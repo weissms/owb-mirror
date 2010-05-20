@@ -1,3 +1,123 @@
+2010-05-20  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        Crash fix in the HistoryController.
+
+        The problem was casued by a documented feature of the QWebFrame::setHtml().
+        The method doesn't affect a browsing history (doesn't create a HistoryItem instance), so
+        m_currentItem and m_previousItem are not set.
+
+        A null check was added.
+
+        [Qt] The QWebPage crashes on history.pushState().
+        https://bugs.webkit.org/show_bug.cgi?id=38840
+
+        * tests/qwebhistory/tst_qwebhistory.cpp:
+        (tst_QWebHistory::popPushState_data):
+        (tst_QWebHistory::popPushState):
+
+2010-05-19  Antti Koivisto  <koivisto@iki.fi>
+
+        Rubber-stamped by Kenneth Rohde Christiansen.
+
+        [Qt] TiledBackingStore updates broken when not using resizesToContents mode
+        https://bugs.webkit.org/show_bug.cgi?id=39359
+        
+        Put the back logic that was lost in refactoring.
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::visibleRectForTiledBackingStore):
+        * WebCoreSupport/PageClientQt.cpp:
+        (WebCore::PageClientQGraphicsWidget::graphicsItemVisibleRect):
+        * WebCoreSupport/PageClientQt.h:
+        (WebCore::PageClientQWidget::viewResizesToContentsEnabled):
+        (WebCore::PageClientQGraphicsWidget::viewResizesToContentsEnabled):
+
+2010-05-19  Simon Hausmann  <simon.hausmann@nokia.com>
+
+        Symbian build fix.
+
+        [Qt] Updated the def file with exports needed for DumpRenderTree.
+
+        * symbian/eabi/QtWebKitu.def:
+
+2010-05-19  Denis Dzyubenko <denis.dzyubenko@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        When creating the UA, do not sassmue the language code is a
+        two-letter iso639-1 code.
+
+        * Api/qwebpage.cpp:
+        (QWebPage::userAgentForUrl):
+
+2010-05-18  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Move visible rect calculation from QGraphicsWebViewPrivate to PageClientQGraphicsWidget
+        https://bugs.webkit.org/show_bug.cgi?id=39294
+
+        * Api/qgraphicswebview.cpp:
+        * WebCoreSupport/PageClientQt.cpp:
+        (WebCore::PageClientQGraphicsWidget::graphicsItemVisibleRect):
+        * WebCoreSupport/PageClientQt.h:
+
+2010-05-18  Laszlo Gombos  <laszlo.1.gombos@nokia.com>
+
+        Symbian build fix.
+
+        [Qt] Updated the def file with new exports after r59335.
+
+        * symbian/eabi/QtWebKitu.def:
+
+2010-05-18  Jedrzej Nowacki  <jedrzej.nowacki@nokia.com>
+
+        Reviewed by Simon Hausmann.
+
+        Fix QWebHistory serialization.
+
+        Regression was caused by bug 33224. The streaming function
+        should generate a documentSequenceNumber for all loaded values.
+
+        [Qt] tst_QWebHistory::serialize_2() fails
+        https://bugs.webkit.org/show_bug.cgi?id=37322
+
+        * Api/qwebhistory.cpp:
+        (operator>>):
+
+2010-05-17  Tasuku Suzuki  <tasuku.suzuki@nokia.com>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        [Qt] Fix compilation with QT_NO_COMBOBOX
+        https://bugs.webkit.org/show_bug.cgi?id=38324
+
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::createSelectPopup):
+        * WebCoreSupport/QtFallbackWebPopup.cpp:
+        * WebCoreSupport/QtFallbackWebPopup.h:
+
+2010-05-17  Antti Koivisto  <koivisto@iki.fi>
+
+        Reviewed by Kenneth Rohde Christiansen.
+
+        https://bugs.webkit.org/show_bug.cgi?id=39218
+        [Qt] Tiled backing store tiles sometimes flicker when exiting a zoom animation
+        
+        Tiles sometimes flicker when exiting a zoom animation. This happens as a result
+        of the visible rectangle being momentarily out of sync.
+        
+        Instead of updating the visible rect by explicitly setting it, pull it through
+        the client and recompute in WebKit the level.
+
+        * Api/qgraphicswebview.cpp:
+        (QGraphicsWebView::paint):
+        * WebCoreSupport/ChromeClientQt.cpp:
+        (WebCore::ChromeClientQt::visibleRectForTiledBackingStore):
+        * WebCoreSupport/ChromeClientQt.h:
+
 2010-05-17  Robert Hogan  <robert@webkit.org>
 
         Reviewed by Kenneth Rohde Christiansen.

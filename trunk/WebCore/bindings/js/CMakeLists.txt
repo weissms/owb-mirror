@@ -67,7 +67,6 @@ list(APPEND WEBCORE_SRC
     bindings/js/JSHTMLOptionsCollectionCustom.cpp
     bindings/js/JSHTMLSelectElementCustom.cpp
     bindings/js/JSHistoryCustom.cpp
-    bindings/js/JSIDBRequestCustom.cpp
     bindings/js/JSImageConstructor.cpp
     bindings/js/JSImageDataCustom.cpp
     bindings/js/JSInjectedScriptHostCustom.cpp
@@ -147,6 +146,12 @@ if(ENABLE_DATABASE)
         bindings/js/JSSQLTransactionSyncCustom.cpp
     )
 endif(ENABLE_DATABASE)
+
+if(ENABLE_INDEXED_DATABASE)
+    list(APPEND WEBCORE_SRC
+        bindings/js/JSIDBAnyCustom.cpp
+    )
+endif(ENABLE_INDEXED_DATABASE)
 
 if(ENABLE_DOM_STORAGE)
     list(APPEND WEBCORE_SRC

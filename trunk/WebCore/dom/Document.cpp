@@ -28,6 +28,7 @@
 
 #include "AnimationController.h"
 #include "Attr.h"
+#include "Attribute.h"
 #include "CDATASection.h"
 #include "CSSHelper.h"
 #include "CSSStyleSelector.h"
@@ -89,7 +90,6 @@
 #include "ImageLoader.h"
 #include "KeyboardEvent.h"
 #include "Logging.h"
-#include "MappedAttribute.h"
 #include "MessageEvent.h"
 #include "MouseEvent.h"
 #include "MouseEventWithHitTestResults.h"
@@ -2632,9 +2632,9 @@ void Document::addStyleSheetCandidateNode(Node* node, bool createdByParser)
     }
 
     // Determine an appropriate insertion point.
-    ListHashSet<Node*>::iterator begin = m_styleSheetCandidateNodes.begin();
-    ListHashSet<Node*>::iterator end = m_styleSheetCandidateNodes.end();
-    ListHashSet<Node*>::iterator it = end;
+    StyleSheetCandidateListHashSet::iterator begin = m_styleSheetCandidateNodes.begin();
+    StyleSheetCandidateListHashSet::iterator end = m_styleSheetCandidateNodes.end();
+    StyleSheetCandidateListHashSet::iterator it = end;
     Node* followingNode = 0;
     do {
         --it;
@@ -2666,11 +2666,11 @@ void Document::recalcStyleSelector()
     if (Settings* settings = this->settings())
         matchAuthorAndUserStyles = settings->authorAndUserStylesEnabled();
 
-    ListHashSet<Node*>::iterator begin = m_styleSheetCandidateNodes.begin();
-    ListHashSet<Node*>::iterator end = m_styleSheetCandidateNodes.end();
+    StyleSheetCandidateListHashSet::iterator begin = m_styleSheetCandidateNodes.begin();
+    StyleSheetCandidateListHashSet::iterator end = m_styleSheetCandidateNodes.end();
     if (!matchAuthorAndUserStyles)
         end = begin;
-    for (ListHashSet<Node*>::iterator it = begin; it != end; ++it) {
+    for (StyleSheetCandidateListHashSet::iterator it = begin; it != end; ++it) {
         Node* n = *it;
 
         StyleSheet* sheet = 0;
@@ -4253,7 +4253,7 @@ PassRefPtr<Attr> Document::createAttributeNS(const String& namespaceURI, const S
 
     // FIXME: Assume this is a mapped attribute, since createAttribute isn't namespace-aware.  There's no harm to XML
     // documents if we're wrong.
-    return Attr::create(0, this, MappedAttribute::create(qName, StringImpl::empty()));
+    return Attr::create(0, this, Attribute::createMapped(qName, StringImpl::empty()));
 }
 
 #if ENABLE(SVG)
@@ -4376,7 +4376,7 @@ Vector<String> Document::formElementsState() const
 {
     Vector<String> stateVector;
     stateVector.reserveInitialCapacity(m_formElementsWithState.size() * 3);
-    typedef ListHashSet<Element*>::const_iterator Iterator;
+    typedef FormElementListHashSet::const_iterator Iterator;
     Iterator end = m_formElementsWithState.end();
     for (Iterator it = m_formElementsWithState.begin(); it != end; ++it) {
         Element* elementWithState = *it;

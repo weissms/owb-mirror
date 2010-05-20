@@ -479,7 +479,6 @@ SOURCES += \
     dom/ExceptionCode.cpp \
     dom/InputElement.cpp \
     dom/KeyboardEvent.cpp \
-    dom/MappedAttribute.cpp \
     dom/MessageChannel.cpp \
     dom/MessageEvent.cpp \
     dom/MessagePort.cpp \
@@ -487,8 +486,8 @@ SOURCES += \
     dom/MouseEvent.cpp \
     dom/MouseRelatedEvent.cpp \
     dom/MutationEvent.cpp \
-    dom/NamedAttrMap.cpp \
     dom/NamedMappedAttrMap.cpp \
+    dom/NamedNodeMap.cpp \
     dom/NameNodeList.cpp \
     dom/Node.cpp \
     dom/NodeFilterCondition.cpp \
@@ -605,6 +604,8 @@ SOURCES += \
     html/FileStreamProxy.cpp \
     html/FileThread.cpp \
     html/FormDataList.cpp \
+    html/HTML5Lexer.cpp \
+    html/HTML5Tokenizer.cpp \
     html/HTMLAllCollection.cpp \
     html/HTMLAnchorElement.cpp \
     html/HTMLAppletElement.cpp \
@@ -747,6 +748,7 @@ SOURCES += \
     loader/Request.cpp \
     loader/ResourceLoader.cpp \
     loader/ResourceLoadNotifier.cpp \
+    loader/SinkDocument.cpp \
     loader/SubresourceLoader.cpp \
     loader/TextDocument.cpp \
     loader/TextResourceDecoder.cpp \
@@ -1201,7 +1203,6 @@ HEADERS += \
     dom/ExceptionCode.h \
     dom/InputElement.h \
     dom/KeyboardEvent.h \
-    dom/MappedAttribute.h \
     dom/MessageChannel.h \
     dom/MessageEvent.h \
     dom/MessagePortChannel.h \
@@ -1209,7 +1210,7 @@ HEADERS += \
     dom/MouseEvent.h \
     dom/MouseRelatedEvent.h \
     dom/MutationEvent.h \
-    dom/NamedAttrMap.h \
+    dom/NamedNodeMap.h \
     dom/NamedMappedAttrMap.h \
     dom/NameNodeList.h \
     dom/NodeFilterCondition.h \
@@ -2319,21 +2320,29 @@ contains(DEFINES, ENABLE_DATABASE=1) {
 
 contains(DEFINES, ENABLE_INDEXED_DATABASE=1) {
     HEADERS += \
+        storage/IDBAny.h \
         storage/IDBCallbacks.h \
         storage/IDBDatabase.h \
         storage/IDBDatabaseError.h \
         storage/IDBDatabaseException.h \
         storage/IDBDatabaseRequest.h \
+        storage/IDBErrorEvent.h \
+        storage/IDBEvent.h \
         storage/IDBRequest.h \
+        storage/IDBSuccessEvent.h \
         storage/IndexedDatabase.h \
         storage/IndexedDatabaseImpl.h \
         storage/IndexedDatabaseRequest.h
 
     SOURCES += \
-        bindings/js/JSIDBRequestCustom.cpp \
+        bindings/js/JSIDBAnyCustom.cpp \
+        storage/IDBAny.cpp \
         storage/IDBDatabase.cpp \
         storage/IDBDatabaseRequest.cpp \
+        storage/IDBErrorEvent.cpp \
+        storage/IDBEvent.cpp \
         storage/IDBRequest.cpp \
+        storage/IDBSuccessEvent.cpp \
         storage/IndexedDatabase.cpp \
         storage/IndexedDatabaseImpl.cpp \
         storage/IndexedDatabaseRequest.cpp

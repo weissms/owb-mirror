@@ -36,7 +36,6 @@ list(APPEND WEBCORE_SRC
     dom/ExceptionCode.cpp
     dom/InputElement.cpp
     dom/KeyboardEvent.cpp
-    dom/MappedAttribute.cpp
     dom/MessageChannel.cpp
     dom/MessageEvent.cpp
     dom/MessagePort.cpp
@@ -45,8 +44,8 @@ list(APPEND WEBCORE_SRC
     dom/MouseRelatedEvent.cpp
     dom/MutationEvent.cpp
     dom/NameNodeList.cpp
-    dom/NamedAttrMap.cpp
     dom/NamedMappedAttrMap.cpp
+    dom/NamedNodeMap.cpp
     dom/Node.cpp
     dom/NodeFilter.cpp
     dom/NodeFilterCondition.cpp

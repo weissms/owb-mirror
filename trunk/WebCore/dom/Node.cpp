@@ -26,6 +26,7 @@
 #include "Node.h"
 
 #include "Attr.h"
+#include "Attribute.h"
 #include "CSSParser.h"
 #include "CSSRule.h"
 #include "CSSRuleList.h"
@@ -52,7 +53,6 @@
 #include "HTMLNames.h"
 #include "KeyboardEvent.h"
 #include "Logging.h"
-#include "MappedAttribute.h"
 #include "MouseEvent.h"
 #include "MutationEvent.h"
 #include "NameNodeList.h"
@@ -78,11 +78,11 @@
 #include "WheelEvent.h"
 #include "XMLNames.h"
 #include "htmlediting.h"
-#include <wtf/text/CString.h>
 #include <wtf/HashSet.h>
 #include <wtf/PassOwnPtr.h>
 #include <wtf/RefCountedLeakCounter.h>
 #include <wtf/UnusedParam.h>
+#include <wtf/text/CString.h>
 
 #if ENABLE(DOM_STORAGE)
 #include "StorageEvent.h"
@@ -150,7 +150,6 @@ void Node::dumpStatistics()
     size_t mappedAttributesWithStyleDecl = 0;
     size_t attributesWithAttr = 0;
     size_t attrMaps = 0;
-    size_t mappedAttrMaps = 0;
 
     for (HashSet<Node*>::iterator it = liveNodeSet.begin(); it != liveNodeSet.end(); ++it) {
         Node* node = *it;
@@ -172,8 +171,6 @@ void Node::dumpStatistics()
                 if (NamedNodeMap* attrMap = element->attributes(true)) {
                     attributes += attrMap->length();
                     ++attrMaps;
-                    if (attrMap->isMappedAttributeMap())
-                        ++mappedAttrMaps;
                     for (unsigned i = 0; i < attrMap->length(); ++i) {
                         Attribute* attr = attrMap->attributeItem(i);
                         if (attr->attr())
@@ -236,7 +233,6 @@ void Node::dumpStatistics()
                 break;
             }
         }
-            
     }
 
     printf("Number of Nodes: %d\n\n", liveNodeSet.size());
@@ -263,11 +259,10 @@ void Node::dumpStatistics()
 
     printf("Attribute Maps:\n");
     printf("  Number of Attributes (non-Node and Node): %zu [%zu]\n", attributes, sizeof(Attribute));
-    printf("  Number of MappedAttributes: %zu [%zu]\n", mappedAttributes, sizeof(MappedAttribute));
-    printf("  Number of MappedAttributes with a StyleDeclaration: %zu\n", mappedAttributesWithStyleDecl);
+    printf("  Number of Attributes that are mapped: %zu\n", mappedAttributes);
+    printf("  Number of Attributes with a StyleDeclaration: %zu\n", mappedAttributesWithStyleDecl);
     printf("  Number of Attributes with an Attr: %zu\n", attributesWithAttr);
-    printf("  Number of NamedNodeMaps: %zu\n", attrMaps);
-    printf("  Number of NamedMappedAttrMap: %zu\n", mappedAttrMaps);
+    printf("  Number of NamedNodeMaps: %zu [%zu]\n", attrMaps, sizeof(NamedNodeMap));
 #endif
 }
 

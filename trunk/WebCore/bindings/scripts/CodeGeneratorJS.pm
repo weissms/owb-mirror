@@ -985,7 +985,7 @@ sub GenerateHeader
     if ($numFunctions > 0) {
         push(@headerContent,"// Functions\n\n");
         foreach my $function (@{$dataNode->functions}) {
-            next if $function->{overloadIndex} > 1;
+            next if $function->{overloadIndex} && $function->{overloadIndex} > 1;
             my $functionName = $codeGenerator->WK_lcfirst($className) . "PrototypeFunction" . $codeGenerator->WK_ucfirst($function->signature->name);
             push(@headerContent, "JSC::JSValue JSC_HOST_CALL ${functionName}(JSC::ExecState*, JSC::JSObject*, JSC::JSValue, const JSC::ArgList&);\n");
         }
@@ -1254,7 +1254,7 @@ sub GenerateImplementation
     }
 
     foreach my $function (@{$dataNode->functions}) {
-        next if $function->{overloadIndex} > 1;
+        next if $function->{overloadIndex} && $function->{overloadIndex} > 1;
         my $name = $function->signature->name;
         push(@hashKeys, $name);
 
@@ -1781,7 +1781,7 @@ sub GenerateImplementation
 
             my $functionName = $codeGenerator->WK_lcfirst($className) . "PrototypeFunction" . $codeGenerator->WK_ucfirst($function->signature->name);
 
-            if (@{$function->{overloads}} > 1) {
+            if ($function->{overloads} && @{$function->{overloads}} > 1) {
                 # Append a number to an overloaded method's name to make it unique:
                 $functionName = $functionName . $function->{overloadIndex};
             }
@@ -1894,12 +1894,12 @@ sub GenerateImplementation
                     }
 
                     foreach my $parameter (@{$function->parameters}) {
-                        if (!$hasOptionalArguments && $parameter->extendedAttributes->{"Optional"}) {
-                            push(@implContent, "\n    int argsCount = args.size();\n");
-                            $hasOptionalArguments = 1;
-                        }
-
-                        if ($hasOptionalArguments) {
+                        if ($parameter->extendedAttributes->{"Optional"}) {
+                            # Generate early call if there are enough parameters.
+                            if (!$hasOptionalArguments) {
+                                push(@implContent, "\n    int argsCount = args.size();\n");
+                                $hasOptionalArguments = 1;
+                            }
                             push(@implContent, "    if (argsCount < " . ($paramIndex + 1) . ") {\n");
                             GenerateImplementationFunctionCall($function, $functionString, $paramIndex, "    " x 2, $podType, $implClassName);
                             push(@implContent, "    }\n\n");
@@ -1953,7 +1953,7 @@ sub GenerateImplementation
             }
             push(@implContent, "}\n\n");
 
-            if (@{$function->{overloads}} > 1 && $function->{overloadIndex} == @{$function->{overloads}}) {
+            if ($function->{overloads} && @{$function->{overloads}} > 1 && $function->{overloadIndex} == @{$function->{overloads}}) {
                 # Generate a function dispatching call to the rest of the overloads.
                 GenerateOverloadedPrototypeFunction($function, $dataNode, $implClassName);
             }
@@ -2480,17 +2480,8 @@ sub GenerateHashTable
     my $value2 = shift;
     my $conditionals = shift;
 
-    # Generate size data for two hash tables
-    # - The 'perfect' size makes a table large enough for perfect hashing
-    # - The 'compact' size uses the legacy table format for smaller table sizes
+    # Generate size data for compact' size hash table
 
-    # Perfect size
-    my @hashes = ();
-    foreach my $key (@{$keys}) {
-        push @hashes, $object->GenerateHashValue($key);
-    }
-
-    # Compact size
     my @table = ();
     my @links = ();
 
@@ -2521,20 +2512,6 @@ sub GenerateHashTable
 
         $i++;
         $maxDepth = $depth if ($depth > $maxDepth);
-    }
-
-    # Collect hashtable information
-    my $perfectSize;
-tableSizeLoop:
-    for ($perfectSize = ceilingToPowerOf2(scalar @{$keys}); ; $perfectSize += $perfectSize) {
-        my @table = ();
-        my $i = 0;
-        foreach my $hash (@hashes) {
-            my $h = $hash % $perfectSize;
-            next tableSizeLoop if defined $table[$h];
-            $table[$h] = $i++;
-        }
-        last;
     }
 
     # Start outputing the hashtables
@@ -2593,14 +2570,8 @@ tableSizeLoop:
     push(@implContent, "    { 0, 0, 0, 0 THUNK_GENERATOR(0) }\n");
     push(@implContent, "};\n\n");
     push(@implContent, "#undef THUNK_GENERATOR\n");
-    my $perfectSizeMask = $perfectSize - 1;
     my $compactSizeMask = $numEntries - 1;
-    push(@implContent, "static JSC_CONST_HASHTABLE HashTable $name =\n");
-    push(@implContent, "#if ENABLE(PERFECT_HASH_SIZE)\n");
-    push(@implContent, "    { $perfectSizeMask, $nameEntries, 0 };\n");
-    push(@implContent, "#else\n");
-    push(@implContent, "    { $compactSize, $compactSizeMask, $nameEntries, 0 };\n");
-    push(@implContent, "#endif\n\n");
+    push(@implContent, "static JSC_CONST_HASHTABLE HashTable $name = { $compactSize, $compactSizeMask, $nameEntries, 0 };\n");
 }
 
 # Internal helper

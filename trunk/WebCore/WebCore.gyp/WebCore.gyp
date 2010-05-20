@@ -577,6 +577,7 @@
               '--include', '../notifications',
               '--include', '../page',
               '--include', '../plugins',
+              '--include', '../storage',
               '--include', '../svg',
               '--include', '../websockets',
               '--include', '../workers',
@@ -722,6 +723,7 @@
       'include_dirs': [
         '<(INTERMEDIATE_DIR)',
         '<@(webcore_include_dirs)',
+        '<(chromium_src_dir)/gpu'
       ],
       'sources': [
         '<@(webcore_files)',

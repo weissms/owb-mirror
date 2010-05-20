@@ -1,3 +1,604 @@
+2010-05-20  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Errk! rename op_constructor_ret as requested in review of Bug 39399.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::emitReturn):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::JIT::emit_op_ret_object_or_this):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_ret_object_or_this):
+
+2010-05-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 39399 - Move responsibility for verifying constructors return objects from the caller to the callee.
+        
+        This is a necessary step to move object creation from caller to callee.
+
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump):
+        * bytecode/Opcode.h:
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::BytecodeGenerator):
+        (JSC::BytecodeGenerator::emitReturn):
+        (JSC::BytecodeGenerator::emitConstruct):
+        * bytecompiler/BytecodeGenerator.h:
+        (JSC::BytecodeGenerator::isConstructor):
+        * bytecompiler/NodesCodegen.cpp:
+        (JSC::FunctionBodyNode::emitBytecode):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * jit/JIT.cpp:
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileSlowCases):
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::JIT::emit_op_constructor_ret):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_constructor_ret):
+
+2010-05-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        Fix windows build II.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-05-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        Fix windows build.
+
+        * JavaScriptCore.vcproj/JavaScriptCore/JavaScriptCore.def:
+
+2010-05-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 39393 - JSFunction need not be a subclass of InternalFunction.
+
+        re-landing r59800.
+
+        * JavaScriptCore.exp:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::retrieveCaller):
+        (JSC::Interpreter::findFunctionCallFrame):
+        * interpreter/Interpreter.h:
+        * profiler/Profiler.cpp:
+        (JSC::Profiler::createCallIdentifier):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString):
+        * runtime/JSFunction.cpp:
+        (JSC::):
+        (JSC::JSFunction::JSFunction):
+        (JSC::JSFunction::name):
+        (JSC::JSFunction::displayName):
+        (JSC::JSFunction::calculatedDisplayName):
+        * runtime/JSFunction.h:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::putDirectFunction):
+        (JSC::JSObject::putDirectFunctionWithoutTransition):
+        * runtime/JSObject.h:
+        * runtime/Lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+
+2010-05-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by NOBODY (build fix).
+
+        Reverting r59800, this b0rked stuff.
+
+        * JavaScriptCore.exp:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::retrieveCaller):
+        (JSC::Interpreter::findFunctionCallFrame):
+        * interpreter/Interpreter.h:
+        * profiler/Profiler.cpp:
+        (JSC::Profiler::createCallIdentifier):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString):
+        * runtime/JSFunction.cpp:
+        (JSC::):
+        (JSC::JSFunction::JSFunction):
+        * runtime/JSFunction.h:
+        * runtime/JSObject.cpp:
+        * runtime/JSObject.h:
+        * runtime/Lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+
+2010-05-19  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Bug 39393 - JSFunction need not be a subclass of InternalFunction.
+
+        This may prevent us from introducing a more useful parent class to
+        JSFunction, e.g. a JSObject that holds an executable, which could
+        also reference an eval or program executable.
+
+        * JavaScriptCore.exp:
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::retrieveCaller):
+        (JSC::Interpreter::findFunctionCallFrame):
+        * interpreter/Interpreter.h:
+        * profiler/Profiler.cpp:
+        (JSC::Profiler::createCallIdentifier):
+        * runtime/FunctionPrototype.cpp:
+        (JSC::functionProtoFuncToString):
+        * runtime/JSFunction.cpp:
+        (JSC::):
+        (JSC::JSFunction::JSFunction):
+        (JSC::JSFunction::name):
+        (JSC::JSFunction::displayName):
+        (JSC::JSFunction::calculatedDisplayName):
+        * runtime/JSFunction.h:
+        * runtime/JSObject.cpp:
+        (JSC::JSObject::putDirectFunction):
+        (JSC::JSObject::putDirectFunctionWithoutTransition):
+        * runtime/JSObject.h:
+        * runtime/Lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+
+2010-05-19  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        emitJumpIfNotJSCell should special case constant immediate values
+        https://bugs.webkit.org/show_bug.cgi?id=39392
+        <rdar://problem/8001324>
+
+        Make emitJumpSlowCaseIfNotJSCell special case constant immediate
+        values, in addition to the immediate JSCell optimisation.
+
+        Also add assertions to make sure no one else produces code that
+        attempts to load constants from the register file.
+
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitJumpSlowCaseIfNotJSCell):
+        * jit/JSInterfaceJIT.h:
+        (JSC::JSInterfaceJIT::emitJumpIfNotJSCell):
+        (JSC::JSInterfaceJIT::emitLoadInt32):
+        (JSC::JSInterfaceJIT::tagFor):
+        (JSC::JSInterfaceJIT::payloadFor):
+        (JSC::JSInterfaceJIT::emitLoadDouble):
+        (JSC::JSInterfaceJIT::addressFor):
+        * jit/ThunkGenerators.cpp:
+
+2010-05-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Slight refactoring to CodeBlock bytecode access
+        https://bugs.webkit.org/show_bug.cgi?id=39384
+
+        * bytecode/CodeBlock.h:
+        (JSC::CodeBlock::bytecodeOffset):
+        * interpreter/CallFrame.h:
+        (JSC::ExecState::returnPC):
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::unwindCallFrame):
+        (JSC::Interpreter::retrieveLastCaller): Moved bytecode access into a
+        CodeBlock helper function. Changed CallFrame to accurately represent
+        how the returnPC is stored in JIT vs Interpreter.
+
+2010-05-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Don't build the Interpreter into JIT builds.
+        https://bugs.webkit.org/show_bug.cgi?id=39373
+
+        SunSpider says no change.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::privateExecute):
+        * interpreter/Interpreter.h:
+        * wtf/Platform.h:
+
+2010-05-19  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Gavin Barraclough.
+        
+        Standardized naming: "bytecode offset" wins; "bytecode index" loses.
+        
+        Also renamed getBytecodeOffset to bytecodeOffset, to match the WebKit
+        naming style.
+
+        * bytecode/CodeBlock.h:
+        (JSC::CallReturnOffsetToBytecodeOffset::CallReturnOffsetToBytecodeOffset):
+        (JSC::getCallReturnOffset):
+        (JSC::CodeBlock::bytecodeOffset):
+        (JSC::CodeBlock::callReturnIndexVector):
+        * interpreter/Interpreter.cpp:
+        (JSC::bytecodeOffsetForPC):
+        * jit/JIT.cpp:
+        (JSC::JIT::JIT):
+        (JSC::JIT::privateCompileMainPass):
+        (JSC::JIT::privateCompileLinkPass):
+        (JSC::JIT::privateCompileSlowCases):
+        (JSC::JIT::privateCompile):
+        * jit/JIT.h:
+        (JSC::CallRecord::CallRecord):
+        (JSC::JumpTable::JumpTable):
+        (JSC::SwitchRecord::SwitchRecord):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallVarargsSlowCase):
+        (JSC::JIT::compileOpCall):
+        * jit/JITInlineMethods.h:
+        (JSC::JIT::emitNakedCall):
+        (JSC::JIT::addSlowCase):
+        (JSC::JIT::addJump):
+        (JSC::JIT::emitJumpSlowToHot):
+        (JSC::JIT::isLabeled):
+        (JSC::JIT::map):
+        (JSC::JIT::unmap):
+        (JSC::JIT::isMapped):
+        (JSC::JIT::getMappedPayload):
+        (JSC::JIT::getMappedTag):
+        (JSC::JIT::emitGetVirtualRegister):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_switch_imm):
+        (JSC::JIT::emit_op_switch_char):
+        (JSC::JIT::emit_op_switch_string):
+        (JSC::JIT::emit_op_new_error):
+        * jit/JITOpcodes32_64.cpp:
+        (JSC::JIT::emit_op_mov):
+        (JSC::JIT::emit_op_get_global_var):
+        (JSC::JIT::emit_op_put_global_var):
+        (JSC::JIT::emit_op_get_scoped_var):
+        (JSC::JIT::emit_op_put_scoped_var):
+        (JSC::JIT::emit_op_to_primitive):
+        (JSC::JIT::emit_op_resolve_global):
+        (JSC::JIT::emit_op_to_jsnumber):
+        (JSC::JIT::emit_op_catch):
+        (JSC::JIT::emit_op_switch_imm):
+        (JSC::JIT::emit_op_switch_char):
+        (JSC::JIT::emit_op_switch_string):
+        (JSC::JIT::emit_op_new_error):
+        (JSC::JIT::emit_op_convert_this):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::emit_op_method_check):
+        (JSC::JIT::emitSlow_op_method_check):
+        * jit/JITPropertyAccess32_64.cpp:
+        (JSC::JIT::emit_op_method_check):
+        (JSC::JIT::emitSlow_op_method_check):
+        (JSC::JIT::emit_op_get_by_val):
+        (JSC::JIT::emit_op_get_by_id):
+        (JSC::JIT::emit_op_get_by_pname):
+        * jit/JITStubCall.h:
+        (JSC::JITStubCall::call):
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+
+2010-05-19  Peter Varga  <pvarga@inf.u-szeged.hu>
+
+        Reviewed by Darin Adler.
+
+        The backtrackParenthesesOnceEnd function should store the start position
+        of the subpattern's non-greedy match at the place of the subpattern's
+        start index in the output array instead of the place of the
+        subpattern's end index.
+        Add layout test for checking of non-greedy matching of subpattern in
+        regular expressions.
+        https://bugs.webkit.org/show_bug.cgi?id=39289
+
+        * yarr/RegexInterpreter.cpp:
+        (JSC::Yarr::Interpreter::backtrackParenthesesOnceEnd):
+
+2010-05-18  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 39343 - Dynamically generate a native call thunk per NativeFunction
+        
+        https://bugs.webkit.org/show_bug.cgi?id=39252 regressed performance on i386,
+        by adding an extra indirection to making a native call.  By introducing per-
+        NativeFunction thunks we can hard code the function pointer into the thunk
+        so that it need not be loaded from the callee.
+
+        * jit/JIT.h:
+        (JSC::JIT::compileCTINativeCall):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::privateCompileCTINativeCall):
+        * jit/JITOpcodes32_64.cpp:
+        (JSC::JIT::privateCompileCTINativeCall):
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::emitSlow_op_get_by_val):
+        * jit/JITPropertyAccess32_64.cpp:
+        (JSC::JIT::emitSlow_op_get_by_val):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::ctiStub):
+        (JSC::JITThunks::hostFunctionStub):
+        * jit/JITStubs.h:
+        * jit/SpecializedThunkJIT.h:
+        (JSC::SpecializedThunkJIT::finalize):
+        * jit/ThunkGenerators.cpp:
+        (JSC::charCodeAtThunkGenerator):
+        (JSC::charAtThunkGenerator):
+        (JSC::fromCharCodeThunkGenerator):
+        (JSC::sqrtThunkGenerator):
+        (JSC::powThunkGenerator):
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction):
+        * runtime/JSGlobalData.cpp:
+        (JSC::JSGlobalData::getHostFunction):
+        * runtime/JSGlobalData.h:
+        (JSC::JSGlobalData::getCTIStub):
+        * runtime/Lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+        * runtime/StringConstructor.cpp:
+        (JSC::StringConstructor::StringConstructor):
+        * wtf/Platform.h:
+
+2010-05-18  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Darin Adler.
+
+        Simplified handling of 'arguments' -- 1.2% SunSpider speedup
+        https://bugs.webkit.org/show_bug.cgi?id=39200
+        
+        Removed the reserved OptionalCalleeArguments slot from the CallFrame.
+        Now, slots for 'arguments' are allocated and initialized only by
+        functions that might need them.
+        
+        * bytecode/CodeBlock.cpp:
+        (JSC::CodeBlock::dump): Updated for new bytecode operands.
+
+        (JSC::CodeBlock::CodeBlock):
+        * bytecode/CodeBlock.h:
+        (JSC::unmodifiedArgumentsRegister): Added a helper function for mapping
+        from the arguments register to its unmodified counterpart.
+
+        (JSC::CodeBlock::setArgumentsRegister):
+        (JSC::CodeBlock::argumentsRegister):
+        (JSC::CodeBlock::usesArguments):  Changed from a "usesArguments" bool to
+        an optional int index representing the arguments register.
+
+        * bytecode/Opcode.h: Updated for new bytecode operands.
+
+        * bytecompiler/BytecodeGenerator.cpp:
+        (JSC::BytecodeGenerator::addVar): Factored out a helper function for
+        allocating an anonymous var.
+
+        (JSC::BytecodeGenerator::BytecodeGenerator): Merged / simplified some
+        arguments vs activation logic, and added code to allocate the arguments
+        registers when needed.
+
+        (JSC::BytecodeGenerator::createArgumentsIfNecessary): Updated for new bytecode operands.
+
+        (JSC::BytecodeGenerator::emitCallEval): No need to create the arguments
+        object before calling eval; the activation object will lazily create the
+        arguments object if eval resolves it.
+
+        (JSC::BytecodeGenerator::emitReturn): Updated for new bytecode operands.
+
+        (JSC::BytecodeGenerator::emitPushScope):
+        (JSC::BytecodeGenerator::emitPushNewScope): Ditto emitCallEval.
+
+        * bytecompiler/BytecodeGenerator.h:
+        (JSC::BytecodeGenerator::addVar): Factored out a helper function for
+        allocating an anonymous var.
+
+        (JSC::BytecodeGenerator::registerFor): No more need for special handling
+        of the arguments registers; they're allocated just like normal registers
+        now.
+
+        * interpreter/CallFrame.h:
+        (JSC::ExecState::callerFrame):
+        (JSC::ExecState::init):
+        * interpreter/CallFrameClosure.h:
+        (JSC::CallFrameClosure::resetCallFrame): Nixed optionalCalleeArguments.
+
+        * interpreter/Interpreter.cpp:
+        (JSC::Interpreter::dumpRegisters):
+        (JSC::Interpreter::unwindCallFrame):
+        (JSC::Interpreter::privateExecute):
+        (JSC::Interpreter::retrieveArguments): Opcodes accessing 'arguments' now
+        take operands specifying registers, just like all other opcodes.
+        JSActivation::copyRegisters is no longer responsible for tearing off the
+        arguments object; instead, the VM is responsible for both.
+
+        Also, a behavior change: Each access to f.arguments creates a new object,
+        unless f itself uses 'arguments'. This matches Chrome, and is necessary
+        for the optimization. f.arguments is a nonstandard, deprecated feature,
+        so high fidelity to a given implementation is not necessarily a goal.
+        Also, as illustrated by the new test case, the identity of f.arguments
+        has been broken since 2008, except in the case where f itself accesses
+        f.arguments -- but nobody seemed to notice. So, hopefully this change won't
+        break the web.
+        
+        * interpreter/Register.h: Nixed the special arguments accessor. It's no
+        longer needed.
+
+        * interpreter/RegisterFile.h:
+        (JSC::RegisterFile::):
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallInitializeCallFrame):
+        (JSC::JIT::compileOpCall):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::emit_op_tear_off_activation):
+        (JSC::JIT::emit_op_tear_off_arguments):
+        (JSC::JIT::emit_op_create_arguments):
+        (JSC::JIT::emit_op_init_arguments):
+        * jit/JITOpcodes32_64.cpp:
+        (JSC::JIT::emit_op_tear_off_activation):
+        (JSC::JIT::emit_op_tear_off_arguments):
+        (JSC::JIT::emit_op_create_arguments):
+        (JSC::JIT::emit_op_init_arguments): The actual optimization: Removed
+        OptionalCalleeArguments from the callframe slot. Now, it doesn't need
+        to be initialized for most calls.
+
+        * jit/JITStubs.cpp:
+        (JSC::DEFINE_STUB_FUNCTION):
+        * jit/JITStubs.h:
+        (JSC::): Updated stubs to support arbitrary 'arguments' registers,
+        instead of hard-coding something in the call frame.
+
+        * runtime/Arguments.h:
+        (JSC::JSActivation::copyRegisters): Removed some obfuscatory abstraction.
+
+        * runtime/Executable.h:
+        (JSC::FunctionExecutable::generatedByteCode): Added a helper for accessing
+        the 'arguments' register. In a future patch, that kind of data should
+        probably move out of CodeBlock and into Executable.
+
+        * runtime/JSActivation.cpp:
+        (JSC::JSActivation::getOwnPropertySlot):
+        (JSC::JSActivation::argumentsGetter):
+        * runtime/JSActivation.h: Simplified / fixed access to 'arguments' via
+        the activation object. It now implements the same behavior implemented
+        by optimized variable access in the VM. This simplifies some other
+        things, too -- like eval code generation.
+
+2010-05-18  Sam Weinig  <sam@webkit.org>
+
+        Try to fix the windows build.
+
+        * API/JSStringRefBSTR.cpp:
+
+2010-05-18  Anders Carlsson  <andersca@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Add an inlineCapacity template parameter to ListHashSet and use it to shrink the positioned object list hash set.
+        https://bugs.webkit.org/show_bug.cgi?id=39304
+        <rdar://problem/7998366>
+
+        Add an inlineCapacity template parameter to ListHashSet.
+
+        * wtf/ListHashSet.h:
+        (WTF::::ListHashSet):
+        (WTF::::operator):
+        (WTF::::swap):
+        (WTF::::~ListHashSet):
+        (WTF::::size):
+        (WTF::::capacity):
+        (WTF::::isEmpty):
+        (WTF::::begin):
+        (WTF::::end):
+        (WTF::::find):
+        (WTF::::contains):
+        (WTF::::add):
+        (WTF::::insertBefore):
+        (WTF::::remove):
+        (WTF::::clear):
+        (WTF::::unlinkAndDelete):
+        (WTF::::appendNode):
+        (WTF::::insertNodeBefore):
+        (WTF::::deleteAllNodes):
+        (WTF::::makeIterator):
+        (WTF::::makeConstIterator):
+        (WTF::deleteAllValues):
+
+2010-05-18  Gabor Loki  <loki@webkit.org>
+
+        Reviewed by Darin Adler.
+
+        Fix the interpreter after r59637
+        https://bugs.webkit.org/show_bug.cgi?id=39287
+
+        * runtime/Executable.h:
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction):
+        (JSC::JSFunction::getCallData):
+        * runtime/JSGlobalData.cpp:
+        * runtime/JSGlobalData.h:
+
+2010-05-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Oops, meant ebx not eax there.  Fix Qt (and probably Win too).
+
+        * jit/JITOpcodes32_64.cpp:
+
+2010-05-17  Gavin Barraclough  <barraclough@apple.com>
+
+        Reviewed by Geoff Garen.
+
+        Bug 39252 - Move host/native JSFunction's NativeFunction onto NativeExecutable.
+
+        Currently host functions reuse JSFunction's ScopeChain as storage for their
+        NativeFunction (the C function pointer to the host function implementation).
+        Instead, move this onto NativeExecutable.  This will allow host functions to
+        have a scopechain (which will be implemented as a separate patch).
+
+        * JavaScriptCore.xcodeproj/project.pbxproj:
+        * jit/JIT.h:
+        * jit/JITCall.cpp:
+        (JSC::JIT::compileOpCallInitializeCallFrame):
+        (JSC::JIT::compileOpCall):
+        * jit/JITOpcodes.cpp:
+        (JSC::JIT::privateCompileCTIMachineTrampolines):
+        * jit/JITOpcodes32_64.cpp:
+        * jit/JITPropertyAccess.cpp:
+        (JSC::JIT::stringGetByValStubGenerator):
+        (JSC::JIT::emitSlow_op_get_by_val):
+        * jit/JITPropertyAccess32_64.cpp:
+        (JSC::JIT::stringGetByValStubGenerator):
+        (JSC::JIT::emitSlow_op_get_by_val):
+        * jit/JITStubs.cpp:
+        (JSC::JITThunks::specializedThunk):
+        * jit/JITStubs.h:
+        (JSC::JITThunks::ctiNativeCall):
+        * jit/SpecializedThunkJIT.h:
+        (JSC::SpecializedThunkJIT::finalize):
+        * jit/ThunkGenerators.cpp:
+        (JSC::charCodeAtThunkGenerator):
+        (JSC::charAtThunkGenerator):
+        (JSC::fromCharCodeThunkGenerator):
+        (JSC::sqrtThunkGenerator):
+        (JSC::powThunkGenerator):
+        * jit/ThunkGenerators.h:
+        * runtime/Executable.h:
+        (JSC::NativeExecutable::create):
+        (JSC::NativeExecutable::function):
+        (JSC::NativeExecutable::NativeExecutable):
+        (JSC::JSFunction::nativeFunction):
+        * runtime/JSFunction.cpp:
+        (JSC::JSFunction::JSFunction):
+        (JSC::JSFunction::~JSFunction):
+        (JSC::JSFunction::markChildren):
+        (JSC::JSFunction::getCallData):
+        (JSC::JSFunction::call):
+        (JSC::JSFunction::getOwnPropertySlot):
+        (JSC::JSFunction::getConstructData):
+        (JSC::JSFunction::construct):
+        * runtime/JSFunction.h:
+        (JSC::JSFunction::scope):
+        * runtime/JSGlobalData.h:
+        (JSC::JSGlobalData::getThunk):
+        * runtime/Lookup.cpp:
+        (JSC::setUpStaticFunctionSlot):
+        * runtime/StringConstructor.cpp:
+        (JSC::StringConstructor::StringConstructor):
+
+2010-05-17  Patrick Gansterer  <paroga@paroga.com>
+
+        Reviewed by Laszlo Gombos.
+
+        [Qt] Remove WinCE endian dedection.
+        https://bugs.webkit.org/show_bug.cgi?id=38511
+
+        Windows CE supports little-endian format only.
+        Correct dedection was added in r57804.
+
+        * wtf/Platform.h:
+
 2010-05-17  Simon Fraser  <simon.fraser@apple.com>
 
         Reviewed by Darin Adler.

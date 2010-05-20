@@ -31,6 +31,7 @@
 
 #include "ChromiumBridge.h"
 #include "CSSValueKeywords.h"
+#include "CurrentTime.h"
 #include "FontSelector.h"
 #include "FontUtilsChromiumWin.h"
 #include "GraphicsContext.h"
@@ -659,9 +660,6 @@ bool RenderThemeChromiumWin::paintTextFieldInternal(RenderObject* o,
 // MSDN says that update intervals for the bar is 30ms.
 // http://msdn.microsoft.com/en-us/library/bb760842(v=VS.85).aspx
 static const double progressAnimationFrameRate = 0.033;
-// There is no documentation about the animation speed of 
-// the indeterminate progress bar. So we just guess it.
-static const double progressAnimationNumFrames = 60;
 
 double RenderThemeChromiumWin::animationRepeatIntervalForProgressBar(RenderProgress*) const
 {
@@ -670,9 +668,9 @@ double RenderThemeChromiumWin::animationRepeatIntervalForProgressBar(RenderProgr
 
 double RenderThemeChromiumWin::animationDurationForProgressBar(RenderProgress* renderProgress) const
 {
-    if (renderProgress->isDeterminate())
-        return 0;
-    return progressAnimationNumFrames * progressAnimationFrameRate;
+    // On Chromium Windows port, animationProgress() and associated values aren't used.
+    // So here we can return arbitrary positive value.
+    return progressAnimationFrameRate;
 }
 
 void RenderThemeChromiumWin::adjustProgressBarStyle(CSSStyleSelector*, RenderStyle*, Element*) const
@@ -683,26 +681,22 @@ bool RenderThemeChromiumWin::paintProgressBar(RenderObject* o, const RenderObjec
 {
     RenderProgress* renderProgress = toRenderProgress(o);
 
-    int valuePart;
     IntRect valueRect;
     if (renderProgress->isDeterminate()) {
-        valuePart = PP_FILL;
         int dx = r.width() * renderProgress->position();
         if (renderProgress->style()->direction() == RTL)
             valueRect = IntRect(r.x() + r.width() - dx, r.y(), dx, r.height());
         else
             valueRect = IntRect(r.x(), r.y(), dx, r.height());
     } else {
-        valuePart = PP_MOVEOVERLAY;
-        int dx = r.width() * renderProgress->animationProgress() * 2 - r.width();
-        valueRect = IntRect(r.x() + dx, r.y(), r.width(), r.height());
+        // For indeterminate bar, valueRect is ignored and it is computed by the theme engine
+        // because the animation is a platform detail and WebKit doesn't need to know how.
+        valueRect = IntRect(0, 0, 0, 0);
     }
 
+    double animatedSeconds = renderProgress->animationStartTime() ?  WTF::currentTime() - renderProgress->animationStartTime() : 0;
     ThemePainter painter(i.context, r);
-    ChromiumBridge::paintProgressBar(painter.context(),
-                                     r, 
-                                     valuePart,
-                                     valueRect);
+    ChromiumBridge::paintProgressBar(painter.context(), r, valueRect, renderProgress->isDeterminate(), animatedSeconds);
     return true;
 }
 

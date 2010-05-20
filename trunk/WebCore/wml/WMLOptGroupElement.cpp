@@ -23,10 +23,9 @@
 #if ENABLE(WML)
 #include "WMLOptGroupElement.h"
 
+#include "Attribute.h"
 #include "Document.h"
-#include "MappedAttribute.h"
 #include "HTMLNames.h"
-#include "MappedAttribute.h"
 #include "NodeRenderStyle.h"
 #include "RenderStyle.h"
 #include "NodeRenderStyle.h"
@@ -120,7 +119,7 @@ void WMLOptGroupElement::childrenChanged(bool changedByParser, Node* beforeChang
     WMLFormControlElement::childrenChanged(changedByParser, beforeChange, afterChange, childCountDelta);
 }
 
-void WMLOptGroupElement::parseMappedAttribute(MappedAttribute* attr)
+void WMLOptGroupElement::parseMappedAttribute(Attribute* attr)
 {
     WMLFormControlElement::parseMappedAttribute(attr);
     recalcSelectOptions();

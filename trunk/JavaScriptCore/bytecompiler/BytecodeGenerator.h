@@ -83,6 +83,8 @@ namespace JSC {
         JSGlobalData* globalData() const { return m_globalData; }
         const CommonIdentifiers& propertyNames() const { return *m_globalData->propertyNames; }
 
+        bool isConstructor() { return m_codeBlock->m_isConstructor; }
+
         void generate();
 
         // Returns the register corresponding to a local variable, or 0 if no
@@ -404,15 +406,23 @@ namespace JSC {
         
         RegisterID* newRegister();
 
-        // Returns the RegisterID corresponding to ident.
+        // Adds a var slot and maps it to the name ident in symbolTable().
         RegisterID* addVar(const Identifier& ident, bool isConstant)
         {
             RegisterID* local;
             addVar(ident, isConstant, local);
             return local;
         }
-        // Returns true if a new RegisterID was added, false if a pre-existing RegisterID was re-used.
+
+        // Ditto. Returns true if a new RegisterID was added, false if a pre-existing RegisterID was re-used.
         bool addVar(const Identifier&, bool isConstant, RegisterID*&);
+        
+        // Adds an anonymous var slot. To give this slot a name, add it to symbolTable().
+        RegisterID* addVar()
+        {
+            ++m_codeBlock->m_numVars;
+            return newRegister();
+        }
 
         // Returns the RegisterID corresponding to ident.
         RegisterID* addGlobalVar(const Identifier& ident, bool isConstant)
@@ -432,9 +442,6 @@ namespace JSC {
         {
             if (index >= 0)
                 return m_calleeRegisters[index];
-
-            if (index == RegisterFile::OptionalCalleeArguments)
-                return m_argumentsRegister;
 
             if (m_parameters.size()) {
                 ASSERT(!m_globals.size());
@@ -482,8 +489,7 @@ namespace JSC {
         HashSet<RefPtr<UString::Rep>, IdentifierRepHash> m_functions;
         RegisterID m_ignoredResultRegister;
         RegisterID m_thisRegister;
-        RegisterID m_argumentsRegister;
-        int m_activationRegisterIndex;
+        RegisterID* m_activationRegister;
         SegmentedVector<RegisterID, 32> m_constantPoolRegisters;
         SegmentedVector<RegisterID, 32> m_calleeRegisters;
         SegmentedVector<RegisterID, 32> m_parameters;

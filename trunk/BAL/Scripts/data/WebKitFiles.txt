@@ -175,10 +175,14 @@ WebCore/storage/Database.cpp
 WebCore/svg/SVGDocumentExtensions.cpp
 WebCore/svg/graphics/SVGImage.cpp
 WebCore/websockets/ThreadableWebSocketChannel.cpp
-WebCore/wml/WMLOptionElement.cpp
-WebCore/wml/WMLOptionElement.h
 WebCore/wml/WMLAElement.cpp
 WebCore/wml/WMLErrorHandling.cpp
+WebCore/wml/WMLOptGroupElement.cpp
+WebCore/wml/WMLOptionElement.cpp
+WebCore/wml/WMLOptionElement.h
+WebCore/wml/WMLPrevElement.cpp
+WebCore/wml/WMLRefreshElement.cpp
+WebCore/wml/WMLTaskElement.cpp
 WebCore/workers/AbstractWorker.cpp
 WebCore/workers/Worker.cpp
 WebCore/workers/WorkerContext.cpp

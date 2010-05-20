@@ -55,7 +55,7 @@ private:
 
     virtual int tagPriority() const { return 5; }
 
-    virtual void parseMappedAttribute(MappedAttribute*);
+    virtual void parseMappedAttribute(Attribute*);
 
 #if ENABLE(DAE)
     bool parseDAEMappedAttribute(MappedAttribute*);

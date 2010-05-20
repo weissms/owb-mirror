@@ -23,9 +23,9 @@
 #if ENABLE(WML)
 #include "WMLRefreshElement.h"
 
+#include "Attribute.h"
 #include "Frame.h"
 #include "FrameLoader.h"
-#include "MappedAttribute.h"
 #include "WMLCardElement.h"
 #include "WMLDocument.h"
 #include "WMLPageState.h"

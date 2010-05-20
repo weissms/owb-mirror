@@ -54,7 +54,7 @@ using namespace std;
 
 namespace JSC {
 
-PassRefPtr<NativeExecutable> JIT::stringGetByValStubGenerator(JSGlobalData* globalData, ExecutablePool* pool)
+JIT::CodePtr JIT::stringGetByValStubGenerator(JSGlobalData* globalData, ExecutablePool* pool)
 {
     JSInterfaceJIT jit;
     JumpList failures;
@@ -82,7 +82,7 @@ PassRefPtr<NativeExecutable> JIT::stringGetByValStubGenerator(JSGlobalData* glob
     jit.ret();
     
     LinkBuffer patchBuffer(&jit, pool);
-    return adoptRef(new NativeExecutable(patchBuffer.finalizeCode()));
+    return patchBuffer.finalizeCode().m_code;
 }
 
 void JIT::emit_op_get_by_val(Instruction* currentInstruction)
@@ -127,7 +127,7 @@ void JIT::emitSlow_op_get_by_val(Instruction* currentInstruction, Vector<SlowCas
     Jump nonCell = jump();
     linkSlowCase(iter); // base array check
     Jump notString = branchPtr(NotEqual, Address(regT0), ImmPtr(m_globalData->jsStringVPtr));
-    emitNakedCall(m_globalData->getThunk(stringGetByValStubGenerator)->generatedJITCodeForCall().addressForCall());
+    emitNakedCall(m_globalData->getCTIStub(stringGetByValStubGenerator));
     Jump failed = branchTestPtr(Zero, regT0);
     emitPutVirtualRegister(dst, regT0);
     emitJumpSlowToHot(jump(), OPCODE_LENGTH(op_get_by_val));
@@ -382,7 +382,7 @@ void JIT::emit_op_method_check(Instruction* currentInstruction)
     emitPutVirtualRegister(resultVReg);
 
     // We've already generated the following get_by_id, so make sure it's skipped over.
-    m_bytecodeIndex += OPCODE_LENGTH(op_get_by_id);
+    m_bytecodeOffset += OPCODE_LENGTH(op_get_by_id);
 }
 
 void JIT::emitSlow_op_method_check(Instruction* currentInstruction, Vector<SlowCaseEntry>::iterator& iter)
@@ -395,7 +395,7 @@ void JIT::emitSlow_op_method_check(Instruction* currentInstruction, Vector<SlowC
     compileGetByIdSlowCase(resultVReg, baseVReg, ident, iter, true);
 
     // We've already generated the following get_by_id, so make sure it's skipped over.
-    m_bytecodeIndex += OPCODE_LENGTH(op_get_by_id);
+    m_bytecodeOffset += OPCODE_LENGTH(op_get_by_id);
 }
 
 #else //!ENABLE(JIT_OPTIMIZE_METHOD_CALLS)

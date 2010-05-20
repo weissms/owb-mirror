@@ -27,11 +27,11 @@
 #include "config.h"
 #include "HTMLSelectElement.h"
 
+#include "Attribute.h"
 #include "EventNames.h"
 #include "HTMLNames.h"
 #include "HTMLOptionElement.h"
 #include "HTMLOptionsCollection.h"
-#include "MappedAttribute.h"
 #include "RenderListBox.h"
 #include "RenderMenuList.h"
 #include "ScriptEventListener.h"
@@ -192,7 +192,7 @@ void HTMLSelectElement::restoreFormControlState(const String& state)
     SelectElement::restoreFormControlState(m_data, this, state);
 }
 
-void HTMLSelectElement::parseMappedAttribute(MappedAttribute* attr) 
+void HTMLSelectElement::parseMappedAttribute(Attribute* attr) 
 {
     bool oldUsesMenuList = m_data.usesMenuList();
     if (attr->name() == sizeAttr) {

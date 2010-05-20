@@ -26,6 +26,7 @@
 #include "config.h"
 #include "HTMLInputElement.h"
 
+#include "Attribute.h"
 #include "CSSPropertyNames.h"
 #include "ChromeClient.h"
 #include "DateComponents.h"
@@ -48,7 +49,6 @@
 #include "HTMLParser.h"
 #include "KeyboardEvent.h"
 #include "LocalizedStrings.h"
-#include "MappedAttribute.h"
 #include "MouseEvent.h"
 #include "Page.h"
 #include "RegularExpression.h"
@@ -1059,7 +1059,7 @@ bool HTMLInputElement::mapToEntry(const QualifiedName& attrName, MappedAttribute
     return HTMLElement::mapToEntry(attrName, result);
 }
 
-void HTMLInputElement::parseMappedAttribute(MappedAttribute *attr)
+void HTMLInputElement::parseMappedAttribute(Attribute* attr)
 {
     if (attr->name() == nameAttr) {
         checkedRadioButtons(this).removeButton(this);
@@ -2639,8 +2639,36 @@ void HTMLInputElement::addSubresourceAttributeURLs(ListHashSet<KURL>& urls) cons
 
 bool HTMLInputElement::recalcWillValidate() const
 {
-    return HTMLFormControlElementWithState::recalcWillValidate()
-        && inputType() != HIDDEN && inputType() != BUTTON && inputType() != RESET;
+    switch (inputType()) {
+    case CHECKBOX:
+    case COLOR:
+    case DATE:
+    case DATETIME:
+    case DATETIMELOCAL:
+    case EMAIL:
+    case FILE:
+    case ISINDEX:
+    case MONTH:
+    case NUMBER:
+    case PASSWORD:
+    case RADIO:
+    case RANGE:
+    case SEARCH:
+    case TELEPHONE:
+    case TEXT:
+    case TIME:
+    case URL:
+    case WEEK:
+        return HTMLFormControlElementWithState::recalcWillValidate();
+    case BUTTON:
+    case HIDDEN:
+    case IMAGE:
+    case RESET:
+    case SUBMIT:
+        return false;
+    }
+    ASSERT_NOT_REACHED();
+    return false;
 }
 
 bool HTMLInputElement::parseToDateComponents(InputType type, const String& formString, DateComponents* out)

@@ -125,8 +125,6 @@ namespace WebCore {
 #endif
 #if OS(LINUX)
         static void getRenderStyleForStrike(const char* family, int sizeAndStyle, FontRenderStyle* result);
-        // This code is currently in the process of getting rejiggered, and though
-        // it is not currently used, it will hopefully be used again soon.
         static String getFontFamilyForCharacters(const UChar*, size_t numCharacters);
 #endif
 
@@ -227,7 +225,7 @@ namespace WebCore {
         static void paintTrackbar(
             GraphicsContext*, int part, int state, int classicState, const IntRect&);
         static void paintProgressBar(
-            GraphicsContext*, const IntRect& barRect, int valuePart, const IntRect& valueRect);
+            GraphicsContext*, const IntRect& barRect, const IntRect& valueRect, bool determinate, double animatedSeconds);
 #endif
 
         // Trace Event --------------------------------------------------------

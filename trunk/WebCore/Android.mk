@@ -128,7 +128,6 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	dom/ExceptionCode.cpp \
 	dom/InputElement.cpp \
 	dom/KeyboardEvent.cpp \
-	dom/MappedAttribute.cpp \
 	dom/MessageChannel.cpp \
 	dom/MessageEvent.cpp \
 	dom/MessagePort.cpp \
@@ -137,8 +136,8 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	dom/MouseRelatedEvent.cpp \
 	dom/MutationEvent.cpp \
 	dom/NameNodeList.cpp \
-	dom/NamedAttrMap.cpp \
 	dom/NamedMappedAttrMap.cpp \
+	dom/NamedNodeMap.cpp \
 	dom/Node.cpp \
 	dom/NodeFilter.cpp \
 	dom/NodeFilterCondition.cpp \
@@ -245,6 +244,8 @@ LOCAL_SRC_FILES := $(LOCAL_SRC_FILES) \
 	html/File.cpp \
 	html/FileList.cpp \
 	html/FormDataList.cpp \
+	html/HTML5Lexer.cpp \
+	html/HTML5Tokenizer.cpp \
 	html/HTMLAllCollection.cpp \
 	html/HTMLCollection.cpp \
 	html/HTMLDataListElement.cpp \

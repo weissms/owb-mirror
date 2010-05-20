@@ -223,15 +223,50 @@ PassOwnPtr<WKCACFLayerRenderer> WKCACFLayerRenderer::create()
 }
 
 WKCACFLayerRenderer::WKCACFLayerRenderer()
-    : m_triedToCreateD3DRenderer(false)
-    , m_renderContext(0)
+    : m_mightBeAbleToCreateDeviceLater(true)
+    , m_rootLayer(WKCACFRootLayer::create(this))
+    , m_scrollLayer(WKCACFLayer::create(WKCACFLayer::Layer))
+    , m_clipLayer(WKCACFLayer::create(WKCACFLayer::Layer))
+    , m_context(AdoptCF, CACFContextCreate(0))
+    , m_renderContext(static_cast<CARenderContext*>(CACFContextGetRenderContext(m_context.get())))
     , m_renderer(0)
     , m_hostWindow(0)
     , m_renderTimer(this, &WKCACFLayerRenderer::renderTimerFired)
     , m_scrollPosition(0, 0)
     , m_scrollSize(1, 1)
     , m_backingStoreDirty(false)
+    , m_mustResetLostDeviceBeforeRendering(false)
 {
+    windowsForContexts().set(m_context.get(), this);
+
+    // Under the root layer, we have a clipping layer to clip the content,
+    // that contains a scroll layer that we use for scrolling the content.
+    // The root layer is the size of the client area of the window.
+    // The clipping layer is the size of the WebView client area (window less the scrollbars).
+    // The scroll layer is the size of the root child layer.
+    // Resizing the window will change the bounds of the rootLayer and the clip layer and will not
+    // cause any repositioning.
+    // Scrolling will affect only the position of the scroll layer without affecting the bounds.
+
+    m_rootLayer->setName("WKCACFLayerRenderer rootLayer");
+    m_clipLayer->setName("WKCACFLayerRenderer clipLayer");
+    m_scrollLayer->setName("WKCACFLayerRenderer scrollLayer");
+
+    m_rootLayer->addSublayer(m_clipLayer);
+    m_clipLayer->addSublayer(m_scrollLayer);
+    m_clipLayer->setMasksToBounds(true);
+    m_scrollLayer->setAnchorPoint(CGPointMake(0, 1));
+    m_clipLayer->setAnchorPoint(CGPointMake(0, 1));
+
+#ifndef NDEBUG
+    CGColorRef debugColor = createCGColor(Color(255, 0, 0, 204));
+    m_rootLayer->setBackgroundColor(debugColor);
+    CGColorRelease(debugColor);
+#endif
+
+    if (m_context)
+        m_rootLayer->becomeRootLayerForContext(m_context.get());
+
 #ifndef NDEBUG
     char* printTreeFlag = getenv("CA_PRINT_TREE");
     m_printTree = printTreeFlag && atoi(printTreeFlag);
@@ -305,10 +340,10 @@ void WKCACFLayerRenderer::setNeedsDisplay()
 
 bool WKCACFLayerRenderer::createRenderer()
 {
-    if (m_triedToCreateD3DRenderer)
+    if (m_d3dDevice || !m_mightBeAbleToCreateDeviceLater)
         return m_d3dDevice;
 
-    m_triedToCreateD3DRenderer = true;
+    m_mightBeAbleToCreateDeviceLater = false;
     D3DPRESENT_PARAMETERS parameters = initialPresentationParameters();
 
     if (!d3d() || !::IsWindow(m_hostWindow))
@@ -325,9 +360,31 @@ bool WKCACFLayerRenderer::createRenderer()
         parameters.BackBufferHeight = 1;
     }
 
-    COMPtr<IDirect3DDevice9> device;
-    if (FAILED(d3d()->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hostWindow, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &parameters, &device)))
+    D3DCAPS9 d3dCaps;
+    if (FAILED(d3d()->GetDeviceCaps(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &d3dCaps)))
         return false;
+
+    DWORD behaviorFlags = D3DCREATE_FPU_PRESERVE;
+    if ((d3dCaps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) && d3dCaps.VertexProcessingCaps)
+        behaviorFlags |= D3DCREATE_HARDWARE_VERTEXPROCESSING;
+    else
+        behaviorFlags |= D3DCREATE_SOFTWARE_VERTEXPROCESSING;
+
+    COMPtr<IDirect3DDevice9> device;
+    if (FAILED(d3d()->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hostWindow, behaviorFlags, &parameters, &device))) {
+        // In certain situations (e.g., shortly after waking from sleep), Direct3DCreate9() will
+        // return an IDirect3D9 for which IDirect3D9::CreateDevice will always fail. In case we
+        // have one of these bad IDirect3D9s, get rid of it so we'll fetch a new one the next time
+        // we want to call CreateDevice.
+        s_d3d->Release();
+        s_d3d = 0;
+
+        // Even if we don't have a bad IDirect3D9, in certain situations (e.g., shortly after
+        // waking from sleep), CreateDevice will fail, but will later succeed if called again.
+        m_mightBeAbleToCreateDeviceLater = true;
+
+        return false;
+    }
 
     // Now that we've created the IDirect3DDevice9 based on the capabilities we
     // got from the IDirect3D9 global object, we requery the device for its
@@ -348,48 +405,10 @@ bool WKCACFLayerRenderer::createRenderer()
 
     m_d3dDevice->SetTransform(D3DTS_PROJECTION, &projection);
 
-    m_context.adoptCF(CACFContextCreate(0));
-    windowsForContexts().set(m_context.get(), this);
-
-    m_renderContext = static_cast<CARenderContext*>(CACFContextGetRenderContext(m_context.get()));
     m_renderer = CARenderOGLNew(&kCARenderDX9Callbacks, m_d3dDevice.get(), 0);
-
-    // Create the root hierarchy.
-    // Under the root layer, we have a clipping layer to clip the content,
-    // that contains a scroll layer that we use for scrolling the content.
-    // The root layer is the size of the client area of the window.
-    // The clipping layer is the size of the WebView client area (window less the scrollbars).
-    // The scroll layer is the size of the root child layer.
-    // Resizing the window will change the bounds of the rootLayer and the clip layer and will not
-    // cause any repositioning.
-    // Scrolling will affect only the position of the scroll layer without affecting the bounds.
-
-    m_rootLayer = WKCACFRootLayer::create(this);
-    m_rootLayer->setName("WKCACFLayerRenderer rootLayer");
-
-    m_clipLayer = WKCACFLayer::create(WKCACFLayer::Layer);
-    m_clipLayer->setName("WKCACFLayerRenderer clipLayer");
-    
-    m_scrollLayer = WKCACFLayer::create(WKCACFLayer::Layer);
-    m_scrollLayer->setName("WKCACFLayerRenderer scrollLayer");
-
-    m_rootLayer->addSublayer(m_clipLayer);
-    m_clipLayer->addSublayer(m_scrollLayer);
-    m_clipLayer->setMasksToBounds(true);
-    m_scrollLayer->setAnchorPoint(CGPointMake(0, 1));
-    m_clipLayer->setAnchorPoint(CGPointMake(0, 1));
-
-#ifndef NDEBUG
-    CGColorRef debugColor = createCGColor(Color(255, 0, 0, 204));
-    m_rootLayer->setBackgroundColor(debugColor);
-    CGColorRelease(debugColor);
-#endif
 
     if (IsWindow(m_hostWindow))
         m_rootLayer->setFrame(bounds());
-
-    if (m_context)
-        m_rootLayer->becomeRootLayerForContext(m_context.get());
 
     return true;
 }
@@ -414,7 +433,7 @@ void WKCACFLayerRenderer::destroyRenderer()
     m_scrollLayer = 0;
     m_rootChildLayer = 0;
 
-    m_triedToCreateD3DRenderer = false;
+    m_mightBeAbleToCreateDeviceLater = true;
 }
 
 void WKCACFLayerRenderer::resize()
@@ -422,7 +441,9 @@ void WKCACFLayerRenderer::resize()
     if (!m_d3dDevice)
         return;
 
-    resetDevice();
+    // Resetting the device might fail here. But that's OK, because if it does it we will attempt to
+    // reset the device the next time we try to render.
+    resetDevice(ChangedWindowSize);
 
     if (m_rootLayer) {
         m_rootLayer->setFrame(bounds());
@@ -470,8 +491,12 @@ void WKCACFLayerRenderer::renderTimerFired(Timer<WKCACFLayerRenderer>*)
 
 void WKCACFLayerRenderer::paint()
 {
-    if (!m_d3dDevice)
+    createRenderer();
+    if (!m_d3dDevice) {
+        if (m_mightBeAbleToCreateDeviceLater)
+            renderSoon();
         return;
+    }
 
     if (m_backingStoreDirty) {
         // If the backing store is still dirty when we are about to draw the
@@ -490,6 +515,12 @@ void WKCACFLayerRenderer::paint()
 void WKCACFLayerRenderer::render(const Vector<CGRect>& dirtyRects)
 {
     ASSERT(m_d3dDevice);
+
+    if (m_mustResetLostDeviceBeforeRendering && !resetDevice(LostDevice)) {
+        // We can't reset the device right now. Try again soon.
+        renderSoon();
+        return;
+    }
 
     // Flush the root layer to the render tree.
     WKCACFContextFlusher::shared().flushAllContexts();
@@ -547,10 +578,12 @@ void WKCACFLayerRenderer::render(const Vector<CGRect>& dirtyRects)
         err = m_d3dDevice->Present(0, 0, 0, 0);
 
         if (err == D3DERR_DEVICELOST) {
-            // Lost device situation.
-            CARenderOGLPurge(m_renderer);
-            resetDevice();
             CARenderUpdateAddRect(u, &bounds);
+            if (!resetDevice(LostDevice)) {
+                // We can't reset the device right now. Try again soon.
+                renderSoon();
+                return;
+            }
         }
     } while (err == D3DERR_DEVICELOST);
 
@@ -593,13 +626,43 @@ void WKCACFLayerRenderer::initD3DGeometry()
     m_d3dDevice->SetTransform(D3DTS_PROJECTION, &projection);
 }
 
-void WKCACFLayerRenderer::resetDevice()
+bool WKCACFLayerRenderer::resetDevice(ResetReason reason)
 {
     ASSERT(m_d3dDevice);
+    ASSERT(m_renderContext);
+
+    HRESULT hr = m_d3dDevice->TestCooperativeLevel();
+
+    if (hr == D3DERR_DEVICELOST || hr == D3DERR_DRIVERINTERNALERROR) {
+        // The device cannot be reset at this time. Try again soon.
+        m_mustResetLostDeviceBeforeRendering = true;
+        return false;
+    }
+
+    m_mustResetLostDeviceBeforeRendering = false;
+
+    if (reason == LostDevice && hr == D3D_OK) {
+        // The device wasn't lost after all.
+        return true;
+    }
+
+    // We can reset the device.
+
+    // We have to purge the CARenderOGLContext whenever we reset the IDirect3DDevice9 in order to
+    // destroy any D3DPOOL_DEFAULT resources that Core Animation has allocated (e.g., textures used
+    // for mask layers). See <http://msdn.microsoft.com/en-us/library/bb174425(v=VS.85).aspx>.
+    CARenderOGLPurge(m_renderer);
 
     D3DPRESENT_PARAMETERS parameters = initialPresentationParameters();
-    m_d3dDevice->Reset(&parameters);
+    hr = m_d3dDevice->Reset(&parameters);
+
+    // TestCooperativeLevel told us the device may be reset now, so we should
+    // not be told here that the device is lost.
+    ASSERT(hr != D3DERR_DEVICELOST);
+
     initD3DGeometry();
+
+    return true;
 }
 
 }

@@ -52,9 +52,8 @@ void JIT::compileOpCallInitializeCallFrame()
     // regT0 holds callee, regT1 holds argCount
     store32(regT1, Address(callFrameRegister, RegisterFile::ArgumentCount * static_cast<int>(sizeof(Register))));
 
-    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_data) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // scopeChain
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_scopeChain) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // scopeChain
 
-    emitStore(static_cast<unsigned>(RegisterFile::OptionalCalleeArguments), JSValue());
     storePtr(regT0, Address(callFrameRegister, RegisterFile::Callee * static_cast<int>(sizeof(Register)))); // callee
     storePtr(regT1, Address(callFrameRegister, RegisterFile::ScopeChain * static_cast<int>(sizeof(Register)))); // scopeChain
 }
@@ -132,7 +131,7 @@ void JIT::compileOpCallVarargsSlowCase(Instruction* instruction, Vector<SlowCase
     JITStubCall stubCall(this, cti_op_call_NotJSFunction);
     stubCall.call(dst); // In the interpreter, the callee puts the return value in dst.
 
-    map(m_bytecodeIndex + OPCODE_LENGTH(op_call_varargs), dst, regT1, regT0);
+    map(m_bytecodeOffset + OPCODE_LENGTH(op_call_varargs), dst, regT1, regT0);
     sampleCodeBlock(m_codeBlock);
 }
 
@@ -152,25 +151,35 @@ void JIT::emit_op_ret(Instruction* currentInstruction)
     ret();
 }
 
-void JIT::emit_op_construct_verify(Instruction* currentInstruction)
+void JIT::emit_op_ret_object_or_this(Instruction* currentInstruction)
 {
-    unsigned dst = currentInstruction[1].u.operand;
+    unsigned result = currentInstruction[1].u.operand;
+    unsigned thisReg = currentInstruction[2].u.operand;
 
-    emitLoad(dst, regT1, regT0);
-    addSlowCase(branch32(NotEqual, regT1, Imm32(JSValue::CellTag)));
+    // We could JIT generate the deref, only calling out to C when the refcount hits zero.
+    if (m_codeBlock->needsFullScopeChain())
+        JITStubCall(this, cti_op_ret_scopeChain).call();
+
+    emitLoad(result, regT1, regT0);
+    Jump notJSCell = branch32(NotEqual, regT1, Imm32(JSValue::CellTag));
     loadPtr(Address(regT0, OBJECT_OFFSETOF(JSCell, m_structure)), regT2);
-    addSlowCase(branch8(NotEqual, Address(regT2, OBJECT_OFFSETOF(Structure, m_typeInfo) + OBJECT_OFFSETOF(TypeInfo, m_type)), Imm32(ObjectType)));
-}
+    Jump notObject = branch8(NotEqual, Address(regT2, OBJECT_OFFSETOF(Structure, m_typeInfo) + OBJECT_OFFSETOF(TypeInfo, m_type)), Imm32(ObjectType));
 
-void JIT::emitSlow_op_construct_verify(Instruction* currentInstruction, Vector<SlowCaseEntry>::iterator& iter)
-{
-    unsigned dst = currentInstruction[1].u.operand;
-    unsigned src = currentInstruction[2].u.operand;
+    emitGetFromCallFrameHeaderPtr(RegisterFile::ReturnPC, regT2);
+    emitGetFromCallFrameHeaderPtr(RegisterFile::CallerFrame, callFrameRegister);
 
-    linkSlowCase(iter);
-    linkSlowCase(iter);
-    emitLoad(src, regT1, regT0);
-    emitStore(dst, regT1, regT0);
+    restoreReturnAddressBeforeReturn(regT2);
+    ret();
+
+    notJSCell.link(this);
+    notObject.link(this);
+    emitLoad(thisReg, regT1, regT0);
+
+    emitGetFromCallFrameHeaderPtr(RegisterFile::ReturnPC, regT2);
+    emitGetFromCallFrameHeaderPtr(RegisterFile::CallerFrame, callFrameRegister);
+
+    restoreReturnAddressBeforeReturn(regT2);
+    ret();
 }
 
 void JIT::emitSlow_op_call(Instruction* currentInstruction, Vector<SlowCaseEntry>::iterator& iter)
@@ -347,10 +356,9 @@ void JIT::compileOpCall(OpcodeID opcodeID, Instruction* instruction, unsigned ca
 
     // Fast version of stack frame initialization, directly relative to edi.
     // Note that this omits to set up RegisterFile::CodeBlock, which is set in the callee
-    emitStore(registerOffset + RegisterFile::OptionalCalleeArguments, JSValue());
     emitStore(registerOffset + RegisterFile::Callee, regT1, regT0);
 
-    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_data) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // newScopeChain
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_scopeChain) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // newScopeChain
     store32(Imm32(argCount), Address(callFrameRegister, (registerOffset + RegisterFile::ArgumentCount) * static_cast<int>(sizeof(Register))));
     storePtr(callFrameRegister, Address(callFrameRegister, (registerOffset + RegisterFile::CallerFrame) * static_cast<int>(sizeof(Register))));
     storePtr(regT1, Address(callFrameRegister, (registerOffset + RegisterFile::ScopeChain) * static_cast<int>(sizeof(Register))));
@@ -364,7 +372,7 @@ void JIT::compileOpCall(OpcodeID opcodeID, Instruction* instruction, unsigned ca
 
     // Put the return value in dst. In the interpreter, op_ret does this.
     emitStore(dst, regT1, regT0);
-    map(m_bytecodeIndex + opcodeLengths[opcodeID], dst, regT1, regT0);
+    map(m_bytecodeOffset + opcodeLengths[opcodeID], dst, regT1, regT0);
 
     sampleCodeBlock(m_codeBlock);
 }
@@ -434,9 +442,8 @@ void JIT::compileOpCallInitializeCallFrame()
 {
     store32(regT1, Address(callFrameRegister, RegisterFile::ArgumentCount * static_cast<int>(sizeof(Register))));
 
-    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_data) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // newScopeChain
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_scopeChain) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // newScopeChain
 
-    storePtr(ImmPtr(JSValue::encode(JSValue())), Address(callFrameRegister, RegisterFile::OptionalCalleeArguments * static_cast<int>(sizeof(Register))));
     storePtr(regT0, Address(callFrameRegister, RegisterFile::Callee * static_cast<int>(sizeof(Register))));
     storePtr(regT1, Address(callFrameRegister, RegisterFile::ScopeChain * static_cast<int>(sizeof(Register))));
 }
@@ -639,9 +646,8 @@ void JIT::compileOpCall(OpcodeID opcodeID, Instruction* instruction, unsigned ca
 
     // Fast version of stack frame initialization, directly relative to edi.
     // Note that this omits to set up RegisterFile::CodeBlock, which is set in the callee
-    storePtr(ImmPtr(JSValue::encode(JSValue())), Address(callFrameRegister, (registerOffset + RegisterFile::OptionalCalleeArguments) * static_cast<int>(sizeof(Register))));
     storePtr(regT0, Address(callFrameRegister, (registerOffset + RegisterFile::Callee) * static_cast<int>(sizeof(Register))));
-    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_data) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // newScopeChain
+    loadPtr(Address(regT0, OBJECT_OFFSETOF(JSFunction, m_scopeChain) + OBJECT_OFFSETOF(ScopeChain, m_node)), regT1); // newScopeChain
     store32(Imm32(argCount), Address(callFrameRegister, (registerOffset + RegisterFile::ArgumentCount) * static_cast<int>(sizeof(Register))));
     storePtr(callFrameRegister, Address(callFrameRegister, (registerOffset + RegisterFile::CallerFrame) * static_cast<int>(sizeof(Register))));
     storePtr(regT1, Address(callFrameRegister, (registerOffset + RegisterFile::ScopeChain) * static_cast<int>(sizeof(Register))));
