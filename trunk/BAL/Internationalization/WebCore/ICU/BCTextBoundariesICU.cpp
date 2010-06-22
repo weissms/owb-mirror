@@ -36,7 +36,7 @@ namespace WebCore {
 
 int findNextWordFromIndex(const UChar* chars, int len, int position, bool forward)
 {
-    UBreakIterator* it = wordBreakIterator(chars, len);
+    UBreakIterator* it = reinterpret_cast<UBreakIterator*>(wordBreakIterator(chars, len));
 
     if (forward) {
         position = ubrk_following(it, position);
@@ -67,7 +67,7 @@ int findNextWordFromIndex(const UChar* chars, int len, int position, bool forwar
 
 void findWordBoundary(const UChar* chars, int len, int position, int* start, int* end)
 {
-    UBreakIterator* it = wordBreakIterator(chars, len);
+    UBreakIterator* it = reinterpret_cast<UBreakIterator*>(wordBreakIterator(chars, len));
     *end = ubrk_following(it, position);
     if (*end < 0)
         *end = ubrk_last(it);
