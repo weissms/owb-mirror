@@ -29,6 +29,7 @@ class ParseDrtOptions(OptionParser):
         self.add_option('-p', '--platform', action = 'store', type = 'string', dest = 'platform', metavar = 'PLATFORM', help = 'PLATFORM name for Layout Tests [mandatory]')
         self.add_option('-r', '--revision', action = 'callback', callback = self.__revision, type = 'int', nargs = 1, dest = 'revision', metavar = 'REV', help = 'update Layout Tests to revision REV [require -u before]')
         self.add_option('-s', '--source-path', action = 'store', type = 'string', dest = 'source', metavar = 'PATH', help = 'PATH to browser sources [MANDATORY if you enable websocket]')
+        self.add_option('-t', '--threads', action = 'store',  dest = 'nbThreads',type = 'int', default = 0, help = 'limit the maximum number of threads to the given value')
         self.add_option('-u', '--update-tests', action = 'store_true', dest = 'update', default = False, help = 'update Layout Tests')
         self.add_option('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'verbose mode')
 

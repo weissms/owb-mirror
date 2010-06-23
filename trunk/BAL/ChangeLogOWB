@@ -1,3 +1,13 @@
+2010-06-23  Olivier DOLE  <olivier.dole@mstarsemi.com>
+
+        Add option to drt script: can choose on how many threads to run layout
+        tests.
+        Fix a "too many open files" problem.
+
+        * Scripts/Drt/parser.py:
+        * Scripts/Drt/runThreadTests.py:
+        * Scripts/Drt/runtests.py:
+
 2010-05-17  Mario Bensi  <mbensi@connected-labs.com>
 
         Reviewed by Gilles Bertal.

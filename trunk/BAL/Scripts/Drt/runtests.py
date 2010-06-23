@@ -45,9 +45,10 @@ class RunTests :
         threads = []
         start = 0
         start_time = time.time()
-        cpu_count = multiprocessing.cpu_count()
+        if self.config['nbThreads'] == 0:
+            self.config['nbThreads'] = multiprocessing.cpu_count()
         while start < len(self.testsList) :
-            inc = cpu_count
+            inc = self.config['nbThreads']
             if (start + inc) > len(self.testsList) :
                 inc = len(self.testsList) - start
             for i in xrange(start, start + inc) :

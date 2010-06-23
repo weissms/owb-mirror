@@ -21,6 +21,14 @@ class SingleTestThread(threading.Thread):
         self.output = ""
         self.crash = False
 
+    def __del__(self):
+        if self is not None :
+            if self.proc is not None:
+                if self.proc.stdout is not None:
+                    self.proc.stdout.close()
+                if self.proc.stderr is not None:
+                    self.proc.stderr.close()
+
     def run(self):
         start_time = time.time()
         self.proc = StartTestShell(self.test_command)
